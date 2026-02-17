@@ -1,16 +1,16 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 dark:bg-black">
-      <main className="flex flex-col items-center gap-8 px-4 text-center sm:px-6">
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="size-3 animate-pulse rounded-full bg-blue-500" />
-            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-              Under Development
-            </span>
-          </div>
+      <div className="flex min-h-screen w-full max-w-5xl items-center justify-center border-x border-dashed border-zinc-200 dark:border-zinc-800">
+        <main className="flex flex-col items-center gap-8 px-4 text-center sm:px-6">
+          <div className="flex flex-col items-center gap-4">
+            <Badge variant="outline" className="gap-1.5">
+              <div className="size-2 animate-pulse rounded-full bg-blue-500" />
+              <span>Under Development</span>
+            </Badge>
           <h1 className="text-4xl font-bold tracking-tight text-black dark:text-white sm:text-5xl md:text-6xl">
             Coming Soon
           </h1>
@@ -53,10 +53,11 @@ export default function Home() {
           </svg>
         </Link>
 
-        <footer className="absolute bottom-8 text-sm text-zinc-500 dark:text-zinc-500">
-          © {new Date().getFullYear()} Nesalia Inc. All rights reserved.
-        </footer>
-      </main>
+          <footer className="absolute bottom-8 text-sm text-zinc-500 dark:text-zinc-500">
+            © {new Date().getFullYear()} Nesalia Inc. All rights reserved.
+          </footer>
+        </main>
+      </div>
     </div>
   );
 }
