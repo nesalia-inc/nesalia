@@ -73,4 +73,46 @@ function InputGroupAddon({
           return
         }
         e.currentTarget.parentElement?.querySelector("input")?.focus()
-      
+      }}
+      {...props}
+    />
+  )
+}
+
+function InputGroupInput({
+  className,
+  ...props
+}: React.ComponentProps<typeof Input>) {
+  return (
+    <Input
+      data-slot="input-group-control"
+      className={cn(
+        "shadow-none focus-visible:ring-0",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function InputGroupButton({
+  className,
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button
+      data-slot="input-group-control"
+      className={cn("shadow-none", className)}
+      variant="ghost"
+      size="icon-xs"
+      {...props}
+    />
+  )
+}
+
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupButton,
+}

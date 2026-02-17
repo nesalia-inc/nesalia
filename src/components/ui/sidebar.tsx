@@ -270,4 +270,15 @@ function SidebarTrigger({
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
-      
+            }}
+      {...props}
+    />
+  )
+}
+
+export {
+  Sidebar,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+}

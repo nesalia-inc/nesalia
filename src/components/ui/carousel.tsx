@@ -106,7 +106,18 @@ function Carousel({
 
   return (
     <CarouselContext.Provider
-      value=
+      value={{
+        carouselRef,
+        api,
+        scrollPrev,
+        scrollNext,
+        canScrollPrev,
+        canScrollNext,
+        orientation,
+        opts,
+        setApi,
+        plugins,
+      }}
     >
       <div
         onKeyDownCapture={handleKeyDown}
