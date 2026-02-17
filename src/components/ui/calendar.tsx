@@ -39,9 +39,9 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
-      formatters=
-      classNames=
-      components=
+      formatters={formatters}
+      classNames={classNames}
+      components={components}
       {...props}
     />
   )
