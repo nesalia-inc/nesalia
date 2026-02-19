@@ -2,7 +2,7 @@
 
 > ⚠️ **Under Development** - This project is currently in development.
 
-Coming soon website for Nesalia Inc.
+Coming soon website for Nesalia Inc. Building the future of software engineering education.
 
 ## Tech Stack
 
