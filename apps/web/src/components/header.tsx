@@ -76,7 +76,7 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Avatar className="cursor-pointer">
                     <AvatarImage
-                      src={`https://vercel.com/api/www/avatar?s=64&u=${session.user.name}`}
+                      src={`https://vercel.com/api/www/avatar?s=64&u=${session.user.email}`}
                       alt={session.user.name ?? "User"}
                     />
                     <AvatarFallback>
