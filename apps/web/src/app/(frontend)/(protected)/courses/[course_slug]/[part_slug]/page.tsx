@@ -14,17 +14,16 @@ interface PageProps {
 }
 
 async function getChapterContent(courseSlug: string, partSlug: string) {
-  const contentDir = path.join(process.cwd(), "..", "..", "content", "courses", courseSlug, "chapters");
-  const filePath = path.join(contentDir, `${partSlug}.mdx`);
+  const filePath = path.join(process.cwd(), "content", "courses", courseSlug, "chapters", `${partSlug}.mdx`);
 
   if (!fs.existsSync(filePath)) {
     return null;
   }
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
-  const { content, data } = matter(fileContent);
+  const { content } = matter(fileContent);
 
-  return { content, data };
+  return content;
 }
 
 export default async function Page({ params }: PageProps) {
@@ -38,15 +37,15 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  const chapter = await getChapterContent(course_slug, part_slug);
+  const content = await getChapterContent(course_slug, part_slug);
 
-  if (!chapter) {
+  if (!content) {
     notFound();
   }
 
   return (
     <article className="prose prose-sm max-w-none">
-      <MDXRemote source={chapter.content} />
+      <MDXRemote source={content} />
     </article>
   );
 }
