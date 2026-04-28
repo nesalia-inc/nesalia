@@ -23,7 +23,7 @@ interface PageProps {
 }
 
 function getCourseData(courseSlug: string) {
-  const filePath = path.join(process.cwd(), "content", "courses", courseSlug, "index.mdx");
+  const filePath = path.join(process.cwd(), "..", "..", "content", "courses", courseSlug, "index.mdx");
 
   if (!fs.existsSync(filePath)) {
     return null;
@@ -36,7 +36,7 @@ function getCourseData(courseSlug: string) {
 }
 
 function getChapters(courseSlug: string) {
-  const chaptersDir = path.join(process.cwd(), "content", "courses", courseSlug, "chapters");
+  const chaptersDir = path.join(process.cwd(), "..", "..", "content", "courses", courseSlug, "chapters");
 
   if (!fs.existsSync(chaptersDir)) {
     return [];

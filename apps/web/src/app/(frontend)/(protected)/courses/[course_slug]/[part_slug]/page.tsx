@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 async function getChapterContent(courseSlug: string, partSlug: string) {
-  const contentDir = path.join(process.cwd(), "content", "courses", courseSlug, "chapters");
+  const contentDir = path.join(process.cwd(), "..", "..", "content", "courses", courseSlug, "chapters");
   const filePath = path.join(contentDir, `${partSlug}.mdx`);
 
   if (!fs.existsSync(filePath)) {
