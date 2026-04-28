@@ -1,7 +1,15 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { deesseAuth } from "@/lib/deesse";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { BookOpen, ArrowRight } from "lucide-react";
 
 export default async function HomePage() {
@@ -20,50 +28,62 @@ export default async function HomePage() {
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <BookOpen className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="mt-4 text-lg font-medium">Python Introduction</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Learn the fundamentals of Python programming from scratch.
-          </p>
-          <Button variant="outline" className="mt-4 w-full" asChild>
-            <a href="/courses/python-introduction">
-              Start Course
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
+        <Card className="rounded-md">
+          <CardHeader>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <BookOpen className="h-5 w-5 text-primary" />
+            </div>
+            <CardTitle>Python Introduction</CardTitle>
+            <CardDescription>
+              Learn the fundamentals of Python programming from scratch.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link href="/courses/python-introduction">
+                Start Course
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <BookOpen className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="mt-4 text-lg font-medium">Advanced Python</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Master advanced Python concepts and patterns.
-          </p>
-          <Button variant="outline" className="mt-4 w-full" asChild>
-            <a href="/courses/advanced-python">
-              Start Course
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
+        <Card className="rounded-md">
+          <CardHeader>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <BookOpen className="h-5 w-5 text-primary" />
+            </div>
+            <CardTitle>Advanced Python</CardTitle>
+            <CardDescription>
+              Master advanced Python concepts and patterns.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link href="/courses/advanced-python">
+                Start Course
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <BookOpen className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="mt-4 text-lg font-medium">More Coming Soon</h3>
-          <p className="mt-2 text-sm text-muted-foreground">
-            New courses are being added regularly.
-          </p>
-          <Button variant="outline" className="mt-4 w-full" disabled>
-            Coming Soon
-          </Button>
-        </div>
+        <Card className="rounded-md">
+          <CardHeader>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <BookOpen className="h-5 w-5 text-primary" />
+            </div>
+            <CardTitle>More Coming Soon</CardTitle>
+            <CardDescription>
+              New courses are being added regularly.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" disabled>
+              Coming Soon
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
