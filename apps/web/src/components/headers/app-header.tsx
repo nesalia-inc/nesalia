@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { client } from "@/lib/client"
 
-export function Header() {
+export function AppHeader() {
   const router = useRouter()
   const { data: session, isPending } = client.auth.useSession()
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false)
@@ -57,15 +57,20 @@ export function Header() {
   return (
     <header className="flex h-14 items-center border-b border-border bg-background">
       <div className="flex items-center justify-between w-full px-4 mx-auto max-w-7xl">
-        <Link href="/" className="flex items-center gap-2">
-          <Image
-            src="/nesalia.svg"
-            alt="Logo"
-            width={36}
-            height={36}
-            loading="eager"
-          />
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/nesalia.svg"
+              alt="Logo"
+              width={36}
+              height={36}
+              loading="eager"
+            />
+          </Link>
+          <Link href="/courses" className="text-sm text-muted-foreground hover:text-foreground">
+            Courses
+          </Link>
+        </div>
         <nav className="flex items-center gap-2">
           {session ? (
             <>

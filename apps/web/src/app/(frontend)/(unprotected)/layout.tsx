@@ -1,4 +1,4 @@
-import { Header } from '@/components/header';
+import { AppHeader } from '@/components/headers';
 
 
 export default function UnprotectedLayout({
@@ -8,8 +8,8 @@ export default function UnprotectedLayout({
 }>) {
   return (
     <>
-      <Header />
-      
+      <AppHeader />
+
           {children}
     </>
   );
