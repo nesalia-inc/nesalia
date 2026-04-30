@@ -1,4 +1,3 @@
-import React from "react";
 import { CourseSidebar } from "@/components/sidebars"
 import { AppHeader } from '@/components/headers';
 import { CollapsedSidebarTrigger } from '@/components/collapsed-sidebar-trigger';
@@ -14,15 +13,7 @@ export default function Layout({
 }>) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
-      <SidebarProvider
-        className="flex flex-col"
-        style={
-          {
-            "--sidebar-width": "18rem",
-            "--sidebar-width-mobile": "18rem",
-          } as React.CSSProperties
-        }
-      >
+      <SidebarProvider className="flex flex-col">
         <AppHeader />
         <div className="flex flex-1">
           <CourseSidebar />
