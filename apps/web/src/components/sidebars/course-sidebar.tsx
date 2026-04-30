@@ -39,8 +39,8 @@ interface Section {
 }
 
 const courses = [
-  { slug: 'python-introduction', name: 'Introduction to Python', icon: '🐍' },
-  { slug: 'advanced-python', name: 'Advanced Python', icon: '⚡' },
+  { slug: 'python-introduction', name: 'Introduction to Python' },
+  { slug: 'advanced-python', name: 'Advanced Python' },
 ]
 
 function CourseSwitcher() {
@@ -64,9 +64,6 @@ function CourseSwitcher() {
                 <span className="font-medium">
                   {courses.find(c => c.slug === currentCourse)?.name || 'Course'}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  {courses.find(c => c.slug === currentCourse)?.icon}
-                </span>
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -80,7 +77,6 @@ function CourseSwitcher() {
                 key={course.slug}
                 onSelect={() => router.push(`/courses/${course.slug}`)}
               >
-                <span className="mr-2">{course.icon}</span>
                 {course.name}
                 {course.slug === currentCourse && <Check className="ml-auto" />}
               </DropdownMenuItem>
@@ -206,7 +202,7 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
 
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="bg-background">
         <CourseSwitcher />
       </SidebarHeader>
       <SidebarContent className="bg-background">
@@ -237,7 +233,7 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
           );
         })}
       </SidebarContent>
-      <SidebarFooter className="border-t border-border p-2">
+      <SidebarFooter className="border-t border-border p-2 bg-background">
         <div className="flex items-center justify-end">
           <Button
             variant="ghost"
