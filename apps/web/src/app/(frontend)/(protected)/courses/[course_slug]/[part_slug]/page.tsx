@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { deesseAuth } from "@/lib/deesse";
 import { headers } from "next/headers";
+import { MDXContent } from "@/components/markdown/mdx-content";
+import fs from "fs";
+import path from "path";
 
 interface PageProps {
   params: Promise<{
@@ -9,13 +12,23 @@ interface PageProps {
   }>;
 }
 
-async function getChapter(courseSlug: string, partSlug: string) {
-  try {
-    const content = await import(`@/content/courses/${courseSlug}/chapters/${partSlug}.mdx`);
-    return content.default;
-  } catch {
+async function getChapterContent(courseSlug: string, partSlug: string) {
+  const filePath = path.join(
+    process.cwd(),
+    "src",
+    "content",
+    "courses",
+    courseSlug,
+    "chapters",
+    `${partSlug}.mdx`
+  );
+
+  if (!fs.existsSync(filePath)) {
     return null;
   }
+
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  return fileContent;
 }
 
 export default async function Page({ params }: PageProps) {
@@ -29,15 +42,15 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  const Chapter = await getChapter(course_slug, part_slug);
+  const content = await getChapterContent(course_slug, part_slug);
 
-  if (!Chapter) {
+  if (!content) {
     notFound();
   }
 
   return (
     <article className="prose prose-sm max-w-none">
-      <Chapter />
+      <MDXContent source={content} />
     </article>
   );
 }
