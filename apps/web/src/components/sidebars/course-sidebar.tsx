@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { PanelLeftIcon } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Check, ChevronsUpDown, GalleryVerticalEnd, PanelLeftIcon } from 'lucide-react';
 
 import {
   Sidebar,
@@ -12,6 +12,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -19,6 +20,12 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Chapter {
   slug: string;
@@ -29,6 +36,60 @@ interface Chapter {
 interface Section {
   title: string;
   chapters: Chapter[];
+}
+
+const courses = [
+  { slug: 'python-introduction', name: 'Introduction to Python', icon: '🐍' },
+  { slug: 'advanced-python', name: 'Advanced Python', icon: '⚡' },
+]
+
+function CourseSwitcher() {
+  const params = useParams()
+  const router = useRouter()
+  const currentCourse = params.course_slug as string
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            >
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                <GalleryVerticalEnd className="size-4" />
+              </div>
+              <div className="flex flex-col gap-0.5 leading-none">
+                <span className="font-medium">
+                  {courses.find(c => c.slug === currentCourse)?.name || 'Course'}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {courses.find(c => c.slug === currentCourse)?.icon}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-auto" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-(--radix-dropdown-menu-trigger-width)"
+            align="start"
+          >
+            {courses.map((course) => (
+              <DropdownMenuItem
+                key={course.slug}
+                onSelect={() => router.push(`/courses/${course.slug}`)}
+              >
+                <span className="mr-2">{course.icon}</span>
+                {course.name}
+                {course.slug === currentCourse && <Check className="ml-auto" />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
 }
 
 function getCourseSections(courseSlug: string): Section[] {
@@ -145,6 +206,9 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
 
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
+      <SidebarHeader>
+        <CourseSwitcher />
+      </SidebarHeader>
       <SidebarContent className="bg-background">
         {sections.map((sec) => {
           const sectionSlug = sec.title.toLowerCase().replace(/\s+/g, '-');
