@@ -1,0 +1,299 @@
+---
+title: "Attributes and Methods"
+description: "Learn about different types of methods in Python classes: instance, class, and static methods."
+order: 2
+---
+
+# Attributes and Methods
+
+In the previous section, we learned about classes and objects. Now we dive deeper into methods, which are functions defined inside a class that describe the behavior of objects. Understanding the different types of methods helps you write well-structured object-oriented code.
+
+## What Are Methods
+
+A method is a function defined inside a class. It describes an action that objects of that class can perform. Methods are the "behavior" part of objects. Like functions, methods can accept parameters, perform operations, and return values.
+
+The key difference between a function and a method is that a method is associated with an object and can access that object's data. We call a method on an object using dot notation.
+
+## The `self` Parameter
+
+The first parameter of any instance method must be `self`. This parameter refers to the specific object the method is called on. When we call `object.method()`, Python automatically passes `object` as the `self` argument.
+
+Through `self`, a method can access and modify the object's attributes. Without `self`, the method would have no way to know which object's data to work with:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+```
+
+When we call `alice_account.deposit(100)`, Python internally passes `alice_account` as `self`. Inside the method, `self.balance` refers to Alice's specific balance, not Bob's or any other account's balance.
+
+## Instance Methods
+
+Instance methods are the most common type of method. They operate on the specific instance (object) they are called on and have access to `self`. Instance methods can read and modify instance attributes and call other methods on the same object.
+
+Our `BankAccount` class so far uses only instance methods. Each `BankAccount` object has its own `deposit` and `withdraw` behavior that operates on that object's balance:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return self.balance
+
+    def withdraw(self, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            return self.balance
+        return None
+
+
+alice_account = BankAccount("Alice", 1000)
+bob_account = BankAccount("Bob", 500)
+
+alice_account.deposit(200)
+bob_account.deposit(100)
+
+print(alice_account.balance)
+print(bob_account.balance)
+```
+
+Output:
+
+```
+1200
+600
+```
+
+The `alice_account.deposit(200)` call affected only Alice's balance, and `bob_account.deposit(100)` affected only Bob's balance. This is the power of instance methods: they operate on the specific object they are called on.
+
+## Class Methods
+
+A class method is a method that operates on the class itself, not on individual objects. We decorate a class method with `@classmethod`, and its first parameter is `cls`, which refers to the class (not an instance).
+
+Class methods are useful when we want behavior that applies to the class as a whole, not to specific objects. For example, we might want to track how many bank accounts have been created:
+
+```python
+class BankAccount:
+    total_accounts = 0
+
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+        BankAccount.total_accounts += 1
+
+    @classmethod
+    def get_total_accounts(cls):
+        return cls.total_accounts
+
+
+alice_account = BankAccount("Alice", 1000)
+bob_account = BankAccount("Bob", 500)
+charlie_account = BankAccount("Charlie", 200)
+
+print(BankAccount.get_total_accounts())
+```
+
+Output:
+
+```
+3
+```
+
+The `get_total_accounts` method is a class method. We call it on the class itself (`BankAccount.get_total_accounts()`) rather than on a specific object. The `cls` parameter refers to the `BankAccount` class, allowing us to access `cls.total_accounts`.
+
+## Static Methods
+
+A static method is a method that does not need access to either the instance (`self`) or the class (`cls`). We decorate a static method with `@staticmethod`. Static methods are essentially regular functions that we group inside a class for organizational purposes.
+
+Use static methods when a function logically belongs to a class but does not need any class or instance data:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+    @staticmethod
+    def validate_amount(amount):
+        return amount > 0 and amount < 1000000
+
+
+print(BankAccount.validate_amount(500))
+print(BankAccount.validate_amount(-100))
+```
+
+Output:
+
+```
+True
+False
+```
+
+The `validate_amount` static method does not need `self` or `cls` because it only checks whether an amount is within valid range. We can call it directly on the class without creating an object.
+
+## Accessing Attributes
+
+We access object attributes using dot notation. To read an attribute, we use `object.attribute`. To modify an attribute, we use `object.attribute = value`.
+
+Python also provides the `getattr()` and `setattr()` functions for dynamic attribute access:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+
+alice_account = BankAccount("Alice", 1000)
+
+print(alice_account.balance)
+alice_account.balance = 1500
+print(alice_account.balance)
+
+print(getattr(alice_account, "account_holder"))
+setattr(alice_account, "balance", 2000)
+print(alice_account.balance)
+```
+
+Output:
+
+```
+1000
+1500
+Alice
+2000
+```
+
+While dot notation is preferred in most cases, `getattr()` and `setattr()` are useful when attribute names are stored in variables or when building dynamic code.
+
+## Data Encapsulation (Private Attributes)
+
+Encapsulation means hiding internal details of an object from the outside world. In Python, we use a naming convention to indicate that an attribute should be private: we prefix it with an underscore (`_`).
+
+A single underscore (`_`) signals to other developers that an attribute is intended for internal use and should not be accessed directly from outside the class. The attribute is still accessible, but this is a convention that says "handle with care."
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+
+    def deposit(self, amount):
+        if amount > 0:
+            self._balance += amount
+            return self._balance
+        return None
+
+    def withdraw(self, amount):
+        if 0 < amount <= self._balance:
+            self._balance -= amount
+            return self._balance
+        return None
+
+    def get_balance(self):
+        return self._balance
+
+
+alice_account = BankAccount("Alice", 1000)
+print(alice_account.get_balance())
+alice_account.deposit(500)
+print(alice_account._balance)
+```
+
+Output:
+
+```
+1000
+1500
+```
+
+We renamed `balance` to `_balance` to indicate it is a private attribute. The `get_balance()` method provides a safe way to read the balance from outside the class. Direct access to `_balance` still works (Python does not enforce privacy), but well-designed code uses the methods we defined.
+
+## Practical Example: Expanding BankAccount with Methods
+
+Let us combine everything into a more complete `BankAccount` class:
+
+```python
+class BankAccount:
+    """A class representing a bank account with various methods."""
+
+    bank_name = "Python National Bank"
+    total_accounts = 0
+
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+        BankAccount.total_accounts += 1
+
+    @staticmethod
+    def validate_amount(amount):
+        return amount > 0 and amount < 1000000
+
+    @classmethod
+    def get_total_accounts(cls):
+        return cls.total_accounts
+
+    def deposit(self, amount):
+        if self.validate_amount(amount):
+            self._balance += amount
+            return self._balance
+        return None
+
+    def withdraw(self, amount):
+        if self.validate_amount(amount) and amount <= self._balance:
+            self._balance -= amount
+            return self._balance
+        return None
+
+    def get_balance(self):
+        return self._balance
+
+
+alice_account = BankAccount("Alice", 1000)
+bob_account = BankAccount("Bob", 500)
+
+print(f"Total accounts: {BankAccount.get_total_accounts()}")
+print(f"Alice's balance: {alice_account.get_balance()}")
+print(f"Valid deposit: {BankAccount.validate_amount(500)}")
+print(f"Invalid deposit: {BankAccount.validate_amount(-100)}")
+
+alice_account.deposit(200)
+bob_account.withdraw(100)
+
+print(f"Alice's new balance: {alice_account.get_balance()}")
+print(f"Bob's new balance: {bob_account.get_balance()}")
+```
+
+Output:
+
+```
+Total accounts: 2
+Alice's balance: 1000
+Valid deposit: True
+Invalid deposit: False
+Alice's new balance: 1200
+Bob's new balance: 500
+```
+
+We expanded our `BankAccount` class with a class attribute `total_accounts` to track how many accounts exist, a static method `validate_amount` to validate transaction amounts, a class method `get_total_accounts` to access the total, and private attribute `_balance` for encapsulation.
+
+## Summary
+
+- Methods are functions defined inside a class that describe object behavior
+- The `self` parameter refers to the specific object the method is called on
+- Instance methods operate on specific objects and have access to `self`
+- Class methods operate on the class itself and use `@classmethod` with `cls` parameter
+- Static methods do not need `self` or `cls` and use `@staticmethod`
+- Private attributes (prefixed with `_`) signal that direct access should be avoided
+- We access attributes using dot notation or `getattr()`/`setattr()` functions
+
+In the next section, we will learn about inheritance, which allows a class to inherit behavior from another class.

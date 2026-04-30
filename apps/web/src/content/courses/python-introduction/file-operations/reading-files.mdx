@@ -1,0 +1,172 @@
+---
+title: "Reading Files"
+description: "Learn how to read file contents in Python using various methods and handle files properly."
+order: 1
+---
+
+# Reading Files
+
+You often need to read data from files. Perhaps you want to load a configuration file, process a data set, or read user data that was saved previously. File reading lets you access information stored outside your program.
+
+## What is File Operations and Why We Need It
+
+File operations let your program interact with files stored on your computer. Files are persistent, meaning data survives even after your program closes. Without file operations, every time your program runs, it starts with a blank slate and loses all data when it stops.
+
+We need file operations to:
+- **Store data long-term** - Your program can save information that persists between sessions
+- **Load external data** - Read configuration, datasets, or user content
+- **Share data between programs** - One program can write data that another reads
+
+For example, a game saves your high score to a file so the next time you play, it remembers your progress.
+
+## Opening Files with open()
+
+The `open()` function creates a connection to a file on your computer. You specify the file path and what you want to do with it.
+
+```python
+file = open("example.txt", "r")
+```
+
+The first argument is the file path. The second argument is the **mode**, which determines what you can do with the file. The mode `"r"` means read mode, which lets you read the file but not modify it.
+
+A file path can be:
+- A relative path like `"data.txt"` - relative to where your program runs
+- An absolute path like `"C:/users/name/data.txt"` - the full location on your computer
+- A path with folders like `"data/notes.txt"` - the file `notes.txt` inside the `data` folder
+
+## Reading File Contents
+
+Python gives you three ways to read a file, depending on how much you need.
+
+### The read() Method
+
+The `read()` method reads the entire file and returns it as one string:
+
+```python
+file = open("example.txt", "r")
+content = file.read()
+print(content)
+file.close()
+```
+
+This prints the entire file contents as a single string. The `read()` method reads everything from the current position to the end of the file.
+
+### The readline() Method
+
+The `readline()` method reads a single line from the file:
+
+```python
+file = open("example.txt", "r")
+first_line = file.readline()
+second_line = file.readline()
+print(first_line)
+print(second_line)
+file.close()
+```
+
+Each call to `readline()` reads the next line. A **line** is text ending with a newline character `\n`. This method is useful when you want to process a file one line at a time, especially for large files where reading everything at once would use too much memory.
+
+### The readlines() Method
+
+The `readlines()` method reads all lines and returns them as a list of strings:
+
+```python
+file = open("example.txt", "r")
+lines = file.readlines()
+for line in lines:
+    print(line.strip())  # strip() removes the newline character
+file.close()
+```
+
+Each element in the list is one line from the file, including the trailing newline character `\n`. The `strip()` method removes whitespace (including newlines) from the beginning and end of each line.
+
+## Working with File Pointers
+
+A **file pointer** is an invisible marker that tracks your current position in the file. When you read, the pointer moves forward to show what has already been read.
+
+```python
+file = open("example.txt", "r")
+content = file.read(10)  # Read first 10 characters
+position = file.tell()  # Get current position
+print(f"Current position: {position}")
+file.seek(0)  # Go back to the beginning
+first_chars = file.read(5)  # Read first 5 characters again
+file.close()
+```
+
+- `tell()` returns the current position of the pointer as a number of bytes
+- `seek(position)` moves the pointer to a specific position
+
+This is useful when you need to read the same file multiple times or skip to a specific part.
+
+## Closing Files Properly
+
+Every file you open uses computer resources. If you open too many files without closing them, your program might run out of resources. The `close()` method releases these resources:
+
+```python
+file = open("example.txt", "r")
+content = file.read()
+file.close()  # Always close when done
+```
+
+However, forgetting to close files is a common mistake. Python provides a better approach: the `with` statement.
+
+### The with Statement (Context Manager)
+
+The `with` statement automatically closes the file when you finish, even if an error occurs:
+
+```python
+with open("example.txt", "r") as file:
+    content = file.read()
+# File is automatically closed here
+print(content)
+```
+
+This is called a **context manager**. It handles setup and cleanup for you. You indent your file operations inside the `with` block, and Python closes the file automatically when the block ends, even if your code crashes partway through.
+
+We always use the `with` statement for file operations because it prevents resource leaks and makes your code safer.
+
+## Practical Example: Reading a Config File
+
+Imagine you have a configuration file that stores settings for your program:
+
+```
+# config.txt
+username=alice
+theme=dark
+volume=80
+language=en
+```
+
+You can read and parse this configuration file:
+
+```python
+config = {}
+
+with open("config.txt", "r") as file:
+    for line in file:
+        line = line.strip()  # Remove whitespace and newlines
+        if line and not line.startswith("#"):  # Skip empty lines and comments
+            key, value = line.split("=", 1)  # Split on first = only
+            config[key] = value
+
+print(config)
+# {'username': 'alice', 'theme': 'dark', 'volume': '80', 'language': 'en'}
+
+# Access individual settings
+print(f"Welcome, {config['username']}!")
+print(f"Theme is set to: {config['theme']}")
+```
+
+This code reads the config file line by line, skips comments (lines starting with `#`) and empty lines, then splits each remaining line at the `=` sign to create key-value pairs stored in a dictionary.
+
+## Related Sections
+
+Reading files connects to other important concepts:
+
+- **Writing Files** - Learn how to save data to files in the [Writing Files](/courses/python-introduction/file-operations/writing-files) section
+- **Working with Paths** - Learn how to handle file paths properly in the [Working with Paths](/courses/python-introduction/file-operations/working-with-paths) section
+- **Dictionaries** - The config example uses dictionaries to store key-value pairs (see [Dictionaries](/courses/python-introduction/data-structures/dictionaries))
+- **For Loops** - We use for loops to iterate over lines in a file (see [For Loops](/courses/python-introduction/control-flow/for-loop))
+
+Now that you know how to read files, you are ready to learn how to write data back to files in the next section.

@@ -1,0 +1,182 @@
+---
+title: "Custom Exceptions"
+description: "Learn how to create your own exception classes to represent application-specific errors."
+order: 3
+---
+
+# Custom Exceptions
+
+Sometimes built-in exceptions are not specific enough for your application. Imagine you are building a banking application. A `ValueError` for "insufficient funds" is technically correct, but it does not convey that this is a banking-specific problem. Custom exceptions let you create specialized error types that carry more meaning.
+
+A custom exception is a class you define that inherits from an existing exception. By creating your own exceptions, you make your code more expressive and easier to debug. Other parts of your program can catch these specific exceptions and respond appropriately.
+
+## Creating Custom Exception Classes
+
+You define a custom exception the same way you define any other class, but you inherit from `Exception` (or one of its subclasses). By convention, custom exception names end with "Error".
+
+```python
+class InvalidAgeError(Exception):
+    pass
+```
+
+This creates a new exception class called `InvalidAgeError` that inherits from the base `Exception` class. The `pass` statement means the class has no additional attributes or methods. It inherits all behavior from `Exception`.
+
+You can now raise and catch `InvalidAgeError` just like any built-in exception.
+
+## Inheriting from Exception
+
+When you create a custom exception, you inherit all the standard exception behavior from `Exception`. This includes the ability to store a message, the ability to be raised with a message, and the ability to be caught by type.
+
+```python
+class NegativeNumberError(Exception):
+    pass
+
+def square_root(number):
+    if number < 0:
+        raise NegativeNumberError("Cannot calculate square root of negative number")
+    return number ** 0.5
+
+try:
+    result = square_root(-10)
+except NegativeNumberError as error:
+    print(f"Error: {error}")
+```
+
+The `NegativeNumberError` class inherits everything it needs from `Exception`. You can raise it with a message, and you can catch it by type. The output is "Error: Cannot calculate square root of negative number".
+
+Inheriting from `Exception` gives your custom exception all the standard exception capabilities without requiring any additional code.
+
+## Adding Custom Behavior
+
+You can enhance your custom exceptions with additional attributes and methods. This lets you store extra information about the error that callers can use.
+
+```python
+class ValidationError(Exception):
+    def __init__(self, field, message):
+        self.field = field
+        self.message = message
+        super().__init__(f"{field}: {message}")
+
+    def to_dict(self):
+        return {"field": self.field, "message": self.message}
+```
+
+This `ValidationError` stores the name of the field that failed validation and a descriptive message. The `__init__` method stores these values and calls the parent constructor with a formatted string. The `to_dict` method provides a way to convert the error to a dictionary format.
+
+```python
+try:
+    raise ValidationError("email", "Email address is invalid")
+except ValidationError as error:
+    print(f"Field: {error.field}")
+    print(f"Details: {error.message}")
+    print(f"Dict: {error.to_dict()}")
+```
+
+When raised, this exception carries both the field name and the message. The caller can access each piece of information separately or get the combined dictionary representation.
+
+## Raising Custom Exceptions
+
+You raise custom exceptions the same way you raise built-in exceptions. Use the `raise` keyword followed by the exception class and an optional message.
+
+```python
+class AuthenticationError(Exception):
+    pass
+
+def login(username, password):
+    if username != "admin":
+        raise AuthenticationError("Invalid username")
+
+    if password != "secret":
+        raise AuthenticationError("Invalid password")
+
+    return "Login successful"
+```
+
+This `AuthenticationError` clearly signals that an authentication problem occurred, distinct from a generic `ValueError` or `RuntimeError`. Callers can catch `AuthenticationError` specifically to handle login failures differently from other errors.
+
+## Practical Example: Application-Specific Errors
+
+This example builds a registration system with custom exceptions that represent domain-specific problems.
+
+```python
+class RegistrationError(Exception):
+    """Base exception for registration problems"""
+    pass
+
+class UsernameTakenError(RegistrationError):
+    """Raised when the requested username is already in use"""
+    pass
+
+class EmailAlreadyRegisteredError(RegistrationError):
+    """Raised when the email is already registered"""
+    pass
+
+class WeakPasswordError(RegistrationError):
+    """Raised when the password does not meet security requirements"""
+    pass
+```
+
+These exceptions form a hierarchy. `RegistrationError` is the base class for all registration-related errors. The specific subclasses represent distinct failure scenarios. This hierarchy lets callers catch `RegistrationError` to handle all registration problems, or catch specific subclasses to handle individual cases.
+
+```python
+class UserRegistration:
+    def __init__(self):
+        self.taken_usernames = {"admin", "root", "system"}
+        self.registered_emails = set()
+
+    def register(self, username, email, password):
+        if username in self.taken_usernames:
+            raise UsernameTakenError(f"The username '{username}' is already taken")
+
+        if email in self.registered_emails:
+            raise EmailAlreadyRegisteredError(f"The email '{email}' is already registered")
+
+        if len(password) < 8:
+            raise WeakPasswordError("Password must be at least 8 characters long")
+
+        self.taken_usernames.add(username)
+        self.registered_emails.add(email)
+        return {"username": username, "email": email}
+
+    def handle_registration(self, username, email, password):
+        try:
+            user = self.register(username, email, password)
+            print(f"Registered user: {user['username']}")
+        except UsernameTakenError as error:
+            print(f"Username problem: {error}")
+        except EmailAlreadyRegisteredError as error:
+            print(f"Email problem: {error}")
+        except WeakPasswordError as error:
+            print(f"Password problem: {error}")
+```
+
+The `UserRegistration` class demonstrates practical use of custom exceptions. The `register` method raises specific exceptions for each failure scenario. The `handle_registration` method catches each exception type separately and provides tailored responses.
+
+## When to Create Custom Exceptions vs Using Built-in Ones
+
+Creating custom exceptions adds complexity, so you should reserve them for situations where the benefits justify the cost.
+
+Use built-in exceptions when the error scenario is common and well-understood. `ValueError`, `TypeError`, `KeyError`, and `IndexError` are immediately clear to any Python programmer. Using these communicates effectively without additional explanation.
+
+Create custom exceptions when you need to represent a domain-specific concept, when you want to catch specific errors separately from similar errors, or when you need to attach additional data to the exception.
+
+```python
+# Built-in is sufficient
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
+
+# Custom exception needed
+class InsufficientFundsError(Exception):
+    def __init__(self, balance, requested):
+        self.balance = balance
+        self.requested = requested
+        super().__init__(f"Balance {balance} is less than requested {requested}")
+```
+
+The first function raises `ValueError` because division by zero is a universal mathematical concept. The second function raises a custom `InsufficientFundsError` because this concept is specific to banking and needs to carry both the current balance and the requested amount.
+
+If you find yourself raising the same built-in exception in multiple places with the same message pattern, that is often a sign that a custom exception would improve clarity.
+
+For more on raising exceptions, see the [Raising Exceptions](/courses/python-introduction/error-handling/raising-exceptions) section. For handling exceptions when they occur, see the [Try and Except Blocks](/courses/python-introduction/error-handling/try-and-except-blocks) section.

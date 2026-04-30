@@ -1,0 +1,187 @@
+---
+title: "Writing Files"
+description: "Learn how to write data to files in Python, including creating new files and appending to existing ones."
+order: 2
+---
+
+# Writing Files
+
+You know how to read files, but how do you save data? When your program finishes, you want to keep results, settings, or user progress. Writing files lets you save data that persists after your program stops running.
+
+## Writing to Files
+
+To write to a file, you open it in write mode (`"w"`) and use the `write()` method:
+
+```python
+with open("output.txt", "w") as file:
+    file.write("Hello, World!")
+```
+
+This creates a file called `output.txt` (or overwrites it if it already exists) and writes the text "Hello, World!" into it.
+
+The `write()` method writes a string to the file. It does not add a newline automatically, so you need to include `\n` if you want separate lines:
+
+```python
+with open("output.txt", "w") as file:
+    file.write("First line\n")
+    file.write("Second line\n")
+    file.write("Third line\n")
+```
+
+### The writelines() Method
+
+If you have a list of lines, the `writelines()` method writes them all at once:
+
+```python
+lines = ["Line one\n", "Line two\n", "Line three\n"]
+with open("output.txt", "w") as file:
+    file.writelines(lines)
+```
+
+Note that `writelines()` does not add newlines automatically. Your list must contain the newline characters if you want lines separated.
+
+## File Modes
+
+When opening a file, you choose a mode that determines what operations are allowed:
+
+| Mode | Name | What it does |
+|------|------|-------------|
+| `"r"` | Read | Read from file (default if omitted) |
+| `"w"` | Write | Create new file or overwrite existing |
+| `"a"` | Append | Add to end of existing file |
+| `"x"` | Create | Create new file, fails if exists |
+
+### Write Mode (`"w"`)
+
+Write mode creates a new file or completely overwrites an existing file:
+
+```python
+with open("data.txt", "w") as file:
+    file.write("New content\n")
+```
+
+If `data.txt` already exists, this erases all existing content and starts fresh. Be careful with write mode because you can lose data this way.
+
+### Append Mode (`"a"`)
+
+Append mode adds content to the end of an existing file without changing what is already there:
+
+```python
+with open("log.txt", "a") as file:
+    file.write("New log entry\n")
+```
+
+If the file does not exist, append mode creates it just like write mode. Append mode is ideal for log files because you want to add new entries without losing previous ones.
+
+### Create Mode (`"x"`)
+
+Create mode only creates a new file and fails if the file already exists:
+
+```python
+with open("new_file.txt", "x") as file:
+    file.write("Created a new file\n")
+```
+
+If `new_file.txt` already exists, Python raises a `FileExistsError`. This prevents accidentally overwriting important files.
+
+## Creating New Files
+
+You create a new file by opening it in write, append, or create mode:
+
+```python
+# Using write mode
+with open("file1.txt", "w") as file:
+    file.write("")
+
+# Using create mode (more explicit intent)
+with open("file2.txt", "x") as file:
+    file.write("Hello!")
+```
+
+The create mode (`"x"`) is the safest way to create a new file because it explicitly signals your intent and protects against accidental overwrites.
+
+## Appending to Existing Files
+
+Appending adds new content to the end of a file while keeping existing content intact:
+
+```python
+# First, create a file with initial content
+with open("scores.txt", "w") as file:
+    file.write("Alice: 100\n")
+
+# Later, append more scores
+with open("scores.txt", "a") as file:
+    file.write("Bob: 85\n")
+    file.write("Charlie: 92\n")
+```
+
+After running this, the file contains all three scores. The first line (Alice) stays at the top, and the new scores (Bob and Charlie) appear below it.
+
+## The with Statement for Automatic Closing
+
+Just like reading files, we use the `with` statement when writing files to ensure they close properly:
+
+```python
+with open("output.txt", "w") as file:
+    file.write("Line 1\n")
+    file.write("Line 2\n")
+# File is automatically closed here
+```
+
+Using `with` prevents resource leaks and ensures your data is actually written to disk. Without it, Python might not finish writing all data before your program closes.
+
+## Practical Example: Saving Game Scores
+
+Imagine you are building a game and want to save the player's high score:
+
+```python
+def save_score(player_name, score):
+    """Save a player's score to the high scores file."""
+    with open("highscores.txt", "a") as file:
+        file.write(f"{player_name}: {score}\n")
+
+def get_high_scores():
+    """Read and display all high scores."""
+    try:
+        with open("highscores.txt", "r") as file:
+            scores = []
+            for line in file:
+                line = line.strip()
+                if line:
+                    scores.append(line)
+            return scores
+    except FileNotFoundError:
+        return []  # No scores file yet
+
+# Gameplay loop
+print("Enter your scores (type 'quit' to exit):")
+while True:
+    name = input("Player name: ")
+    if name.lower() == "quit":
+        break
+    score = input("Score: ")
+    save_score(name, score)
+
+# Display all high scores
+print("\nHigh Scores:")
+for entry in get_high_scores():
+    print(f"  {entry}")
+```
+
+This example demonstrates:
+- **Append mode** keeps all scores from previous game sessions
+- **The try-except block** handles the case where no scores file exists yet
+- **The `get_high_scores()` function** reads the file safely and returns an empty list if the file does not exist
+
+The `FileNotFoundError` is an **exception** that Python raises when you try to read a file that does not exist. We cover exceptions in more detail in the Error Handling section.
+
+## Related Sections
+
+Writing files connects to other important concepts:
+
+- **Reading Files** - You learned reading files first; writing is the counterpart (see [Reading Files](/courses/python-introduction/file-operations/reading-files))
+- **Working with Paths** - Learn how to handle file paths properly in the [Working with Paths](/courses/python-introduction/file-operations/working-with-paths) section
+- **String Formatting** - We use f-strings to format score data (see [String Formatting](/courses/python-introduction/strings/string-formatting))
+- **Error Handling** - Learn how to handle file-related errors gracefully (see [Error Handling](/courses/python-introduction/error-handling/))
+
+Now that you know how to read and write files, you are ready to learn about working with file paths in the next section.

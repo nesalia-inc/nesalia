@@ -1,0 +1,155 @@
+---
+title: "Classes and Objects"
+description: "Learn what object-oriented programming is and how to create classes and objects in Python."
+order: 1
+---
+
+# Classes and Objects
+
+Object-oriented programming (OOP) is a way of organizing code around objects rather than actions. An object is a data structure that combines data (called attributes) and behavior (called methods) into a single unit. This approach helps us model real-world things in our code in a natural way.
+
+## What is Object-Oriented Programming?
+
+Object-oriented programming is a programming paradigm that organizes code around objects rather than functions. Instead of writing separate functions that operate on data, we group related data and behavior together into objects. This makes code more organized, reusable, and easier to understand because it mirrors how we think about real-world things.
+
+For example, a bank account in real life has data (account number, balance, owner) and behavior (deposit, withdrawal, check balance). In OOP, we can represent this as a `BankAccount` object that contains both the data and the methods that operate on that data.
+
+## Classes as Blueprints
+
+A class is a blueprint or template for creating objects. It defines what data and behavior every object of that type will have. Think of a class like a recipe: the recipe itself is not a cake, but it describes how to make one.
+
+When we define a class, we specify what attributes (data) and methods (behavior) all objects created from that class will have. We do not actually create any objects yet at this point.
+
+## Objects as Instances
+
+An object is a specific thing created from a class. If a class is the blueprint, then an object is the actual building built from that blueprint. We also call an object an "instance" of a class. Creating an object from a class is called "instantiation."
+
+For example, we might have a `BankAccount` class that defines the structure for bank accounts. Each individual bank account in our program (like Alice's account or Bob's account) would be an object or instance of that class.
+
+## Defining a Class with the `class` Keyword
+
+We define a class using the `class` keyword followed by the class name:
+
+```python
+class BankAccount:
+    """A simple bank account class."""
+    pass
+```
+
+This creates an empty class called `BankAccount`. The `pass` statement is a placeholder that means "do nothing" since we have not added any code yet. In Python, class names should use PascalCase, where each word starts with a capital letter.
+
+## The `__init__` Method (Constructor)
+
+The `__init__` method is a special method that Python calls when we create a new object from a class. We call it the "constructor" because it constructs and initializes the new object with its starting values.
+
+The `__init__` method takes at least one parameter called `self`, which refers to the object being created. We can add other parameters to accept values when creating the object:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+```
+
+The `self.account_holder` and `self.balance` are attributes. The `self` before the attribute name indicates that this attribute belongs to the specific object, not to the class itself. The `initial_balance=0` sets a default value of 0 if no initial balance is provided.
+
+## Creating Object Instances
+
+To create an object, we call the class name followed by parentheses, passing any arguments that the `__init__` method expects:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+alice_account = BankAccount("Alice", 1000)
+bob_account = BankAccount("Bob", 500)
+```
+
+We created two `BankAccount` objects: one for Alice with a starting balance of 1000, and one for Bob with a starting balance of 500. Each object is independent and has its own `balance` and `account_holder` values.
+
+## Instance Attributes vs Class Attributes
+
+Instance attributes are variables that belong to a specific object. Each object gets its own copy of these attributes. In our example, `self.balance` and `self.account_holder` are instance attributes because each `BankAccount` object has its own separate values.
+
+Class attributes are variables that belong to the class itself. All objects created from that class share the same value for class attributes. We define class attributes directly inside the class body, outside of any method:
+
+```python
+class BankAccount:
+    bank_name = "Python National Bank"
+
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+alice_account = BankAccount("Alice", 1000)
+print(alice_account.bank_name)
+
+bob_account = BankAccount("Bob", 500)
+print(bob_account.bank_name)
+```
+
+Output:
+
+```
+Python National Bank
+Python National Bank
+```
+
+Both `alice_account` and `bob_account` share the same `bank_name` value because it is a class attribute. If we change `BankAccount.bank_name`, all objects would see the new value.
+
+## Practical Example: BankAccount Class
+
+Let us put together everything we have learned into a complete `BankAccount` class:
+
+```python
+class BankAccount:
+    """A class representing a simple bank account."""
+
+    bank_name = "Python National Bank"
+
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self.balance = initial_balance
+
+    def deposit(self, amount):
+        self.balance += amount
+        return f"Deposited {amount}. New balance: {self.balance}"
+
+    def withdraw(self, amount):
+        if amount <= self.balance:
+            self.balance -= amount
+            return f"Withdrew {amount}. New balance: {self.balance}"
+        return "Insufficient funds"
+
+    def get_balance(self):
+        return self.balance
+
+
+alice_account = BankAccount("Alice", 1000)
+print(alice_account.deposit(500))
+print(alice_account.withdraw(200))
+print(f"Alice's balance: {alice_account.get_balance()}")
+```
+
+Output:
+
+```
+Deposited 500. New balance: 1500
+Withdrew 200. New balance: 1300
+Alice's balance: 1300
+```
+
+We defined a `BankAccount` class with a class attribute `bank_name`, an `__init__` method that initializes the account holder and balance, and three methods for depositing, withdrawing, and checking the balance. We then created an object for Alice and used its methods.
+
+## Summary
+
+- Object-oriented programming organizes code around objects that combine data and behavior
+- A class is a blueprint for creating objects
+- An object is a specific instance created from a class
+- The `__init__` method initializes new objects with starting values
+- Instance attributes belong to specific objects; class attributes are shared by all objects
+- We use the `class` keyword to define a class, and parentheses with arguments to create an object
+
+In the next section, we will explore attributes and methods in more detail, including instance methods, class methods, and static methods.

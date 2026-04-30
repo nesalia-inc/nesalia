@@ -1,0 +1,319 @@
+---
+title: "Inheritance Basics"
+description: "Learn how classes can inherit from other classes to reuse and extend functionality."
+order: 3
+---
+
+# Inheritance Basics
+
+In the previous sections, we learned about classes, objects, and methods. Now we explore inheritance, a fundamental concept in object-oriented programming that allows a class to reuse functionality from another class. Inheritance lets us create new classes based on existing ones without rewriting code.
+
+## What is Inheritance
+
+Inheritance is a way to create a new class (called a child class or subclass) from an existing class (called a parent class or superclass). The child class automatically gets all the attributes and methods from the parent class, and we can add new attributes and methods or modify existing ones.
+
+Think of inheritance like a family tree. A child inherits traits from their parents, but also has their own unique traits. Similarly, a child class inherits behavior from its parent class but can also have additional behavior.
+
+Inheritance is useful when we have multiple classes that share common characteristics. Instead of writing the same code repeatedly, we put the shared code in a parent class and have child classes inherit from it.
+
+## Parent Class vs Child Class
+
+The parent class (also called the base class or superclass) is the original class that provides the shared attributes and methods. The child class (also called the derived class or subclass) is the new class that inherits from the parent.
+
+Let us say we have a `BankAccount` class. Now we want to create a `SavingsAccount` class that has all the features of `BankAccount` plus an interest rate. We can make `SavingsAccount` inherit from `BankAccount`:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+
+    def deposit(self, amount):
+        if amount > 0:
+            self._balance += amount
+            return self._balance
+        return None
+
+    def withdraw(self, amount):
+        if 0 < amount <= self._balance:
+            self._balance -= amount
+            return self._balance
+        return None
+
+    def get_balance(self):
+        return self._balance
+
+
+class SavingsAccount(BankAccount):
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+```
+
+The `SavingsAccount` class has `(BankAccount)` after its name, which means it inherits from `BankAccount`. We call this "SavingsAccount extends BankAccount" or "SavingsAccount is a subclass of BankAccount."
+
+## The `super()` Function
+
+The `super()` function returns a temporary object that represents the parent class. We use it to call methods from the parent class, most commonly the `__init__` method.
+
+In our `SavingsAccount.__init__`, we call `super().__init__(account_holder, initial_balance)` to initialize the account holder and balance using the parent class's `__init__` method. This avoids duplicating the initialization code.
+
+```python
+class SavingsAccount(BankAccount):
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+
+
+savings = SavingsAccount("Alice", 1000, 0.05)
+print(savings.account_holder)
+print(savings._balance)
+print(savings.interest_rate)
+```
+
+Output:
+
+```
+Alice
+1000
+0.05
+```
+
+The `SavingsAccount` object has all three attributes: `account_holder` and `_balance` from the parent `BankAccount`, and `interest_rate` from `SavingsAccount` itself. The `super().__init__()` call handled the parent attributes.
+
+## Overriding Methods
+
+A child class can provide its own version of a method that already exists in the parent class. This is called "overriding" the method. When we call the overridden method on a child object, Python uses the child's version, not the parent's.
+
+Overriding is useful when the child class needs different behavior than the parent class. Let us add a method to calculate interest to our `SavingsAccount`:
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+
+    def deposit(self, amount):
+        if amount > 0:
+            self._balance += amount
+            return self._balance
+        return None
+
+    def withdraw(self, amount):
+        if 0 < amount <= self._balance:
+            self._balance -= amount
+            return self._balance
+        return None
+
+    def get_balance(self):
+        return self._balance
+
+
+class SavingsAccount(BankAccount):
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+
+    def add_interest(self):
+        interest = self._balance * self.interest_rate
+        self.deposit(interest)
+        return interest
+
+
+savings = SavingsAccount("Alice", 1000, 0.05)
+print(f"Initial balance: {savings.get_balance()}")
+savings.add_interest()
+print(f"After interest: {savings.get_balance()}")
+```
+
+Output:
+
+```
+Initial balance: 1000
+After interest: 1050
+```
+
+The `add_interest` method calculates interest based on the balance and interest rate, then calls the parent class's `deposit` method to add it. This demonstrates how child classes can use methods from the parent class through `super()` and also define their own new methods.
+
+We can also override existing methods. If we wanted a `SavingsAccount` to have a different withdrawal limit, we could override the `withdraw` method:
+
+```python
+class SavingsAccount(BankAccount):
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+
+    def withdraw(self, amount):
+        if amount > 500:
+            return None
+        return super().withdraw(amount)
+```
+
+Here we override `withdraw` to enforce a maximum withdrawal of 500, then call the parent's `withdraw` using `super().withdraw(amount)` for the actual withdrawal logic.
+
+## Multiple Inheritance
+
+Python supports multiple inheritance, where a child class can inherit from more than one parent class. We list multiple parent classes in parentheses, separated by commas:
+
+```python
+class ParentA:
+    def method_a(self):
+        return "Method A"
+
+
+class ParentB:
+    def method_b(self):
+        return "Method B"
+
+
+class Child(ParentA, ParentB):
+    pass
+
+
+child = Child()
+print(child.method_a())
+print(child.method_b())
+```
+
+Output:
+
+```
+Method A
+Method B
+```
+
+The `Child` class inherits both `method_a` from `ParentA` and `method_b` from `ParentB`. Multiple inheritance can be powerful but also complex. When the same method exists in multiple parent classes, Python uses a specific order (MRO, Method Resolution Order) to determine which one to call. For most beginner and intermediate cases, single inheritance (one parent) is simpler and recommended.
+
+## The `isinstance()` Function
+
+The `isinstance()` function checks whether an object is an instance of a specific class or any of its subclasses. It returns `True` if the object is an instance, and `False` otherwise.
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+
+
+class SavingsAccount(BankAccount):
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+
+
+account = BankAccount("Alice", 1000)
+savings = SavingsAccount("Bob", 500, 0.05)
+
+print(isinstance(account, BankAccount))
+print(isinstance(savings, BankAccount))
+print(isinstance(savings, SavingsAccount))
+print(isinstance(account, SavingsAccount))
+```
+
+Output:
+
+```
+True
+True
+True
+False
+```
+
+The `isinstance(savings, BankAccount)` returns `True` because `SavingsAccount` is a subclass of `BankAccount`. A savings account is also a bank account. However, `isinstance(account, SavingsAccount)` returns `False` because a regular bank account is not a savings account.
+
+This is useful when we want to check what type of object we are working with before performing certain operations.
+
+## Practical Example: SavingsAccount Inheriting from BankAccount
+
+Let us put together a complete example combining all the concepts:
+
+```python
+class BankAccount:
+    """Base class for bank accounts."""
+
+    def __init__(self, account_holder, initial_balance=0):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+
+    def deposit(self, amount):
+        if amount > 0:
+            self._balance += amount
+            return self._balance
+        return None
+
+    def withdraw(self, amount):
+        if 0 < amount <= self._balance:
+            self._balance -= amount
+            return self._balance
+        return None
+
+    def get_balance(self):
+        return self._balance
+
+
+class SavingsAccount(BankAccount):
+    """Savings account with interest rate."""
+
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.02):
+        super().__init__(account_holder, initial_balance)
+        self.interest_rate = interest_rate
+
+    def add_interest(self):
+        interest = self._balance * self.interest_rate
+        self.deposit(interest)
+        return interest
+
+
+alice_savings = SavingsAccount("Alice", 1000, 0.05)
+bob_account = BankAccount("Bob", 500)
+
+print(f"Alice's savings balance: {alice_savings.get_balance()}")
+print(f"Bob's account balance: {bob_account.get_balance()}")
+
+alice_savings.deposit(200)
+bob_account.deposit(100)
+
+print(f"After deposits:")
+print(f"Alice's savings balance: {alice_savings.get_balance()}")
+print(f"Bob's account balance: {bob_account.get_balance()}")
+
+interest = alice_savings.add_interest()
+print(f"Alice earned interest: {interest}")
+print(f"Alice's new balance: {alice_savings.get_balance()}")
+
+print(f"\nChecking types:")
+print(f"isinstance(alice_savings, SavingsAccount): {isinstance(alice_savings, SavingsAccount)}")
+print(f"isinstance(alice_savings, BankAccount): {isinstance(alice_savings, BankAccount)}")
+print(f"isinstance(bob_account, BankAccount): {isinstance(bob_account, BankAccount)}")
+```
+
+Output:
+
+```
+Alice's savings balance: 1000
+Bob's account balance: 500
+After deposits:
+Alice's savings balance: 1200
+Bob's account balance: 600
+Alice earned interest: 60
+Alice's new balance: 1260
+
+Checking types:
+isinstance(alice_savings, SavingsAccount): True
+isinstance(alice_savings, BankAccount): True
+isinstance(bob_account, BankAccount): True
+```
+
+The `SavingsAccount` class inherited all the methods from `BankAccount` (deposit, withdraw, get_balance) and added its own `add_interest` method. We can use both types of accounts interchangeably for basic operations, and we can use `isinstance` to check what specific type of account we have.
+
+## Summary
+
+- Inheritance allows a child class to inherit attributes and methods from a parent class
+- The child class can add new attributes and methods or override existing ones
+- The `super()` function calls parent class methods, especially `__init__`
+- Overriding replaces a parent class method with a new implementation in the child class
+- Multiple inheritance allows a class to inherit from multiple parents
+- The `isinstance()` function checks if an object is an instance of a class or its subclasses
+- Inheritance promotes code reuse and models "is-a" relationships (a SavingsAccount is a BankAccount)
+
+With inheritance, you now have a powerful tool for organizing and reusing code in object-oriented programming.

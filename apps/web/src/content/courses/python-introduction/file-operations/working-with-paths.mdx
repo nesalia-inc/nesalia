@@ -1,0 +1,239 @@
+---
+title: "Working with Paths"
+description: "Learn how to work with file paths in Python using os.path and pathlib.Path for reliable, cross-platform path handling."
+order: 3
+---
+
+# Working with Paths
+
+When you work with files, you need to tell Python where to find them. A file path is a string that points to a specific location on your computer. Handling paths correctly is essential for making programs that work on any operating system.
+
+## The os.path Module
+
+The `os.path` module provides functions for working with file paths. It works on all operating systems and handles the differences between Windows, Mac, and Linux path formats.
+
+```python
+import os.path
+
+# Check if a path exists
+print(os.path.exists("config.txt"))  # True or False
+
+# Get the absolute path
+print(os.path.abspath("config.txt"))  # C:\Users\...\config.txt
+
+# Split a path into directory and filename
+directory, filename = os.path.split("/home/user/documents/report.txt")
+print(directory)  # /home/user/documents
+print(filename)   # report.txt
+
+# Get file extension
+print(os.path.splitext("photo.jpg")[1])  # .jpg
+```
+
+The `os.path` module is reliable and has been part of Python for a long time. It works well, but newer code often uses `pathlib` because it offers a cleaner, object-oriented interface.
+
+## pathlib.Path for Modern Path Handling
+
+The `pathlib` module provides `Path` objects that represent file paths as objects rather than strings. This makes path operations more intuitive and readable.
+
+```python
+from pathlib import Path
+
+# Create a Path object
+path = Path("data/config.txt")
+
+# Check if it exists
+print(path.exists())  # True or False
+
+# Get file name and extension
+print(path.name)      # config.txt
+print(path.stem)      # config
+print(path.suffix)    # .txt
+
+# Get parent directories
+print(path.parent)    # data
+print(path.parent.parent)  # .
+```
+
+`Path` objects have **methods** (functions attached to objects) that make common operations simple. Instead of calling separate functions like `os.path.exists()`, you call `path.exists()` on the Path object itself.
+
+### Converting Between Path Types
+
+You can convert between Path objects and strings when needed:
+
+```python
+from pathlib import Path
+
+# Create Path from string
+path = Path("data/file.txt")
+
+# Convert Path to string
+path_string = str(path)  # "data/file.txt"
+
+# Use Path with open()
+with open(path, "r") as file:
+    content = file.read()
+```
+
+## Checking if Paths Exist
+
+Before reading or writing a file, you should check if it exists to avoid errors:
+
+```python
+from pathlib import Path
+
+path = Path("config.txt")
+
+# Check with exists() method
+if path.exists():
+    print("File exists!")
+    with open(path, "r") as file:
+        content = file.read()
+else:
+    print("File does not exist yet")
+```
+
+We also use `is_file()` to check if a path points to a file (as opposed to a directory):
+
+```python
+from pathlib import Path
+
+path = Path("config.txt")
+
+print(path.is_file())    # True if it's a file
+print(path.is_dir())     # True if it's a directory
+```
+
+These methods return a **boolean** value (`True` or `False`). Booleans are fundamental to programming because every decision in a program depends on a boolean value.
+
+## Joining Paths Correctly
+
+Never manually concatenate path strings with `+`. This breaks on different operating systems because they use different separators:
+- Windows uses backslash: `\`
+- Mac and Linux use forward slash: `/`
+
+Instead, use `Path` with the `/` operator or the `joinpath()` method:
+
+```python
+from pathlib import Path
+
+# Use the / operator to join paths
+data_dir = Path("data")
+user_file = data_dir / "users" / "alice.txt"
+
+print(user_file)  # data/users/alice.txt
+
+# Use joinpath() method
+config_file = Path("config").joinpath("settings", "app.json")
+print(config_file)  # config/settings/app.json
+```
+
+The `/` operator is called the **path operator**. It automatically uses the correct separator for your operating system. This makes your code portable across Windows, Mac, and Linux.
+
+## Getting File Information
+
+You can retrieve metadata about files without reading their contents:
+
+```python
+from pathlib import Path
+import datetime
+
+path = Path("config.txt")
+
+# File size in bytes
+print(f"Size: {path.stat().st_size} bytes")
+
+# Last modified time
+modified = path.stat().st_mtime
+modified_date = datetime.datetime.fromtimestamp(modified)
+print(f"Modified: {modified_date}")
+
+# Last accessed time
+accessed = path.stat().st_atime
+accessed_date = datetime.datetime.fromtimestamp(accessed)
+print(f"Accessed: {accessed_date}")
+```
+
+The `stat()` method returns a `StatResult` object containing metadata about the file:
+- `st_size` - file size in bytes
+- `st_mtime` - last modified time as a timestamp
+- `st_atime` - last accessed time as a timestamp
+
+A **timestamp** is a number representing a specific moment in time (seconds since January 1, 1970). The `datetime` module converts timestamps into human-readable dates.
+
+### Using Path Methods for Common Checks
+
+```python
+from pathlib import Path
+
+path = Path("config.txt")
+
+# Check various properties
+print(path.is_file())      # Is it a file?
+print(path.is_dir())       # Is it a directory?
+print(path.is_symlink())   # Is it a symbolic link?
+print(path.exists())       # Does it exist at all?
+
+# Get just the file or directory name
+print(path.name)           # config.txt
+print(path.parent.name)    # parent directory name
+```
+
+## Cross-Platform Path Handling
+
+Different operating systems use different path separators and conventions. Python provides tools to handle this automatically.
+
+### The os.path Functions
+
+```python
+import os.path
+
+# These functions work on all platforms
+os.path.join("folder", "subfolder", "file.txt")  # Cross-platform joining
+os.path.split("/path/to/file.txt")  # Split into parts
+os.path.exists("/path/to/file.txt")  # Check existence
+os.path.getsize("/path/to/file.txt")  # Get file size
+```
+
+### Using pathlib (Recommended)
+
+```python
+from pathlib import Path
+
+# Path objects automatically handle the OS-specific separators
+base = Path("data")
+
+# Works on Windows, Mac, and Linux
+windows_path = base / "users" / "alice.txt"
+mac_linux_path = base / "users" / "alice.txt"
+# Both produce valid paths for their respective systems
+```
+
+### The Path Class Properties
+
+```python
+from pathlib import Path
+
+path = Path("data/file.txt")
+
+# Platform-independent properties
+path.anchor      # The root of the path (e.g., "C:\\" on Windows)
+path.drive        # The drive letter (e.g., "C:" on Windows)
+path.root         # The path root (e.g., "/" or "C:\\")
+
+# Parts of the path
+path.parts        # Tuple of all path components
+```
+
+These properties help you understand the structure of a path and make your code work correctly regardless of which operating system runs it.
+
+## Related Sections
+
+Working with paths connects to other important concepts:
+
+- **Reading Files** - You use paths to locate files to read (see [Reading Files](/courses/python-introduction/file-operations/reading-files))
+- **Writing Files** - You use paths to determine where to save data (see [Writing Files](/courses/python-introduction/file-operations/writing-files))
+- **Booleans** - Many path methods return boolean values (see [If Statements](/courses/python-introduction/control-flow/if-statements))
+- **Datetime** - We use the datetime module to convert timestamps to readable dates (see [Date and Time](/courses/python-introduction/data-structures/datetime))
+
+Now that you understand file paths, you have all the tools you need to work with files in Python. Practice by building a program that reads, processes, and saves data to files on your computer.

@@ -1,0 +1,188 @@
+---
+title: "Importing Modules"
+description: "Learn how to organize your Python code into modules and import them into your programs."
+order: 1
+---
+
+# Importing Modules
+
+As your Python programs grow larger, you need a way to organize your code into separate files. A module is simply a Python file (a file with a `.py` extension) that contains definitions and statements. You can import these modules into other Python files to reuse the code they contain.
+
+## What Are Modules?
+
+A module is a file containing Python code. This file can define functions, classes, and variables that you can use in other files. Modules help you organize related code together and make it reusable across different programs.
+
+When you save Python code in a file, that file becomes a module. The filename (without the `.py` extension) becomes the module's name.
+
+## Importing with `import`
+
+The most common way to use code from another module is with the `import` statement. This brings an entire module into your current file, giving you access to everything defined in it.
+
+```python
+import math
+```
+
+This statement imports the built-in `math` module, which contains mathematical functions and constants. After importing, you can use a dot (`.`) to access the module's contents.
+
+```python
+import math
+
+result = math.sqrt(16)
+print(result)
+```
+
+The dot notation (called attribute access) tells Python to look inside the `math` module for the `sqrt` function. The `sqrt` function calculates the square root of a number. This code outputs `4.0` because 4 squared equals 16.
+
+## Using `from...import`
+
+Sometimes you only need a specific function or variable from a module. The `from...import` statement lets you import exactly what you need without importing the entire module.
+
+```python
+from math import sqrt, pi
+```
+
+This imports only `sqrt` and `pi` from the `math` module. You can now use these directly without the dot prefix.
+
+```python
+from math import sqrt, pi
+
+radius = 5
+area = pi * radius ** 2
+print(sqrt(area))
+```
+
+Here we calculate the area of a circle with radius 5, then find the square root of that area. The `pi` constant contains the mathematical value of pi (approximately 3.14159). This outputs approximately `8.885` units.
+
+You can also import everything from a module using an asterisk:
+
+```python
+from math import *
+```
+
+This imports all public names from the module. However, this approach is generally discouraged because it can make it unclear where names come from and may cause naming conflicts.
+
+## Aliasing with `as`
+
+Sometimes a module name is long or conflicts with a name you already use. You can give a module an alias (an alternative name) using the `as` keyword.
+
+```python
+import datetime as dt
+```
+
+This imports the `datetime` module but gives it the shorter alias `dt`. You then access its contents using the alias.
+
+```python
+import datetime as dt
+
+today = dt.date.today()
+print(today)
+```
+
+The `date.today()` function returns the current date. The alias `dt` lets us call it as `dt.date.today()`. This outputs something like `2024-01-15`.
+
+You can also alias specific imports:
+
+```python
+from collections import defaultdict as dd
+```
+
+This imports `defaultdict` from the `collections` module and renames it to `dd`. A `defaultdict` is a dictionary that provides a default value for keys that do not exist.
+
+## The Standard Library
+
+Python comes with a large collection of modules called the standard library. These modules provide common functionality without needing to install anything extra. You have already seen `math` and `datetime`, but the standard library includes modules for:
+
+- Working with files and directories (`os`, `pathlib`)
+- Handling dates and times (`datetime`, `time`)
+- Generating random numbers (`random`)
+- Reading and writing JSON data (`json`)
+- Regular expression matching (`re`)
+- And hundreds more
+
+Every Python installation includes these modules. You can use them in any program without additional setup.
+
+## Creating Your First Module
+
+Creating your own module is straightforward. You simply save Python code in a file with a `.py` extension. Suppose you create a file named `greetings.py` with this content:
+
+```python
+def say_hello(name):
+    return f"Hello, {name}!"
+
+def say_goodbye(name):
+    return f"Goodbye, {name}!"
+```
+
+You can now import this module in another file:
+
+```python
+import greetings
+
+message = greetings.say_hello("Alice")
+print(message)
+```
+
+The module name comes from the filename `greetings.py`. The `say_hello` function takes a name as input and returns a greeting string. This outputs `Hello, Alice!`.
+
+## Module Search Path (sys.path)
+
+When you import a module, Python needs to find where that module is located. Python searches for modules in a list of directories called the module search path. This path is stored in `sys.path`.
+
+```python
+import sys
+
+print(sys.path)
+```
+
+This prints a list of directories Python searches. The first entry is typically an empty string (`''`), which represents the current directory. Other entries include the standard library location and site-packages directories where third-party packages are installed.
+
+You can add your own directories to `sys.path`:
+
+```python
+import sys
+sys.path.append('/path/to/your/modules')
+```
+
+After adding a path, Python can find modules in that directory. The `append` method adds the new path to the end of the search list.
+
+## Practical Example: Organizing Utility Functions
+
+Imagine you are building a program that frequently works with text. You can organize your text-processing functions into a module called `text_utils.py`:
+
+```python
+# text_utils.py
+
+def word_count(text):
+    """Count the number of words in a text string."""
+    return len(text.split())
+
+def capitalize_words(text):
+    """Capitalize the first letter of each word."""
+    return text.title()
+
+def reverse_string(text):
+    """Reverse the characters in a string."""
+    return text[::-1]
+```
+
+The docstrings (the triple-quoted strings) describe what each function does. Now you can use these functions in your main program:
+
+```python
+import text_utils
+
+sample_text = "hello world from python"
+
+print(text_utils.word_count(sample_text))
+print(text_utils.capitalize_words(sample_text))
+print(text_utils.reverse_string(sample_text))
+```
+
+The `word_count` function splits the text at spaces and counts the resulting pieces. The `title` method capitalizes each word. The slice `[::-1]` reverses a string by stepping backward through it. This outputs `4`, `Hello World From Python`, and `nohtyp morf dlrow olleh`.
+
+By separating code into modules, you keep your main program clean and reuse useful functions across different projects.
+
+## Cross-References
+
+Modules and packages are related concepts. A package is a directory containing multiple modules. To learn more about organizing modules into packages, see the [Standard Library Overview](/courses/python-introduction/modules-and-packages/standard-library-overview) section.
+
+The skills you learned here apply to all Python code you write. Understanding imports is essential for working with external libraries, which you will explore in the [Using Pip and Virtual Environments](/courses/python-introduction/modules-and-packages/using-pip-and-virtual-environments) section.

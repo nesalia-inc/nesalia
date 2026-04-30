@@ -1,0 +1,157 @@
+---
+title: "Raising Exceptions"
+description: "Learn how to主动触发 errors in Python using the raise statement for validation and control flow."
+order: 2
+---
+
+# Raising Exceptions
+
+Sometimes your code needs to signal that something went wrong. Perhaps a function received invalid arguments, or a condition that should never happen actually occurred. Python lets you cause exceptions intentionally using the `raise` statement. This is called **raising** an exception.
+
+Raising an exception is different from catching one. Catching handles an error that already occurred. Raising creates a new error to signal a problem you have detected. When you raise an exception, Python stops executing the current code and looks for an except block to handle it.
+
+## The raise Statement
+
+The `raise` statement causes Python to raise an exception. You provide the exception type and an optional message describing what went wrong.
+
+```python
+age = -5
+
+if age < 0:
+    raise ValueError("Age cannot be negative")
+```
+
+This code checks if `age` is negative. When the condition is true, `raise ValueError` creates a new `ValueError` exception with the message "Age cannot be negative". Python immediately stops and looks for an except block. If no one catches it, the program crashes and displays the error.
+
+The `raise` keyword is followed by an exception class like `ValueError` or `TypeError`. The optional message after the class provides details about what went wrong.
+
+## Raising Built-in Exceptions
+
+Python provides many built-in exception types for common error situations. These exceptions are part of the Python standard library and are designed to represent specific categories of problems.
+
+```python
+def calculate_average(numbers):
+    if not numbers:
+        raise ValueError("Cannot calculate average of empty list")
+
+    total = sum(numbers)
+    average = total / len(numbers)
+    return average
+```
+
+This function calculates the average of a list of numbers. If the list is empty, it raises a `ValueError` because calculating an average of nothing is mathematically undefined. The caller can catch this `ValueError` and handle the empty list case appropriately.
+
+Built-in exceptions cover most error scenarios. `ValueError` represents a value problem, such as an invalid argument or an operation that cannot be performed with the given value.
+
+## Exception Hierarchy
+
+Python exceptions form a hierarchy. All exceptions inherit from a base `Exception` class. Understanding this hierarchy helps you catch multiple related exceptions with a single `except` block.
+
+```python
+# Exception hierarchy (simplified):
+# BaseException
+#   └── Exception (most exceptions inherit from here)
+#       └── ValueError
+#       └── TypeError
+#       └── KeyError
+#       └── IndexError
+```
+
+When you catch a parent exception, you also catch all child exceptions. For example, catching `Exception` would also catch `ValueError`, `TypeError`, and all other exceptions derived from `Exception`.
+
+```python
+try:
+    result = risky_operation()
+except Exception as error:
+    print(f"Something went wrong: {error}")
+```
+
+This catches any exception that inherits from `Exception`, including `ValueError`, `TypeError`, `KeyError`, and many others.
+
+Catching at a higher level in the hierarchy is useful when you want to handle all errors the same way, regardless of their specific type.
+
+## Common Exception Types
+
+Python provides specific exception types for the most common error situations. Using the correct exception type helps other programmers understand what went wrong.
+
+**ValueError** indicates that a value has the right type but an inappropriate value. For example, trying to convert "hello" to an integer causes a `ValueError` because the type (string) is correct but the value cannot be interpreted as a number.
+
+**TypeError** indicates that an operation or function was applied to an object of inappropriate type. For example, trying to add a string and a number together causes a `TypeError` because Python does not know how to add these types together.
+
+**KeyError** indicates that a dictionary does not contain the requested key. For example, accessing `my_dict["nonexistent"]` when "nonexistent" is not in the dictionary causes a `KeyError`.
+
+```python
+def make_smoothie(fruits):
+    if not isinstance(fruits, list):
+        raise TypeError("Fruits must be a list")
+
+    if not fruits:
+        raise ValueError("Cannot make smoothie with no fruits")
+
+    return f"Made smoothie with {len(fruits)} fruits"
+```
+
+This function validates its input. It raises `TypeError` if fruits is not a list, and `ValueError` if the list is empty. The caller can catch each exception type separately to provide different error messages.
+
+## Best Practices for Raising Exceptions
+
+When you raise exceptions, follow these conventions to write clear, maintainable code.
+
+Raise exceptions early in your code to fail fast and make debugging easier. Validate inputs at the beginning of functions so problems are detected close to their source.
+
+```python
+def withdraw(balance, amount):
+    if amount <= 0:
+        raise ValueError("Withdrawal amount must be positive")
+
+    if amount > balance:
+        raise ValueError("Insufficient funds")
+
+    return balance - amount
+```
+
+This function validates the amount before attempting the withdrawal. Both validation checks raise `ValueError` with clear messages describing the problem.
+
+Include helpful messages in your exceptions. The message should explain what went wrong and, if possible, what the correct value should have been.
+
+## Practical Example: Validating Function Arguments
+
+This example demonstrates raising exceptions to validate function arguments. The function processes user registration data and validates each field.
+
+```python
+def register_user(username, email, age):
+    # Validate username
+    if not isinstance(username, str):
+        raise TypeError("Username must be a string")
+
+    if len(username) < 3:
+        raise ValueError("Username must be at least 3 characters long")
+
+    if len(username) > 20:
+        raise ValueError("Username must be at most 20 characters long")
+
+    # Validate email
+    if not isinstance(email, str):
+        raise TypeError("Email must be a string")
+
+    if "@" not in email:
+        raise ValueError("Email must contain an @ symbol")
+
+    # Validate age
+    if not isinstance(age, int):
+        raise TypeError("Age must be an integer")
+
+    if age < 0:
+        raise ValueError("Age cannot be negative")
+
+    if age < 18:
+        raise ValueError("You must be at least 18 years old")
+
+    return {"username": username, "email": email, "age": age}
+```
+
+This function systematically validates each parameter. It raises `TypeError` for type mismatches and `ValueError` for semantic problems with the values. Each exception message clearly describes what is wrong.
+
+The caller can use try/except blocks (covered in the Try and Except Blocks section) to handle these validation errors and show appropriate messages to the user.
+
+The related section on [Try and Except Blocks](/courses/python-introduction/error-handling/try-and-except-blocks) covers how to catch and handle the exceptions you raise here.

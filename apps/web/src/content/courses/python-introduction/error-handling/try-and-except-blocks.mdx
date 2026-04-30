@@ -1,0 +1,146 @@
+---
+title: "Try and Except Blocks"
+description: "Learn how to handle errors gracefully in Python using try and except blocks."
+order: 1
+---
+
+# Try and Except Blocks
+
+When you write programs, things go wrong. A user enters invalid input, a file does not exist, or a network connection fails. These situations cause errors, which programmers call **exceptions**. An exception is an event that occurs during program execution and disrupts the normal flow of instructions.
+
+Error handling is the practice of anticipating these problems and writing code that responds to them gracefully. Instead of your program crashing and showing a scary red error message, you can catch the problem and decide what happens next.
+
+## The try/except Syntax
+
+Python provides the `try` and `except` keywords for handling exceptions. The code you want to monitor goes inside the `try` block. If an error occurs, Python looks for an `except` block to handle it.
+
+```python
+try:
+    result = 10 / 0
+except ZeroDivisionError:
+    print("Cannot divide by zero")
+```
+
+This code attempts to divide 10 by 0, which is mathematically impossible. The `try` block catches the `ZeroDivisionError` and runs the code in the `except` block instead of crashing. The output is "Cannot divide by zero".
+
+The `try` keyword starts the block where you place risky code. The `except` keyword defines a block that runs only when a specific error occurs inside the `try` block.
+
+## Catching Specific Exceptions
+
+You can specify which type of exception you want to catch. This is important because different errors require different responses.
+
+```python
+numbers = [1, 2, 3]
+
+try:
+    print(numbers[10])
+except IndexError:
+    print("That index does not exist in the list")
+```
+
+This code tries to access an index that is beyond the list length. An `IndexError` occurs because the list only has three items (indices 0, 1, and 2). The `except IndexError` catches this specific error and prints a helpful message instead.
+
+Specifying the exception type matters because a single `try` block might raise different errors, and you want to handle each appropriately.
+
+## Catching Multiple Exceptions
+
+You can handle different exceptions in separate `except` blocks. Python checks each `except` in order until it finds one that matches the exception type.
+
+```python
+data = {"name": "Alice", "age": 30}
+
+try:
+    value = data["occupation"]
+    number = int("hello")
+except KeyError:
+    print("That key does not exist in the dictionary")
+except ValueError:
+    print("That string cannot be converted to a number")
+```
+
+The first `except` block catches the `KeyError` because "occupation" does not exist in the dictionary. The second `except` block with `ValueError` would never run in this example, but it demonstrates how you can handle multiple error types separately.
+
+Each `except` block handles a different type of problem. `KeyError` happens when a dictionary key does not exist. `ValueError` happens when a value has the wrong type for an operation.
+
+## The else Clause
+
+The `else` clause runs only when the `try` block completes without any exceptions. This is useful for code that should only run when everything succeeds.
+
+```python
+try:
+    number = int("42")
+except ValueError:
+    print("Invalid number format")
+else:
+    print(f"The number is {number}")
+```
+
+The string "42" converts successfully to the integer 42, so the `else` block runs and prints "The number is 42". If the string were "hello", the `except` block would run instead, and the `else` block would be skipped.
+
+The `else` clause lets you separate the success path from the error handling. You put code that depends on success in `else` rather than at the end of the `try` block.
+
+## The finally Clause
+
+The `finally` clause runs regardless of whether an exception occurred. This is useful for cleanup actions that must happen no matter what, such as closing files or releasing resources.
+
+```python
+file = None
+
+try:
+    file = open("example.txt", "r")
+    content = file.read()
+except FileNotFoundError:
+    print("The file does not exist")
+finally:
+    if file:
+        file.close()
+    print("Cleanup complete")
+```
+
+This code attempts to open a file. If the file does not exist, the `except` block runs. In both cases, the `finally` block runs and closes the file if it was opened, then prints "Cleanup complete". The `finally` block always executes, even if an exception is raised or if a `return` statement is encountered.
+
+The `finally` clause ensures that cleanup code runs even when errors occur. This prevents resource leaks where files or connections remain open.
+
+## Exception Objects (Error Messages)
+
+When an exception occurs, Python creates an exception object that contains information about the error. You can capture this object in the `except` block to access the error message and other details.
+
+```python
+try:
+    number = int("not a number")
+except ValueError as error:
+    print(f"Error occurred: {error}")
+    print(f"Error type: {type(error).__name__}")
+```
+
+The `as error` syntax captures the exception object into a variable called `error`. You can then access the error message with `{error}` and the exception type name with `type(error).__name__`. The output shows "Error occurred: invalid literal for int() with base 10: 'not a number'" and "Error type: ValueError".
+
+Exception objects contain the details that Python generates when an error occurs. Printing these details helps you understand what went wrong, especially when debugging.
+
+## Practical Example: Safe User Input Parsing
+
+Here is a complete example that combines all the concepts. This function safely asks the user for a number and handles various error cases.
+
+```python
+def get_user_age():
+    try:
+        age_text = input("Enter your age: ")
+        age = int(age_text)
+
+        if age < 0:
+            raise ValueError("Age cannot be negative")
+
+        if age > 150:
+            raise ValueError("That age seems unrealistic")
+
+    except ValueError as error:
+        print(f"Invalid input: {error}")
+        return None
+    else:
+        print(f"You are {age} years old")
+        return age
+```
+
+This function attempts to convert user input to an integer. The `try` block catches `ValueError` if the input is not a valid number. It also uses the `raise` keyword (covered in the Raising Exceptions section) to check for negative ages and unrealistic ages, raising a `ValueError` in those cases. If the conversion succeeds and the value passes validation, the `else` block runs and returns the age. The `finally` block is not needed here because there are no resources to clean up.
+
+The function demonstrates how exception handling lets you guide users through valid input while preventing crashes from invalid data.

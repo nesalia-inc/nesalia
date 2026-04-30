@@ -1,0 +1,349 @@
+---
+title: "Using Pip and Virtual Environments"
+description: "Learn how to install packages with pip and manage project dependencies using virtual environments."
+order: 3
+---
+
+# Using Pip and Virtual Environments
+
+As you write more Python programs, you will often need functionality that is not part of the standard library. Python's ecosystem includes thousands of third-party packages that you can install and use in your projects. Pip is the package installer for Python, and virtual environments help you manage dependencies for each project separately.
+
+## What Is Pip
+
+Pip is Python's official package installer. It stands for "Pip Installs Packages" (a recursive acronym, a common tradition in programming). Pip connects to the Python Package Index (PyPI), an online repository containing hundreds of thousands of Python packages.
+
+When you install Python, pip is included automatically. You can verify pip is available by running a command in your terminal.
+
+```bash
+pip --version
+```
+
+This command displays the pip version and the Python version it is associated with. The output looks something like `pip 24.0 from /usr/lib/python3.12/site-packages/pip (python 3.12)`.
+
+## Installing Packages with Pip
+
+Installing a package with pip is straightforward. You use the `pip install` command followed by the package name.
+
+```bash
+pip install requests
+```
+
+This command downloads and installs the `requests` package, which is a popular library for making HTTP requests in Python. After installation, the package is available for import in your Python code.
+
+```python
+import requests
+
+response = requests.get("https://api.github.com")
+print(response.status_code)
+```
+
+The `requests.get` function sends an HTTP GET request to a URL and returns a response object. The `status_code` attribute contains the HTTP status code (200 means success). This outputs `200` for a successful request.
+
+You can install a specific version of a package:
+
+```bash
+pip install requests==2.31.0
+```
+
+Specifying a version ensures your code works consistently across different machines and over time.
+
+You can also upgrade a package to its latest version:
+
+```bash
+pip install --upgrade requests
+```
+
+The `--upgrade` flag installs the newest version of the package, replacing any older version that might be installed.
+
+## Requirements.txt for Dependencies
+
+When you share your code with others or deploy it to a server, you need a way to specify which packages your project requires. A `requirements.txt` file lists all dependencies and their versions.
+
+### Creating Requirements.txt
+
+You can create a requirements file manually by listing packages:
+
+```text
+requests==2.31.0
+numpy==1.26.0
+pandas==2.1.0
+```
+
+Each line contains a package name and optional version constraint. Version constraints can be:
+- Exact: `requests==2.31.0`
+- Minimum: `requests>=2.31.0`
+- Range: `requests>=2.0,<3.0`
+
+### Generating Requirements.txt Automatically
+
+If you have packages installed in your environment, you can generate a requirements file automatically:
+
+```bash
+pip freeze > requirements.txt
+```
+
+The `pip freeze` command lists all installed packages and their versions. The `>` symbol redirects this output to a file. The resulting file contains all packages, including indirect dependencies, with their exact versions.
+
+### Viewing Current Dependencies
+
+```bash
+pip list
+```
+
+This command shows all currently installed packages and their versions in a simple format, without the strict version formatting that `pip freeze` uses.
+
+## What Are Virtual Environments
+
+A virtual environment is an isolated Python environment that contains its own Python interpreter and a collection of installed packages. Virtual environments solve a common problem: different projects require different package versions, and those versions may conflict.
+
+For example, Project A might need `requests==2.28.0` while Project B needs `requests==2.31.0`. Without virtual environments, you would have to uninstall and reinstall requests every time you switch projects. With virtual environments, each project has its own isolated space with exactly the packages it needs.
+
+## Creating and Activating Venv
+
+Python includes the `venv` module for creating virtual environments. You create a virtual environment in a dedicated directory, typically named `venv` or `env`.
+
+### Creating a Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+The `python -m venv` command creates a virtual environment. The first `venv` is the module name, and the second `venv` is the directory name for the environment. This creates a directory containing the Python interpreter and support files.
+
+### Activating a Virtual Environment
+
+Activating the virtual environment changes your terminal session to use the isolated Python instead of the system Python.
+
+On Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+On macOS and Linux:
+
+```bash
+source venv/bin/activate
+```
+
+After activation, your terminal prompt changes to show the environment name, like `(venv)`. Any `python` command now uses the virtual environment's interpreter, and any `pip install` command installs packages into the virtual environment.
+
+To deactivate and return to the system Python:
+
+```bash
+deactivate
+```
+
+### Checking the Active Environment
+
+```bash
+which python
+```
+
+On Windows, you can use:
+
+```bash
+where python
+```
+
+This command shows the path to the currently active Python interpreter. When a virtual environment is activated, it shows the path inside the virtual environment directory.
+
+## Installing from Requirements.txt
+
+Once you have created and activated a virtual environment, you can install all dependencies from a requirements file:
+
+```bash
+pip install -r requirements.txt
+```
+
+The `-r` flag tells pip to read the requirements from the specified file and install all listed packages. This is the standard way to set up a project on a new machine.
+
+### Example Workflow
+
+Here is a complete workflow for starting a new project:
+
+```bash
+# Create project directory and navigate to it
+mkdir myproject
+cd myproject
+
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install packages
+pip install requests==2.31.0
+pip install flask==3.0.0
+
+# Generate requirements file
+pip freeze > requirements.txt
+```
+
+This creates an isolated environment with specific package versions. Anyone who clones your project can run the same commands to recreate the same environment.
+
+## Best Practices for Project Dependencies
+
+Following consistent practices makes managing dependencies easier and prevents common problems.
+
+### Pin Exact Versions
+
+We pin exact versions in requirements files. This ensures that everyone working on the project and every deployment uses the same package versions. Without pinned versions, different machines might install slightly different versions that behave differently.
+
+```
+requests==2.31.0
+flask==3.0.0
+numpy==1.26.0
+```
+
+### Separate Development and Production Dependencies
+
+Larger projects often have dependencies needed only during development, such as testing frameworks or linting tools. We use separate requirements files for these.
+
+A common pattern is:
+- `requirements.txt` - Production dependencies
+- `requirements-dev.txt` - Development dependencies (includes production plus dev tools)
+
+```bash
+# Install only production dependencies
+pip install -r requirements.txt
+
+# Install all dependencies including development
+pip install -r requirements-dev.txt
+```
+
+### Keep the Virtual Environment Outside Source Control
+
+Virtual environment directories (typically named `venv`, `env`, or `.venv`) should not be committed to version control. They are large and machine-specific. We add them to `.gitignore`:
+
+```text
+venv/
+env/
+*.egg-info/
+__pycache__/
+```
+
+The `.gitignore` file tells Git which files and directories to ignore. This prevents accidentally committing your virtual environment to your repository.
+
+### Update Packages Regularly
+
+We periodically update packages to get bug fixes and security patches:
+
+```bash
+# List packages with available updates
+pip list --outdated
+
+# Upgrade a specific package
+pip install --upgrade requests
+
+# Update requirements file after upgrades
+pip freeze > requirements.txt
+```
+
+The `pip list --outdated` command shows packages that have newer versions available. Regularly checking and updating packages keeps your project secure and current.
+
+## Practical Example: Setting Up a Project
+
+Let us set up a complete Python project from scratch using the best practices you learned.
+
+### Step 1: Create the Project Structure
+
+```bash
+mkdir weather-app
+cd weather-app
+mkdir tests
+touch weather.py
+touch tests/test_weather.py
+```
+
+This creates a project directory with a main module file and a tests directory. The `touch` command creates empty files.
+
+### Step 2: Create and Activate the Virtual Environment
+
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+The virtual environment isolates this project's dependencies from your system Python and other projects.
+
+### Step 3: Install Dependencies
+
+```bash
+pip install requests==2.31.0
+pip install pytest==7.4.0
+```
+
+We install `requests` for making HTTP API calls and `pytest` for running tests.
+
+### Step 4: Create the Requirements Files
+
+```bash
+pip freeze > requirements.txt
+```
+
+Your requirements.txt now contains:
+
+```text
+certifi==2023.11.17
+charset-normalizer==3.3.2
+idna==4.0.1
+pytest==7.4.0
+requests==2.31.0
+urllib3==2.1.0
+```
+
+Notice that `pip freeze` includes indirect dependencies (like `certifi` and `urllib3`) that `requests` depends on. These are all necessary for `requests` to work correctly.
+
+### Step 5: Write Code
+
+```python
+# weather.py
+import requests
+
+def get_weather(city):
+    """Fetch current weather for a city using a public API."""
+    url = f"https://api.weather.example.com/current?city={city}"
+    response = requests.get(url)
+    return response.json()
+
+def celsius_to_fahrenheit(celsius):
+    """Convert Celsius temperature to Fahrenheit."""
+    return (celsius * 9/5) + 32
+```
+
+This is a simple weather module with a function to fetch weather data and a temperature conversion function.
+
+### Step 6: Add .gitignore
+
+```text
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+```
+
+### Step 7: Recreate the Environment
+
+If someone clones your repository, they can set up the same environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+This reproduces the exact same dependencies on a new machine.
+
+## Cross-References
+
+To understand how packages work once installed, see the [Importing Modules](/courses/python-introduction/modules-and-packages/importing-modules) section. You use the same `import` syntax to use packages you install with pip.
+
+To learn about Python's built-in modules that do not require installation, see the [Standard Library Overview](/courses/python-introduction/modules-and-packages/standard-library-overview) section.
+
+For organizing your own code into reusable modules, see the [Importing Modules](/courses/python-introduction/modules-and-packages/importing-modules) section.
