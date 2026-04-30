@@ -58,6 +58,33 @@ export async function generateStaticParams(): Promise<PathParams[]> {
 }
 
 function getCourseSections(courseSlug: string): Section[] {
+  const sections: Record<string, Section[]> = {
+    'python-introduction': [
+      {
+        title: 'Introduction',
+        chapters: [
+          { slug: '01-introduction', title: 'Introduction to Python', order: 1 },
+          { slug: '02-basic-syntax', title: 'Basic Syntax', order: 2 },
+        ],
+      },
+      {
+        title: 'Control Flow',
+        chapters: [
+          { slug: 'if-statements', title: 'If Statements', order: 1 },
+        ],
+      },
+    ],
+    'advanced-python': [
+      {
+        title: 'Advanced Functions',
+        chapters: [
+          { slug: '01-advanced-functions', title: 'Advanced Functions', order: 1 },
+        ],
+      },
+    ],
+  };
+  return sections[courseSlug] || [];
+}
 
 async function getChapterContent(courseSlug: string, section: string, chapterSlug: string) {
   const filePath = path.join(
