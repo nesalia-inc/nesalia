@@ -202,7 +202,7 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
 
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
-      <SidebarHeader className="bg-background">
+      <SidebarHeader className="border-b border-border bg-background">
         <CourseSwitcher />
       </SidebarHeader>
       <SidebarContent className="bg-background">
