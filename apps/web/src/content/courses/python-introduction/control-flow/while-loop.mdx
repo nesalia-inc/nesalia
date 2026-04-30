@@ -6,7 +6,17 @@ order: 3
 
 # The while Loop
 
-We use the `while` loop when we need to repeat code an unknown number of times, continuing as long as a condition remains true.
+You use the `while` loop when you need to repeat code an unknown number of times, continuing as long as a condition remains true. Unlike a `for` loop, which iterates over a known sequence, a `while` loop is ideal when you do not know beforehand how many iterations you need.
+
+## When to Use while vs for Loop
+
+Understanding when to use each loop type helps you write clearer, more appropriate code:
+
+- **Use a `while` loop** when you need to repeat code an unknown number of times. The loop continues until a condition is met, and you cannot predict when that will happen. Examples include waiting for user input, reading until you find a specific value, or processing data until you reach an end-of-file marker.
+
+- **Use a `for` loop** when you know exactly how many times you want to iterate. A `for` loop works well with sequences like lists, ranges, or strings. For more details, see the [for loop](/courses/python-introduction/control-flow/for-loop) documentation.
+
+In short: use `while` for **unknown iterations** and `for` for **known iterations**.
 
 ## Basic Syntax
 
@@ -15,7 +25,7 @@ while condition:
     # code to execute while condition is true
 ```
 
-Python checks the condition before each iteration. If it is true, we execute the block and check again. When the condition becomes false, the loop stops.
+Python checks the condition before each iteration. If it is true, the code block executes and Python checks again. When the condition becomes false, the loop stops. This means the code inside the loop might never run if the condition starts as false.
 
 ## Simple Example
 
@@ -36,11 +46,11 @@ Output:
 4
 ```
 
-We initialize `count` to 0, then loop while `count < 5`. Each iteration prints the current value, then increments it. When `count` reaches 5, the condition is false and we exit.
+You initialize `count` to 0, then loop while `count < 5`. Each iteration prints the current value, then increments it. When `count` reaches 5, the condition becomes false and you exit the loop. This example demonstrates a typical countdown pattern where you control loop termination with a counter.
 
 ## Loop with User Input
 
-We use `while` loops to keep asking for input until we receive valid data:
+You use `while` loops to keep asking for input until you receive valid data. This is one of the most common real-world uses of `while` loops because you often cannot predict how many attempts a user will need:
 
 ```python
 password = ""
@@ -51,23 +61,29 @@ while password != "secret":
 print("Access granted!")
 ```
 
-This loops until the user types "secret".
+This loop keeps prompting the user for a password until they type "secret". The loop will continue indefinitely if the user never enters the correct password, which is a good example of why you must ensure your conditions can eventually become false.
 
 ## Infinite Loops
 
-If the condition never becomes false, the loop runs forever. We must ensure the condition will eventually be met:
+An infinite loop occurs when the condition never becomes false, causing the program to run forever. This is one of the most dangerous and common mistakes in programming. You must ensure the condition will eventually be met by updating the variables used in the condition inside the loop body.
 
 ```python
-# This creates an infinite loop
+# This creates an infinite loop - DO NOT uncomment
 # while True:
 #     print("This runs forever")
 ```
 
-To stop an infinite loop, press `Ctrl+C` in most terminals.
+Infinite loops often happen accidentally when you forget to update the condition variable. For example, if you increment the wrong variable or fail to update the variable at all, your loop will never end. They can also occur when the condition logic is flawed, such as using `>` when you meant `>=`, or when external data (like user input or file content) never matches your expected values.
+
+Infinite loops waste CPU resources and can indicate bugs in your code. In a production environment, an infinite loop might prevent your program from responding to requests or cause a server to hang.
+
+To stop an infinite loop manually, press `Ctrl+C` in most terminals. In some IDEs, you may have a "Stop" button. In deployed applications, you would need to restart the process.
+
+For more control statements that help you manage loop behavior, see the [break, continue, and pass](/courses/python-introduction/control-flow/break-continue-pass) documentation.
 
 ## Using a Flag
 
-We control loop execution with a boolean flag when the stopping condition depends on events inside the loop:
+You control loop execution with a boolean flag when the stopping condition depends on events inside the loop. Flags make your code more readable than complex conditions:
 
 ```python
 active = True
@@ -93,9 +109,11 @@ Count is 4
 Loop ended
 ```
 
+The `active` flag starts as `True` and the loop runs until you set it to `False` inside the loop body. This pattern is useful when the stopping condition depends on something that happens during iteration, such as finding a value, detecting an error, or receiving a signal.
+
 ## While with else
 
-The `while` loop supports an `else` clause that runs when the condition becomes false:
+The `while` loop supports an `else` clause that runs exactly once when the condition becomes false. This is unique to Python among mainstream programming languages:
 
 ```python
 count = 0
@@ -115,9 +133,11 @@ Output:
 Condition became false - else block executed
 ```
 
+The `else` block executes after the loop finishes normally (when the condition becomes false). It does not run if you exit the loop with `break`. This feature can be useful for search operations where you want to handle the "not found" case, or for cleanup tasks that should always run at the end.
+
 ## Breaking Out of a while Loop
 
-We exit a `while` loop early using `break`:
+You exit a `while` loop early using `break`. This immediately terminates the innermost loop:
 
 ```python
 count = 0
@@ -142,11 +162,13 @@ Output:
 Loop ended with break
 ```
 
-`break` exits the innermost loop immediately.
+Using `while True` with `break` is a common pattern when you need more complex control over loop termination than a simple condition allows. You can check for multiple exit conditions inside the loop and `break` when any of them is met.
+
+For more details on `break` and other control statements, see the [break, continue, and pass](/courses/python-introduction/control-flow/break-continue-pass) documentation.
 
 ## Skipping Iterations with continue
 
-We skip to the next iteration using `continue`, bypassing any code that remains in the current block:
+You skip to the next iteration using `continue`, bypassing any code that remains in the current block:
 
 ```python
 count = 0
@@ -168,11 +190,11 @@ Output:
 5
 ```
 
-When `count` equals 3, we skip the `print` and continue to the next iteration.
+When `count` equals 3, the `continue` statement skips the `print` call and jumps to the next iteration. This is useful when you want to skip certain values or conditions without exiting the entire loop. The loop continues normally for all other values.
 
 ## Practical Example: Guessing Game
 
-We build a complete guessing game with `while`:
+Here is a complete guessing game that demonstrates real-world `while` loop usage:
 
 ```python
 import random
@@ -195,11 +217,11 @@ while guess != secret_number:
         print(f"Correct! You got it in {attempts} attempts!")
 ```
 
-We loop until the guess matches the secret number. The loop tracks attempts and provides feedback after each guess.
+The loop continues until the guess matches the secret number. You track the number of attempts and provide feedback after each guess. This pattern is common in interactive applications where you wait for a user to accomplish a goal.
 
 ## Practical Example: Menu-Driven Program
 
-We create a menu system that runs until the user quits:
+Here is a menu system that runs until the user quits, a common pattern in command-line applications:
 
 ```python
 choice = ""
@@ -222,14 +244,62 @@ while choice != "quit":
         print("Invalid choice, please try again.")
 ```
 
-The loop continues as long as the user has not entered "quit".
+The loop continues as long as the user has not entered "quit". Menu-driven programs are common in applications where users need to perform multiple actions in a single session, such as configuration tools, admin panels, or interactive utilities.
+
+## Practical Example: Reading File Data
+
+Here is an example of processing file contents until you reach the end:
+
+```python
+with open("data.txt", "r") as file:
+    line = file.readline()
+
+    while line:
+        print(line.strip())
+        line = file.readline()
+```
+
+This loop reads lines from a file until `readline()` returns an empty string (which is falsy in Python, signaling the end of the file). This pattern is useful for processing files of unknown length or when you need to handle each line individually.
+
+## Practical Example: Retry Logic
+
+You can use `while` loops to implement retry logic for operations that might fail temporarily:
+
+```python
+import time
+
+max_attempts = 3
+attempt = 0
+success = False
+
+while attempt < max_attempts and not success:
+    attempt += 1
+    print(f"Attempt {attempt} of {max_attempts}...")
+
+    # Simulated operation that might fail
+    operation_succeeded = attempt == 2
+
+    if operation_succeeded:
+        success = True
+        print("Operation succeeded!")
+    else:
+        print("Operation failed. Retrying...")
+        time.sleep(1)
+
+if not success:
+    print("All attempts failed.")
+```
+
+This pattern is common when working with network requests, database connections, or any operation that might fail due to temporary issues. The loop retries the operation up to a maximum number of times before giving up.
 
 ## Summary
 
 - `while` loops repeat as long as the condition is true
-- We must update variables in the condition to avoid infinite loops
+- You must update variables in the condition to avoid infinite loops
+- Use `while` when you do not know the number of iterations in advance
+- Use `for` when you know exactly how many times to iterate
 - `break` exits the loop immediately
 - `continue` skips to the next iteration
 - The `else` clause runs when the condition becomes false
-- Flags help us control loops from inside the body
-- We use `while` when we do not know the number of iterations in advance
+- Flags help you control loops from inside the body
+- Common uses include user input validation, menu systems, and retry logic

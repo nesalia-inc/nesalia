@@ -1,16 +1,16 @@
 ---
 title: "If Statements"
-description: "Learn how to use conditional statements in Python."
+description: "Learn how to use conditional statements in Python to control program flow based on conditions."
 order: 1
 ---
 
 # If Statements
 
-We use `if` statements to execute code only when certain conditions are true.
+You use `if` statements to execute code only when certain conditions are met. An `if` statement evaluates a condition—a boolean expression that is either `True` or `False`—and executes a block of code only when that condition evaluates to `True`. This is fundamental to program flow control, allowing your programs to make decisions and respond differently based on different inputs or states.
 
 ## Basic Syntax
 
-We write an `if` statement with a condition followed by a colon, then an indented code block:
+You write an `if` statement by providing a condition followed by a colon, then an indented block of code. The condition is any expression that evaluates to a boolean value (`True` or `False`). The indented code block only runs when the condition is `True`.
 
 ```python
 x = 10
@@ -24,11 +24,11 @@ Output:
 x is greater than 5
 ```
 
-The condition `x > 5` evaluates to `True`, so we execute the `print` statement.
+In this example, the condition `x > 5` is a comparison that evaluates to `True` because `10` is greater than `5`. Therefore, Python executes the `print` statement inside the `if` block. If `x` had been `3` or any value less than or equal to `5`, the `print` statement would not execute at all.
 
 ## If-Else
 
-When the condition is false, we can execute an alternative block using `else`:
+When you want to execute one block of code if the condition is `True` and a different block if the condition is `False`, you add an `else` clause. The `else` block runs only when the `if` condition evaluates to `False`.
 
 ```python
 x = 3
@@ -44,9 +44,11 @@ Output:
 x is not greater than 5
 ```
 
+Here, the condition `x > 5` is `False` because `3` is not greater than `5`. Since the `if` condition failed, Python skips the first `print` statement and executes the `else` block instead. The `else` clause provides an alternative path when the primary condition is not satisfied.
+
 ## Elif for Multiple Conditions
 
-We chain conditions with `elif` (else-if) when we have more than two possibilities:
+When you have more than two possible outcomes, you chain conditions using `elif` (short for "else if"). This allows you to check multiple conditions in sequence until one evaluates to `True`. If none of the conditions are `True`, the `else` block runs as a fallback.
 
 ```python
 x = 5
@@ -64,15 +66,15 @@ Output:
 x is equal to 5
 ```
 
-Python evaluates each condition in order until one is true. If none are true, the `else` block runs.
+Python evaluates each condition in order from top to bottom. The first condition (`x > 5`) is `False`, so Python moves to the next condition (`elif x == 5`). This condition is `True`, so Python executes that block and skips the remaining `elif` and `else` clauses. Only one block in an `if-elif-else` chain will execute.
 
 ## Logical Operators
 
-We combine conditions using `and`, `or`, and `not`.
+You combine multiple conditions using logical operators: `and`, `or`, and `not`. These operators allow you to build more complex conditions that depend on multiple comparisons. For a complete reference on all comparison and logical operators available in Python, see the [operators reference](/courses/python-introduction/basic-syntax/operators).
 
 ### Using `and`
 
-Both conditions must be true:
+The `and` operator requires all conditions to be `True` for the combined expression to be `True`. If any condition is `False`, the entire `and` expression is `False`.
 
 ```python
 age = 25
@@ -89,9 +91,11 @@ Output:
 Loan approved
 ```
 
+Both conditions are `True` here: `age >= 18` evaluates to `True` because `25` is at least `18`, and `income >= 30000` evaluates to `True` because `50000` is at least `30000`. Since both are `True`, the `and` expression is `True` and the loan approval message prints. If either condition had been `False`, the `else` block would execute instead.
+
 ### Using `or`
 
-At least one condition must be true:
+The `or` operator requires at least one condition to be `True` for the combined expression to be `True`. The `or` expression is only `False` when all conditions are `False`.
 
 ```python
 day = "Saturday"
@@ -107,9 +111,11 @@ Output:
 It's the weekend
 ```
 
+The condition `day == "Saturday"` is `True`, so the `or` expression is `True` regardless of the second condition. Python short-circuits evaluation: it stops checking conditions once it finds a `True` value in an `or` expression (or a `False` value in an `and` expression). This improves performance and allows for clever techniques like checking for `None` before accessing attributes.
+
 ### Using `not`
 
-We invert a boolean condition:
+The `not` operator inverts a boolean condition: `True` becomes `False`, and `False` becomes `True`. It is a unary operator, meaning it operates on a single value.
 
 ```python
 is_raining = False
@@ -123,9 +129,11 @@ Output:
 We can go outside
 ```
 
+The condition `is_raining` is `False`, so `not is_raining` evaluates to `True`. This flips the boolean value, allowing you to execute code when something is false rather than true. You often use `not` when checking for the absence of a condition or when a positive condition name would be awkward (for example, `if not is_empty` reads more naturally than checking `is_empty == False`).
+
 ## Nested If Statements
 
-We place `if` statements inside other `if` blocks when we need to check multiple conditions:
+You place `if` statements inside other `if` blocks when you need to check multiple conditions hierarchically. This is called nesting. Each level of nesting increases the indentation by one level.
 
 ```python
 age = 20
@@ -147,11 +155,15 @@ Adult
 Can enter the venue
 ```
 
-We indent nested blocks one level deeper than the parent block.
+Python first checks if `age >= 18` is `True`. Since it is, the outer block executes and prints "Adult". Inside that block, Python then checks if `has_id` is `True`. Since it is, the inner block prints "Can enter the venue". The nested `if` only runs because the outer condition was already satisfied. If the person had been under 18, Python would have skipped the entire inner block and printed only "Too young".
+
+Nesting is powerful but can become difficult to read when deeply nested. Generally, you should prefer combining conditions with `and` or `or` when possible to keep your code flat and readable.
 
 ## Truthiness and Falsy Values
 
-Every value in Python has a boolean equivalent. We often write conditions directly against values instead of comparing them to `True` or `False`:
+Every value in Python has a boolean equivalent—a built-in conversion that determines whether Python considers the value "true" or "false" in a boolean context. This concept is called **truthiness** (the quality of being truthy) or **falsiness** (the quality of being falsy).
+
+A **condition** in Python is not limited to expressions that explicitly produce `True` or `False`. You can use any value directly in an `if` statement, and Python will automatically convert it to a boolean using its truthiness. Values that evaluate to `False` in a boolean context are called **falsy** values, while values that evaluate to `True` are called **truthy**.
 
 ```python
 name = "Alice"
@@ -170,11 +182,39 @@ Hello, Alice
 List is empty
 ```
 
-Values that evaluate to false are called "falsy": `0`, `""`, `[]`, `{}`, `None`, `False`. All other values are "truthy".
+The string `"Alice"` is truthy because it is a non-empty string, so the first condition succeeds and prints the greeting. The empty list `[]` is falsy, so `not empty_list` evaluates to `True` and prints "List is empty".
+
+### The Falsy Values
+
+Python has a specific set of values that are always falsy. These are:
+
+- `False` — the boolean false value
+- `None` — represents the absence of a value (null/nil in other languages)
+- `0` — the integer zero (also `0.0` for floats, `0j` for complex numbers)
+- `""` — the empty string (also `''` with single quotes)
+- `[]` — the empty list
+- `()` — the empty tuple
+- `{}` — the empty dictionary
+- `set()` — the empty set
+
+Every other value in Python is truthy. This includes non-empty strings (even `"False"` is truthy because it is a non-empty string), non-zero numbers, non-empty containers, and objects you create from classes.
+
+### Why Truthiness Matters
+
+Understanding truthiness allows you to write cleaner, more Pythonic code. Instead of writing `if len(my_list) > 0`, you can write `if my_list`. Instead of `if my_string != ""`, you can write `if my_string`. This convention is idiomatic in Python and used extensively in standard library code and frameworks.
+
+```python
+user_input = ""
+
+if not user_input:
+    print("Please provide a value")
+```
+
+This pattern checks for empty input without explicitly comparing to an empty string or checking the length. The falsy nature of empty strings makes this concise and readable.
 
 ## Practical Example: Grade Classification
 
-We build a complete grade classification system:
+You can combine everything you have learned to build a complete grade classification system. This example demonstrates sequential `elif` checks, which work correctly because conditions are evaluated in order.
 
 ```python
 score = 87
@@ -198,13 +238,14 @@ Output:
 Score: 87 → Grade: B
 ```
 
+The score of `87` does not satisfy the first condition (`score >= 90`), so Python moves to the next condition. The second condition (`score >= 80`) is `True`, so Python assigns `"B"` to the grade variable and skips the remaining conditions. The order of these conditions matters: if you had written `elif score >= 70` before `elif score >= 80`, a score of `87` would incorrectly receive a grade of `"C"`.
+
 ## Summary
 
-- `if` executes code when its condition is true
-- `elif` checks additional conditions after the initial `if`
-- `else` runs when no previous condition was true
-- `and` requires all conditions to be true
-- `or` requires at least one condition to be true
-- `not` inverts a boolean value
-- We nest `if` statements by indenting further
-- Values like `0`, `""`, `[]`, and `None` are falsy; most other values are truthy
+- An `if` statement executes code when its condition evaluates to `True`. A **condition** is a boolean expression.
+- The `elif` clause (else-if) checks additional conditions in sequence when the previous `if` or `elif` conditions were `False`.
+- The `else` clause runs a code block when no previous condition was `True`.
+- Logical operators (`and`, `or`, `not`) combine or invert boolean expressions. See the [operators reference](/courses/python-introduction/basic-syntax/operators) for full details.
+- **Nested `if` statements** are `if` statements placed inside other `if` blocks, creating hierarchical condition checking.
+- **Truthiness** refers to whether a value evaluates to `True` or `False` in a boolean context. **Falsy** values include `0`, `""`, `[]`, `{}`, `None`, and `False`. Most other values are **truthy**.
+- Understanding truthiness allows you to write concise conditions like `if my_list` instead of `if len(my_list) > 0`.

@@ -6,13 +6,17 @@ order: 4
 
 # Break, Continue, and Pass
 
-We use three statements to control the flow inside loops: `break` exits the loop entirely, `continue` skips to the next iteration, and `pass` acts as a placeholder when we need a statement but no action.
+You use three statements to control the flow inside loops: `break` exits the loop entirely, `continue` skips to the next iteration, and `pass` acts as a placeholder when you need a statement but no action. These statements give you fine-grained control over loop execution, allowing you to exit early, skip unwanted iterations, or maintain syntactic correctness when you have not yet implemented certain logic.
+
+For more information on loops, see [For Loops](/courses/python-introduction/control-flow/for-loops) and [While Loops](/courses/python-introduction/control-flow/while-loops).
 
 ## The break Statement
 
-`break` immediately exits the innermost loop, bypassing any remaining code in the loop body and any `else` clause.
+The `break` statement immediately exits the innermost loop, bypassing any remaining code in the loop body and any `else` clause attached to the loop. When Python encounters a `break`, it stops the current loop and resumes execution after the loop's code block.
 
 ### Using break in a for Loop
+
+The following example iterates through a list of fruits and stops when it encounters "cherry". The loop prints "apple" and "banana", then exits before reaching "cherry" or "date".
 
 ```python
 fruits = ["apple", "banana", "cherry", "date"]
@@ -32,9 +36,11 @@ banana
 Loop ended
 ```
 
-When `fruit` equals "cherry", we exit the loop immediately. "cherry" and "date" are never printed.
+The `break` statement triggers when `fruit` equals "cherry". At that point, Python exits the loop immediately, so neither "cherry" nor "date" gets printed. The loop then continues with any code after the loop block, which prints "Loop ended".
 
 ### Using break in a while Loop
+
+You can also use `break` in a `while` loop to exit based on a condition. In this example, the loop counts from 0 and stops when `count` reaches 5.
 
 ```python
 count = 0
@@ -58,11 +64,11 @@ Output:
 Loop ended
 ```
 
-We stop when `count` reaches 5.
+The `while` loop runs as long as `count` is less than 10. When `count` equals 5, the `if` condition becomes true, and `break` exits the loop. Notice that the final `print("Loop ended")` runs after the loop ends, and the numbers 5 through 9 are never printed.
 
 ### Practical Example: Finding an Item
 
-We search for a target value and stop once we find it:
+A common use of `break` is searching for a target value in a list and stopping once you find it. This approach avoids unnecessary iterations after the target has been located.
 
 ```python
 numbers = [10, 20, 30, 40, 50, 60]
@@ -89,13 +95,15 @@ Checking 30...
 Found 30! Stopping search.
 ```
 
-We exit early once the target is found, avoiding unnecessary iterations.
+The `for` loop iterates through each number in the list and prints a status message. When `number` equals `target` (which is 30), the `if` condition becomes true, `found` is set to `True`, a success message prints, and `break` exits the loop. By exiting early once the target is found, you avoid checking the remaining numbers (40, 50, and 60).
 
 ## The continue Statement
 
-`continue` skips the rest of the current iteration and proceeds directly to the next one.
+The `continue` statement skips the rest of the current iteration and proceeds directly to the next iteration of the loop. Unlike `break`, `continue` does not exit the loop entirely; it only skips the remaining code in the current iteration.
 
 ### Using continue in a for Loop
+
+You can use `continue` to skip certain items during iteration. The following example prints only odd numbers by skipping even numbers.
 
 ```python
 numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -115,9 +123,11 @@ Output:
 9
 ```
 
-We skip even numbers and only print odd numbers.
+The expression `num % 2` calculates the remainder when dividing by 2. When `num` is even, this remainder equals 0, making the `if` condition true. The `continue` statement then skips the `print(num)` line for that iteration. Only odd numbers (where `num % 2` equals 1) proceed to the print statement.
 
 ### Using continue in a while Loop
+
+You can also use `continue` in a `while` loop to skip iterations based on a condition.
 
 ```python
 count = 0
@@ -137,11 +147,11 @@ Output:
 5
 ```
 
-When `count` equals 3, we skip printing and continue to the next iteration.
+The loop increments `count` first, then checks if `count` equals 3. When the condition is true, `continue` skips the `print(count)` line for that iteration. The loop then proceeds to the next iteration, so 3 is never printed. All other values (1, 2, 4, 5) get printed normally.
 
 ### Practical Example: Filtering Items
 
-We process only items that meet certain criteria:
+A practical use of `continue` is filtering items from a collection based on certain criteria. The following example processes only passing scores, skipping any score below 60.
 
 ```python
 scores = [95, 12, 87, 34, 100, 67, 78, 92]
@@ -164,13 +174,15 @@ Passing scores:
   92
 ```
 
-We skip scores below 60 without printing them.
+The `for` loop iterates through each score in the list. When a score is less than 60, the `continue` statement skips the print statement for that iteration. When a score is 60 or higher, the `continue` is not triggered, and the score gets printed with indentation.
 
 ## The pass Statement
 
-`pass` does nothing. We use it when Python requires a statement syntactically but we have no action to perform. Unlike `break` and `continue`, `pass` is not restricted to loops.
+The `pass` statement is a no-operation placeholder. You use it when Python requires a statement syntactically but you have no action to perform. Unlike `break` and `continue`, which are restricted to loops, `pass` can be used in any code block that requires a statement.
 
 ### Using pass in a for Loop
+
+The following example demonstrates using `pass` in a loop where you have not yet implemented the loop body. The loop iterates through the list but does nothing with each item.
 
 ```python
 fruits = ["apple", "banana", "cherry"]
@@ -186,22 +198,22 @@ Output:
 Loop completed
 ```
 
-`pass` allows the loop to run without executing any code in the body.
+The `pass` statement allows the loop to execute without executing any code in the body. Without `pass`, Python would raise an `IndentationError` because the loop body cannot be empty. After the loop completes, "Loop completed" prints.
 
 ### Using pass as a Placeholder
 
-We use `pass` when defining a function we will implement later:
+A common use of `pass` is as a placeholder in function or class definitions that you plan to implement later. Python does not allow empty function bodies, so `pass` satisfies the syntax requirement.
 
 ```python
 def process_data():
     pass  # This function will be implemented later
 ```
 
-Without `pass`, Python would raise a syntax error because the function body cannot be empty.
+This defines a function named `process_data` with an empty body. The `pass` statement satisfies Python's requirement that a function body contain at least one statement. Without `pass`, Python would raise a `SyntaxError` indicating an empty function body.
 
 ### Using pass in Conditional Statements
 
-We use `pass` when we need an empty code block:
+You can also use `pass` in `if` statements when you need an empty branch. This is useful when you are deciding how to handle certain conditions and want to implement one branch while leaving another for later.
 
 ```python
 x = 10
@@ -212,19 +224,27 @@ else:
     print("x is not greater than 5")
 ```
 
-We write `pass` to indicate we will handle the `if` case later while keeping the `else` functional.
+When `x` is greater than 5, the `pass` statement executes and nothing happens. When `x` is not greater than 5, the `else` branch runs and prints the message. This pattern allows you to defer implementation of one branch while keeping the other branch functional.
 
-## Comparing break, continue, and pass
+## Comparison of break, continue, and pass
 
-| Statement | What it does | Used in |
-|-----------|--------------|---------|
-| `break` | Exits the loop entirely | `for`, `while` |
-| `continue` | Skips to the next iteration | `for`, `while` |
-| `pass` | Acts as a placeholder, does nothing | Any statement |
+Before examining the table below, understand that these three statements serve distinct purposes in loop control. The `break` statement terminates the loop entirely, the `continue` statement skips to the next iteration, and the `pass` statement does nothing at all. Choosing the right statement depends on what you need to accomplish at that point in your code.
+
+The following table summarizes the key differences between these statements:
+
+| Statement | What it does | Where you can use it |
+|-----------|--------------|----------------------|
+| `break` | Exits the loop entirely, skipping any remaining code in the loop and any `else` clause | `for` loops, `while` loops |
+| `continue` | Skips the rest of the current iteration and proceeds to the next iteration | `for` loops, `while` loops |
+| `pass` | Does nothing; acts as a placeholder when a statement is required syntactically | Any code block (loops, functions, classes, conditionals) |
 
 ## Nested Loops with break and continue
 
-`break` only exits the innermost loop. In nested loops, outer loops continue unaffected:
+When you use `break` or `continue` inside nested loops, only the innermost loop is affected. The outer loops continue executing normally. Understanding this behavior is critical for writing correct loop control code.
+
+### How break Behaves in Nested Loops
+
+In a nested loop structure, `break` only exits the innermost loop where it appears. The outer loops continue from their next iteration. Consider the following example:
 
 ```python
 for i in range(3):
@@ -241,9 +261,11 @@ Output:
 (2, 0)
 ```
 
-The inner loop breaks at `j == 1`, but the outer loop proceeds to the next `i`.
+The outer `for` loop iterates with `i` taking values 0, 1, and 2. For each value of `i`, the inner `for` loop iterates with `j` taking values 0, 1, and 2. When `j` equals 1, the `break` statement exits only the inner loop, not the outer one. This means for each `i` value, only the iteration where `j` equals 0 produces output, and the outer loop proceeds to the next `i` value.
 
-To exit outer loops from inner loops, we use a flag:
+### Using Flags to Exit Multiple Loops
+
+Sometimes you need to exit more than one loop when a condition is met. Since `break` only exits one loop, you can use a flag variable to signal when the outer loop should also exit.
 
 ```python
 found = False
@@ -263,12 +285,75 @@ Output:
 Found: i=2, j=4, product=8
 ```
 
-When the inner loop finds what we need, we set the flag and break the outer loop as well.
+This example searches for the first pair of indices where the product exceeds 6. When `i * j` is greater than 6, the inner loop prints a message, sets `found` to `True`, and breaks. After the inner loop exits, the code checks if `found` is `True` and breaks the outer loop as well. This allows you to exit both loops when the target condition is met.
+
+### Practical Use Case: Searching a 2D Grid
+
+A common application of nested loops with break and continue is searching through a two-dimensional grid, such as a matrix or game board. Imagine you have a grid of cells and you want to find the first cell that meets a certain condition.
+
+```python
+grid = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+target = 6
+found_position = None
+
+for row_index, row in enumerate(grid):
+    for col_index, cell in enumerate(row):
+        if cell == target:
+            found_position = (row_index, col_index)
+            print(f"Found {target} at position ({row_index}, {col_index})")
+            break
+    if found_position is not None:
+        break
+
+if found_position is None:
+    print(f"{target} not found in the grid")
+else:
+    print(f"Search completed at position {found_position}")
+```
+
+Output:
+```
+Found 6 at position (1, 2)
+Search completed at position (1, 2)
+```
+
+The outer loop iterates through each row using `enumerate`, which provides both the index and the row itself. The inner loop iterates through each cell in the row. When the target cell is found, the code records its position, prints a message, and breaks out of the inner loop. The `if found_position is not None` check then breaks the outer loop, avoiding any unnecessary iterations. This pattern is efficient for searching because it stops as soon as the target is found.
+
+### Using continue in Nested Loops
+
+You can also use `continue` in nested loops to skip certain iterations while allowing the outer loop to continue normally.
+
+```python
+for i in range(3):
+    for j in range(3):
+        if j == 1:
+            continue
+        print(f"({i}, {j})")
+```
+
+Output:
+```
+(0, 0)
+(0, 2)
+(1, 0)
+(1, 2)
+(2, 0)
+(2, 2)
+```
+
+When `j` equals 1, the `continue` statement skips the `print` line for that iteration, but the inner loop continues with the next value of `j`. This pattern is useful when you want to skip specific values in the inner loop while processing all other values.
+
+For more on nested structures, see [Lists and Arrays](/courses/python-introduction/data-structures/lists) and [Working with Strings](/courses/python-introduction/data-structures/strings).
 
 ## Summary
 
-- `break` immediately exits the innermost loop
-- `continue` skips to the next iteration of the current loop
-- `pass` is a no-op placeholder for situations requiring a statement
-- In nested loops, `break` only affects the innermost loop
-- We use flags to communicate between nested loops when needed
+- The `break` statement immediately exits the innermost loop, skipping any remaining code and any `else` clause attached to the loop
+- The `continue` statement skips the rest of the current iteration and proceeds to the next iteration of the current loop
+- The `pass` statement acts as a placeholder and does nothing; use it when you need a statement syntactically but have no action to perform
+- In nested loops, `break` and `continue` only affect the innermost loop where they appear
+- Use flag variables to communicate between nested loops when you need to exit multiple loops or skip iterations in outer loops based on inner loop conditions
