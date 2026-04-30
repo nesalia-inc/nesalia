@@ -1,53 +1,29 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <>
-      <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-        <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-          <Image
-            src="/nesalia.svg"
-            alt="Nesalia logo"
-            width={100}
-            height={100}
-            priority
-          />
-          <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-            <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-              To get started, edit the page.tsx file.
-            </h1>
-            <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-              Looking for a starting point or more instructions? Head over to{" "}
-              <Link
-                href="https://deessejs.com"
-                className="font-medium text-zinc-950 dark:text-zinc-50"
-              >
-                Documentation
-              </Link>{" "}
-              or the{" "}
-              <Link
-                href="https://deessejs.com"
-                className="font-medium text-zinc-950 dark:text-zinc-50"
-              >
-                Guide
-              </Link>
-              .
-            </p>
-          </div>
-          <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-            <Link
-              className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-              href="https://deessejs.com/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Documentation
-            </Link>
-          </div>
-        </main>
+    <main className="flex flex-1 min-h-[calc(100vh-var(--header-height,3.5rem))]">
+      <div className="w-full max-w-5xl border-x border-b border-border px-6">
+        <div className="flex flex-col items-center text-center gap-6 py-24">
+          <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+            Coming Soon
+          </span>
+
+          <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+            The most advanced software engineering courses
+          </h1>
+
+          <p className="max-w-2xl text-lg text-muted-foreground">
+            Master Python, TypeScript, and system design through hands-on projects.
+            Learn from industry experts and join thousands of developers leveling up their skills.
+          </p>
+
+          <Button asChild size="lg" className="mt-4">
+            <Link href="/login">Get Started</Link>
+          </Button>
+        </div>
       </div>
-    </>
-    
+    </main>
   );
 }
