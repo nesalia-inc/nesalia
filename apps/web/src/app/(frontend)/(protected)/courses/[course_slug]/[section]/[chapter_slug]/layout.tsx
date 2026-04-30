@@ -13,7 +13,13 @@ export default function Layout({
 }>) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
-      <SidebarProvider className="flex flex-col">
+      <SidebarProvider
+        className="flex flex-col"
+        style={{
+          "--sidebar-width": "18rem",
+          "--sidebar-width-mobile": "18rem",
+        }}
+      >
         <AppHeader />
         <div className="flex flex-1">
           <CourseSidebar />
