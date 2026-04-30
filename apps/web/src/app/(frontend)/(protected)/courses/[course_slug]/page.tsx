@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
 
+// ISR: Revalidate course overview pages every 60 seconds
+export const revalidate = 60
+
 interface PageProps {
   params: Promise<{
     course_slug: string;

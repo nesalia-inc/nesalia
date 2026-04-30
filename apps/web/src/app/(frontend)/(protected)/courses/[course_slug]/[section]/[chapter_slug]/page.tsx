@@ -7,6 +7,9 @@ import matter from "gray-matter";
 import fs from "fs";
 import path from "path";
 
+// ISR: Revalidate course pages every 60 seconds
+export const revalidate = 60
+
 interface Chapter {
   slug: string;
   title: string;
