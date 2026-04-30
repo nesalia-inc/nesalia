@@ -85,6 +85,38 @@ function getCourseSections(courseSlug: string): Section[] {
           { slug: 'string-formatting', title: 'String Formatting', order: 3 },
         ],
       },
+      {
+        title: 'File Operations',
+        chapters: [
+          { slug: 'reading-files', title: 'Reading Files', order: 1 },
+          { slug: 'writing-files', title: 'Writing Files', order: 2 },
+          { slug: 'working-with-paths', title: 'Working with Paths', order: 3 },
+        ],
+      },
+      {
+        title: 'Modules and Packages',
+        chapters: [
+          { slug: 'importing-modules', title: 'Importing Modules', order: 1 },
+          { slug: 'standard-library-overview', title: 'Standard Library Overview', order: 2 },
+          { slug: 'using-pip-and-virtual-environments', title: 'Using pip and Virtual Environments', order: 3 },
+        ],
+      },
+      {
+        title: 'Error Handling',
+        chapters: [
+          { slug: 'try-and-except-blocks', title: 'Try and Except Blocks', order: 1 },
+          { slug: 'raising-exceptions', title: 'Raising Exceptions', order: 2 },
+          { slug: 'custom-exceptions', title: 'Custom Exceptions', order: 3 },
+        ],
+      },
+      {
+        title: 'Introduction to OOP',
+        chapters: [
+          { slug: 'classes-and-objects', title: 'Classes and Objects', order: 1 },
+          { slug: 'attributes-and-methods', title: 'Attributes and Methods', order: 2 },
+          { slug: 'inheritance-basics', title: 'Inheritance Basics', order: 3 },
+        ],
+      },
     ],
     'advanced-python': [
       {
