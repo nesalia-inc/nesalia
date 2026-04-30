@@ -14,6 +14,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
 
@@ -23,39 +26,47 @@ interface Chapter {
   order: number;
 }
 
-async function getCourseChapters(courseSlug: string): Promise<Chapter[]> {
-  // This is a simplified version - in production you'd want ISR or proper caching
-  try {
-    const chapters = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/courses/${courseSlug}/chapters`,
-      { cache: 'no-store' }
-    ).then((res) => res.json());
-    return chapters;
-  } catch {
-    return [];
-  }
+interface Section {
+  title: string;
+  chapters: Chapter[];
 }
 
-function processContentDirectory(courseSlug: string): Chapter[] {
-  // Static chapters for now - will be replaced by API
-  const staticChapters: Record<string, Chapter[]> = {
+function getCourseSections(courseSlug: string): Section[] {
+  const sections: Record<string, Section[]> = {
     'python-introduction': [
-      { slug: '01-introduction', title: 'Introduction to Python', order: 1 },
-      { slug: '02-basic-syntax', title: 'Basic Syntax', order: 2 },
+      {
+        title: 'Introduction',
+        chapters: [
+          { slug: '01-introduction', title: 'Introduction to Python', order: 1 },
+          { slug: '02-basic-syntax', title: 'Basic Syntax', order: 2 },
+        ],
+      },
+      {
+        title: 'Control Flow',
+        chapters: [
+          { slug: 'if-statements', title: 'If Statements', order: 1 },
+        ],
+      },
     ],
     'advanced-python': [
-      { slug: '01-advanced-functions', title: 'Advanced Functions', order: 1 },
+      {
+        title: 'Advanced Functions',
+        chapters: [
+          { slug: '01-advanced-functions', title: 'Advanced Functions', order: 1 },
+        ],
+      },
     ],
   };
-  return staticChapters[courseSlug] || [];
+  return sections[courseSlug] || [];
 }
 
 export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams();
   const courseSlug = params.course_slug as string;
-  const partSlug = params.part_slug as string;
+  const section = params.section as string;
+  const chapterSlug = params.chapter_slug as string;
 
-  const chapters = processContentDirectory(courseSlug);
+  const sections = getCourseSections(courseSlug);
 
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
@@ -69,13 +80,26 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {chapters.map((chapter) => (
-                <SidebarMenuItem key={chapter.slug}>
-                  <SidebarMenuButton asChild isActive={partSlug === chapter.slug}>
-                    <Link href={`/courses/${courseSlug}/${chapter.slug}`}>
-                      {chapter.order}. {chapter.title}
-                    </Link>
+              {sections.map((sec) => (
+                <SidebarMenuItem key={sec.title}>
+                  <SidebarMenuButton className="font-medium text-sm">
+                    {sec.title}
                   </SidebarMenuButton>
+                  <SidebarMenuSub>
+                    {sec.chapters.map((chapter) => {
+                      const sectionSlug = sec.title.toLowerCase().replace(/\s+/g, '-');
+                      const isActive = section === sectionSlug && chapterSlug === chapter.slug;
+                      return (
+                        <SidebarMenuSubItem key={chapter.slug}>
+                          <SidebarMenuSubButton asChild isActive={isActive}>
+                            <Link href={`/courses/${courseSlug}/${sectionSlug}/${chapter.slug}`}>
+                              {chapter.order}. {chapter.title}
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      );
+                    })}
+                  </SidebarMenuSub>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
