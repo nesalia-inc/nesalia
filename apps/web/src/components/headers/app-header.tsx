@@ -38,7 +38,7 @@ export function AppHeader() {
 
   if (isPending) {
     return (
-      <header className="flex h-14 items-center border-b border-border bg-background">
+      <header className="sticky top-0 z-50 flex h-14 items-center border-b border-border bg-background">
         <div className="flex items-center justify-between w-full px-4 mx-auto max-w-7xl">
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -55,7 +55,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="flex h-14 items-center border-b border-border bg-background">
+    <header className="sticky top-0 z-50 flex h-14 items-center border-b border-border bg-background">
       <div className="flex items-center justify-between w-full px-4 mx-auto max-w-7xl">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2">
