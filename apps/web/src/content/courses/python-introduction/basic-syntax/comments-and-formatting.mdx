@@ -6,25 +6,25 @@ order: 3
 
 # Comments and Code Formatting
 
-Writing code is only part of programming. Making your code understandable to others (and your future self) is equally important. In this part, you'll learn how to use comments to document your code and apply formatting best practices.
+We document code for human readers to understand it better. We use comments to explain our code and apply formatting best practices for readability.
 
 ## Why Comments Matter
 
-Comments are lines in your code that Python ignores when running the program. They're meant for human readers to understand the code better.
+Comments are lines in code that Python ignores when running the program. We write them for human readers.
 
 Good comments:
 - Explain the "why" not just the "what"
-- Help others understand your code
-- Remind you of your reasoning when you return to code later
+- Help others understand code
+- Remind us of reasoning when returning to code later
 
 Bad comments:
 - State the obvious ("increments i" for `i += 1`)
-- Are outdated and contradict the code
+- Become outdated and contradict the code
 - Are used excessively
 
 ## Single-Line Comments
 
-Use the hash symbol (`#`) to create a single-line comment:
+We use the hash symbol (`#`) to create a single-line comment:
 
 ```python
 # This is a comment explaining the next line
@@ -35,23 +35,23 @@ price = 99.99  # This comment is at the end of a line
 
 ## Multi-Line Comments
 
-For longer explanations, you have two options:
+For longer explanations, we have two options:
 
 ### Triple-Quoted Strings
 
-You can use triple quotes (either `"""` or `'''`) to create multi-line strings. When placed at the beginning of a module or function, these are called docstrings and serve as documentation.
+We use triple quotes (either `"""` or `'''`) to create multi-line strings. When placed at the beginning of a module or function, these are called docstrings and serve as documentation.
 
 ```python
 """
 This is a multi-line string.
-It's often used as a docstring to document modules, classes, and functions.
+We use it as a docstring to document modules, classes, and functions.
 Python ignores it during execution when it's not assigned to a variable.
 """
 ```
 
 ### Using Hashes for Each Line
 
-Alternatively, you can use `#` at the start of each line:
+Alternatively, we use `#` at the start of each line:
 
 ```python
 # This is a longer explanation that requires
@@ -59,12 +59,12 @@ Alternatively, you can use `#` at the start of each line:
 # following code block does.
 #
 # Notice the empty line above with just a hash?
-# That's used to separate sections visually.
+# We use that to separate sections visually.
 ```
 
 ## Docstrings
 
-Docstrings are special multi-line strings placed immediately after function, class, or module definitions. They're accessible at runtime and used by documentation tools.
+Docstrings are special multi-line strings placed immediately after function, class, or module definitions. They are accessible at runtime and used by documentation tools.
 
 ### Function Docstrings
 
@@ -108,7 +108,7 @@ class BankAccount:
 
 ## Code Formatting Best Practices
 
-While Python doesn't require formatting rules, following consistent style makes code more readable.
+Following consistent style makes code more readable.
 
 ### Indentation
 
@@ -126,7 +126,7 @@ def check_age(age):
 
 ### Line Length
 
-Keep lines under 79-100 characters for better readability. When a line is too long, break it using parentheses:
+We keep lines under 79-100 characters for better readability. When a line is too long, we break it using parentheses:
 
 ```python
 # Too long - hard to read on smaller screens
@@ -144,7 +144,7 @@ result = calculate_average(
 
 ### Spacing Around Operators
 
-Add spaces around operators for readability, but be consistent:
+We add spaces around operators for readability, but stay consistent:
 
 ```python
 # Good spacing
@@ -160,7 +160,7 @@ total = price  +  tax  -  discount
 
 ### Blank Lines
 
-Use blank lines to separate logical sections of code:
+We use blank lines to separate logical sections of code:
 
 ```python
 def calculate_stats(numbers):
@@ -188,7 +188,7 @@ Python follows specific naming conventions (PEP 8 style guide):
 
 ### Variables and Functions
 
-Use lowercase with underscores for variable and function names:
+We use lowercase with underscores for variable and function names:
 
 ```python
 # Good
@@ -204,7 +204,7 @@ CalculateTotalPrice = lambda items: sum(item.price for item in items)
 
 ### Constants
 
-Use uppercase with underscores for constants:
+We use uppercase with underscores for constants:
 
 ```python
 MAX_RETRY_ATTEMPTS = 3
@@ -214,7 +214,7 @@ API_BASE_URL = "https://api.example.com"
 
 ### Classes
 
-Use CapWords (PascalCase) for class names:
+We use CapWords (PascalCase) for class names:
 
 ```python
 class BankAccount:
@@ -293,7 +293,7 @@ for attempt in range(3):
         wait_time = 2 ** attempt
 ```
 
-### Don't
+### Do Not
 
 ```python
 # Bad: stating the obvious
@@ -310,15 +310,11 @@ process_items(items)
 
 ## Summary
 
-In this part, you learned:
+We covered:
 
-- **Comments**: Use `#` for single-line comments and triple quotes for multi-line strings/docstrings
-- **Docstrings**: Document functions and classes with triple-quoted strings
-- **Indentation**: Use 4 spaces consistently to define code blocks
-- **Line length**: Keep lines under 79-100 characters
-- **Spacing**: Add spaces around operators, use blank lines to separate sections
-- **Naming**: Follow Python conventions (lowercase_underscores for variables, CapWords for classes)
-
-Good formatting and clear comments make a significant difference when maintaining code, especially in collaborative projects or when returning to your code after some time.
-
-With these basics of Python syntax covered, you now have a solid foundation to start building more complex programs!
+- **Comments**: We use `#` for single-line comments and triple quotes for multi-line strings and docstrings
+- **Docstrings**: We document functions and classes with triple-quoted strings
+- **Indentation**: We use 4 spaces consistently to define code blocks
+- **Line length**: We keep lines under 79-100 characters
+- **Spacing**: We add spaces around operators and use blank lines to separate sections
+- **Naming**: We follow Python conventions (lowercase_underscores for variables, CapWords for classes)

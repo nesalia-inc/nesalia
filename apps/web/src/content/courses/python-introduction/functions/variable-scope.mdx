@@ -6,7 +6,7 @@ order: 3
 
 # Variable Scope
 
-Scope determines where a variable can be accessed in your code. Understanding scope helps you avoid bugs and unexpected behavior.
+Scope determines where a variable can be accessed in our code. Understanding scope helps us avoid bugs and unexpected behavior.
 
 ## Local Scope
 
@@ -18,7 +18,7 @@ def my_function():
     print(local_variable)
 
 my_function()
-print(local_variable)  # This would cause an error
+print(local_variable)  # This causes an error
 ```
 
 Output:
@@ -29,7 +29,7 @@ Traceback (most recent call last):
 NameError: name 'local_variable' is not defined
 ```
 
-The variable `local_variable` only exists inside `my_function`.
+The variable `local_variable` exists only inside `my_function`.
 
 ## Global Scope
 
@@ -56,7 +56,7 @@ Global variables can be accessed from anywhere, including inside functions.
 
 ## Using `global` Keyword
 
-To modify a global variable from inside a function, use the `global` keyword:
+We use the `global` keyword to modify a global variable from inside a function:
 
 ```python
 counter = 0
@@ -80,11 +80,11 @@ Output:
 2
 ```
 
-Without the `global` keyword, Python would create a new local variable instead.
+Without the `global` keyword, Python creates a new local variable instead.
 
 ## nonlocal Scope
 
-The `nonlocal` keyword lets you modify a variable in an enclosing (non-global) scope:
+The `nonlocal` keyword allows us to modify a variable in an enclosing (non-global) scope:
 
 ```python
 def outer():
@@ -110,7 +110,7 @@ Inside inner: 2
 Inside outer: 2
 ```
 
-This is useful when you have nested functions.
+We use `nonlocal` when working with nested functions.
 
 ## Scope and Function Parameters
 
@@ -121,10 +121,10 @@ def my_function(x):
     print(f"x is {x}")
 
 my_function(5)
-print(x)  # This would cause an error
+print(x)  # This causes an error
 ```
 
-The parameter `x` only exists inside the function.
+The parameter `x` exists only inside the function.
 
 ## Common Pitfalls
 
@@ -139,7 +139,7 @@ def update():
 update()
 ```
 
-This fails because Python sees `count` as a local variable that hasn't been initialized.
+Python interprets `count` as a local variable that has not been initialized, causing the error.
 
 ### Pitfall 2: Reusing Variable Names
 
@@ -161,7 +161,7 @@ local
 global
 ```
 
-The local `x` inside the function doesn't affect the global `x`.
+The local `x` inside the function does not affect the global `x`.
 
 ## Best Practices
 
@@ -172,8 +172,8 @@ The local `x` inside the function doesn't affect the global `x`.
 
 ## Summary
 
-- Local variables exist only inside the function where they're defined
+- Local variables exist only inside the function where we define them
 - Global variables exist everywhere and can be accessed from any function
-- Use `global` to modify a global variable from within a function
-- Use `nonlocal` to modify a variable in an enclosing scope
+- We use `global` to modify a global variable from within a function
+- We use `nonlocal` to modify a variable in an enclosing scope
 - Function parameters are always local to that function

@@ -6,11 +6,11 @@ order: 2
 
 # Python vs Other Programming Languages
 
-Python is one of many programming languages available today. Understanding how Python compares to other popular languages helps you make informed decisions about when and where to use each one.
+Python is one of many programming languages available today. Understanding how Python compares to other popular languages helps us make informed decisions about when and where to use each one.
 
-## Overview of Popular Programming Languages
+## Overview of Popular Languages
 
-Each programming language has evolved to solve specific problems or fit particular programming philosophies:
+Each language solves specific problems and fits particular programming philosophies:
 
 | Language | Created | Paradigm | Primary Use Cases |
 |----------|---------|----------|-------------------|
@@ -23,13 +23,12 @@ Each programming language has evolved to solve specific problems or fit particul
 
 ## Python vs JavaScript
 
-Both Python and JavaScript are excellent choices for beginners, but they serve different primary purposes.
+Both languages work well for beginners, but serve different primary purposes.
 
 ### Syntax Comparison
 
 **Python:**
 ```python
-# Creating a function in Python
 def greet(name):
     return f"Hello, {name}! Welcome to Python."
 
@@ -39,7 +38,6 @@ print(message)
 
 **JavaScript:**
 ```javascript
-// Creating a function in JavaScript
 function greet(name) {
     return `Hello, ${name}! Welcome to JavaScript.`;
 }
@@ -54,8 +52,9 @@ console.log(message);
 - **Typing** — Both are dynamically typed, but Python uses indentation for blocks while JavaScript uses braces
 - **Use cases** — JavaScript dominates web development; Python leads in data science and general scripting
 
+We see Python's indentation-based syntax in action:
+
 ```python
-# Python's indentation-based syntax
 if True:
     print("Indentation matters in Python")
     if False:
@@ -72,7 +71,6 @@ Java and Python share the "readable code" philosophy but approach problems diffe
 
 **Python:**
 ```python
-# Python - concise and readable
 class Dog:
     def __init__(self, name, age):
         self.name = name
@@ -87,7 +85,6 @@ print(my_dog.bark())
 
 **Java:**
 ```java
-// Java - requires explicit typing and structure
 public class Dog {
     private String name;
     private int age;
@@ -143,7 +140,6 @@ int main() {
 
 **Python (interpreted, productive):**
 ```python
-# Python - same result, less code
 numbers = [5, 2, 8, 1, 9, 3]
 numbers.sort()
 
@@ -155,23 +151,21 @@ for num in numbers:
 
 **Choose C++ when:**
 - Performance is critical (games, operating systems, real-time systems)
-- You need precise memory control
+- We need precise memory control
 - Building resource-constrained embedded systems
 
 **Choose Python when:**
 - Development speed matters more than raw performance
-- You need rapid prototyping
+- We need rapid prototyping
 - Working with data analysis or machine learning
 
-```python
-# Python's simplicity for complex tasks
-# C++ would require 10x more code for the same functionality
+Python handles complex tasks concisely:
 
+```python
 data = [{"name": "Alice", "score": 95},
         {"name": "Bob", "score": 87},
         {"name": "Carol", "score": 92}]
 
-# Sort by score in one line
 sorted_data = sorted(data, key=lambda x: x["score"], reverse=True)
 
 for person in sorted_data:
@@ -180,13 +174,12 @@ for person in sorted_data:
 
 ## Python vs Go
 
-Go (created by Google) and Python both aim for simplicity, but with different priorities.
+Go (created by Google) and Python both aim for simplicity but with different priorities.
 
 ### Syntax Comparison
 
 **Python:**
 ```python
-# Python - flexible and readable
 def calculate_stats(numbers):
     total = sum(numbers)
     average = total / len(numbers) if numbers else 0
@@ -229,21 +222,21 @@ func main() {
 
 Rust and Python represent the tradeoff between memory safety and programmer convenience.
 
-### Python Simplicity:
+### Python Simplicity
+
 ```python
-# Python makes tasks easy
 import json
 
 data = {"language": "Python", "strength": "Readability"}
 json_string = json.dumps(data, indent=2)
 print(json_string)
 
-# Parsing back
 parsed = json.loads(json_string)
 print(parsed["language"])
 ```
 
-### Rust Safety:
+### Rust Safety
+
 ```rust
 use serde::{Deserialize, Serialize};
 
@@ -272,19 +265,15 @@ Python is the right choice when:
 2. **Rapid development** — When time-to-market matters more than raw performance
 3. **Data science and ML** — The ecosystem (pandas, NumPy, TensorFlow, PyTorch) is unmatched
 4. **Scripting and automation** — Python excels at glue code and task automation
-5. **Prototyping** — Quickly test ideas before committing to a more complex implementation
+5. **Prototyping** — We quickly test ideas before committing to more complex implementations
+
+Python accomplishes a lot with minimal code:
 
 ```python
-# Python's strength: accomplish a lot with minimal code
-# Data processing that would take hundreds of lines in C++
-
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Load data
 df = pd.read_csv("sales_data.csv")
-
-# Analyze and visualize in a few lines
 df.groupby("category")["revenue"].sum().plot(kind="bar")
 plt.title("Revenue by Category")
 plt.show()
@@ -292,8 +281,6 @@ plt.show()
 
 ## Summary
 
-Every programming language involves tradeoffs. Python prioritizes developer productivity and readability over raw performance. While C++ or Rust might be better for building a game engine, Python is the better choice for building a data analysis pipeline quickly.
+Every language involves tradeoffs. Python prioritizes developer productivity and readability over raw performance. While C++ or Rust work better for building a game engine, Python works better for building a data analysis pipeline quickly.
 
-The best approach is to learn multiple languages and choose the right tool for each job. Python is an excellent starting point—it teaches programming concepts without drowning you in syntax complexity.
-
-In the next section, we'll set up your Python development environment so you can start writing real code.
+We learn multiple languages and choose the right tool for each job. Python is an excellent starting point because it teaches programming concepts without drowning us in syntax complexity.

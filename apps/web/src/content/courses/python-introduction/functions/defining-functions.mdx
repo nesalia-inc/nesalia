@@ -6,11 +6,11 @@ order: 1
 
 # Defining Functions
 
-Functions are reusable blocks of code that perform a specific task. Instead of writing the same code multiple times, you can define a function once and call it whenever you need it.
+Functions are reusable blocks of code that perform a specific task. We define a function once and call it whenever we need it, avoiding repetition and organizing code into manageable pieces.
 
 ## Why Use Functions?
 
-Functions help you:
+Functions help us:
 
 - **Avoid repetition** — Write code once, use it many times
 - **Organize code** — Break complex programs into manageable pieces
@@ -19,24 +19,23 @@ Functions help you:
 
 ## Defining a Function
 
-In Python, you define a function using the `def` keyword, followed by the function name and parentheses:
+We define a function using the `def` keyword, followed by the function name and parentheses:
 
 ```python
 def greet():
     print("Hello, welcome!")
 ```
 
-This creates a function named `greet` that prints a greeting message when called.
+This defines a function named `greet` that prints a greeting message when called.
 
 ## Calling a Function
 
-To execute a function, you call it by using its name followed by parentheses:
+We call a function by using its name followed by parentheses:
 
 ```python
 def greet():
     print("Hello, welcome!")
 
-# Calling the function
 greet()
 ```
 
@@ -48,7 +47,7 @@ Hello, welcome!
 
 ## Functions with Parameters
 
-Functions become more useful when they can accept input values. These input values are called parameters:
+Parameters allow functions to accept input values:
 
 ```python
 def greet(name):
@@ -67,7 +66,7 @@ Hello, Bob!
 
 ## The `return` Statement
 
-Functions can return a value to the caller using the `return` keyword:
+We use the `return` keyword to send a value back to the caller:
 
 ```python
 def add(a, b):
@@ -83,11 +82,11 @@ Output:
 8
 ```
 
-If a function doesn't have a `return` statement, it returns `None` by default.
+If a function does not have a `return` statement, it returns `None` by default.
 
 ## Function Naming
 
-Follow these conventions when naming functions:
+We follow these conventions when naming functions:
 
 - Use lowercase letters and underscores (`my_function`)
 - Make names descriptive (`calculate_area` not `calc`)
@@ -95,7 +94,7 @@ Follow these conventions when naming functions:
 
 ## A Complete Example
 
-Here's a more complete example that combines what we've learned:
+The following example calculates the area of rectangles:
 
 ```python
 def calculate_rectangle_area(width, height):
@@ -103,7 +102,6 @@ def calculate_rectangle_area(width, height):
     area = width * height
     return area
 
-# Calculate areas for different rectangles
 room_area = calculate_rectangle_area(10, 12)
 garden_area = calculate_rectangle_area(15, 20)
 
@@ -120,7 +118,7 @@ Garden area: 300 square meters
 
 ## Docstrings
 
-You can add documentation to your functions using docstrings (triple-quoted strings inside the function):
+We document functions using docstrings (triple-quoted strings inside the function):
 
 ```python
 def greet(name):
@@ -136,7 +134,7 @@ def greet(name):
     return f"Hello, {name}!"
 ```
 
-Docstrings help other developers understand what your function does.
+Docstrings help other developers understand what our function does.
 
 ## Summary
 

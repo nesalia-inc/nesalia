@@ -6,203 +6,285 @@ order: 2
 
 # String Methods
 
-Python provides many useful methods for working with strings. These methods allow you to search, modify, and analyze text without writing complex code from scratch.
+Python string methods enable us to search, modify, and analyze text efficiently.
 
 ## Case Methods
 
-These methods change the case of the string:
+The `upper()` method converts all characters to uppercase:
 
 ```python
 text = "Hello World"
+print(text.upper())
+# Output: HELLO WORLD
+```
 
-# Convert to uppercase
-print(text.upper())       # Output: HELLO WORLD
+The `lower()` method converts all characters to lowercase:
 
-# Convert to lowercase
-print(text.lower())       # Output: hello world
+```python
+print(text.lower())
+# Output: hello world
+```
 
-# Convert to title case (first letter of each word)
-print(text.title())       # Output: Hello World
+The `title()` method converts the first letter of each word to uppercase:
 
-# Convert to title case (first letter of each word, ignoring exceptions)
-print(text.istitle())     # Output: True
+```python
+print(text.title())
+# Output: Hello World
+```
 
-# Swap uppercase and lowercase
-print(text.swapcase())    # Output: hELLO wORLD
+The `istitle()` method returns `True` if the string follows title case rules:
+
+```python
+print(text.istitle())
+# Output: True
+```
+
+The `swapcase()` method swaps uppercase and lowercase:
+
+```python
+print(text.swapcase())
+# Output: hELLO wORLD
 ```
 
 ## Searching and Finding
 
-Find where specific text appears in a string:
+The `find()` method returns the position of a substring, or `-1` if not found:
 
 ```python
 text = "The quick brown fox jumps over the lazy dog"
+print(text.find("fox"))
+# Output: 16
+print(text.find("cat"))
+# Output: -1
+```
 
-# Find the position of a substring (returns -1 if not found)
-print(text.find("fox"))        # Output: 16
-print(text.find("cat"))         # Output: -1
+We can start searching from a specific position:
 
-# Find from a specific position
-print(text.find("the", 10))     # Output: 32
+```python
+print(text.find("the", 10))
+# Output: 32
+```
 
-# Count occurrences
-print(text.count("the"))        # Output: 2
+The `count()` method counts occurrences of a substring:
 
-# Check if string starts/ends with specific text
-print(text.startswith("The"))  # Output: True
-print(text.endswith("dog"))     # Output: True
+```python
+print(text.count("the"))
+# Output: 2
+```
+
+The `startswith()` method checks if a string begins with a specified substring:
+
+```python
+print(text.startswith("The"))
+# Output: True
+```
+
+The `endswith()` method checks if a string ends with a specified substring:
+
+```python
+print(text.endswith("dog"))
+# Output: True
 ```
 
 ## Checking String Content
 
-Python provides methods to check what kind of content a string contains:
+The `isalpha()` method returns `True` if all characters are alphabetic:
 
 ```python
-text1 = "Hello123"
-text2 = "hello"
-text3 = "12345"
-text4 = "   "
-text5 = "Hello World"
+print("Hello123".isalpha())
+# Output: False
+print("hello".isalpha())
+# Output: True
+```
 
-# Check if all characters are alphabetic
-print(text1.isalpha())   # Output: False (contains numbers)
-print(text2.isalpha())   # Output: True
+The `isdigit()` method returns `True` if all characters are digits:
 
-# Check if all characters are digits
-print(text3.isdigit())   # Output: True
-print(text2.isdigit())   # Output: False
+```python
+print("12345".isdigit())
+# Output: True
+print("hello".isdigit())
+# Output: False
+```
 
-# Check if all characters are alphanumeric
-print(text1.isalnum())    # Output: True
+The `isalnum()` method returns `True` if all characters are alphanumeric:
 
-# Check if all characters are whitespace
-print(text4.isspace())    # Output: True
+```python
+print("Hello123".isalnum())
+# Output: True
+```
 
-# Check if string is in title case
-print(text5.istitle())    # Output: True
+The `isspace()` method returns `True` if all characters are whitespace:
 
-# Check if string is uppercase/lowercase
-print(text5.isupper())    # Output: False
-print(text2.islower())    # Output: True
+```python
+print("   ".isspace())
+# Output: True
+```
+
+The `isupper()` method returns `True` if all characters are uppercase:
+
+```python
+print("HELLO".isupper())
+# Output: True
+print("Hello".isupper())
+# Output: False
+```
+
+The `islower()` method returns `True` if all characters are lowercase:
+
+```python
+print("hello".islower())
+# Output: True
 ```
 
 ## Modifying Strings
 
-Transform and modify strings in various ways:
+The `strip()` method removes leading and trailing whitespace:
 
 ```python
 text = "  Hello World  "
-
-# Remove leading and trailing whitespace
-print(text.strip())      # Output: Hello World
-
-# Remove only leading or trailing whitespace
-print(text.lstrip())     # Output: Hello World
-print(text.rstrip())     # Output:   Hello World
-
-# Remove specific characters from ends
-text2 = "###Hello###"
-print(text2.strip("#"))  # Output: Hello
+print(text.strip())
+# Output: Hello World
 ```
 
-Replace parts of a string:
+The `lstrip()` method removes only leading whitespace:
+
+```python
+print(text.lstrip())
+# Output: Hello World
+```
+
+The `rstrip()` method removes only trailing whitespace:
+
+```python
+print(text.rstrip())
+# Output:   Hello World
+```
+
+The `strip()` method removes specific characters from both ends:
+
+```python
+text = "###Hello###"
+print(text.strip("#"))
+# Output: Hello
+```
+
+The `replace()` method replaces all occurrences of a substring:
 
 ```python
 text = "I like cats"
-
-# Replace a substring
-print(text.replace("cats", "dogs"))  # Output: I like dogs
-
-# Replace all occurrences
-text2 = "one two one two"
-print(text2.replace("one", "three"))  # Output: three two three two
+print(text.replace("cats", "dogs"))
+# Output: I like dogs
+print("one two one two".replace("one", "three"))
+# Output: three two three two
 ```
 
-Split a string into a list:
+The `split()` method splits a string into a list:
 
 ```python
 text = "apple,banana,cherry"
-
-# Split by delimiter
-print(text.split(","))   # Output: ['apple', 'banana', 'cherry']
-
-# Split by whitespace
-text2 = "Hello World"
-print(text2.split())     # Output: ['Hello', 'World']
-
-# Split into at most N+1 parts
-text3 = "a,b,c,d"
-print(text3.split(",", 2))  # Output: ['a', 'b', 'c,d']
+print(text.split(","))
+# Output: ['apple', 'banana', 'cherry']
+print("Hello World".split())
+# Output: ['Hello', 'World']
+print("a,b,c,d".split(",", 2))
+# Output: ['a', 'b', 'c,d']
 ```
 
-Join a list into a string:
+The `join()` method joins a list into a string:
 
 ```python
 words = ["apple", "banana", "cherry"]
-
-# Join with a delimiter
-print(",".join(words))   # Output: apple,banana,cherry
-print(" ".join(words))   # Output: apple banana cherry
+print(",".join(words))
+# Output: apple,banana,cherry
+print(" ".join(words))
+# Output: apple banana cherry
 ```
 
 ## String Formatting
 
-Align and format strings:
+The `center()` method centers text within a specified width:
 
 ```python
 text = "Hello"
+print(text.center(20))
+# Output:        Hello
+print(text.center(20, "-"))
+# Output: -------Hello--------
+```
 
-# Center the text
-print(text.center(20))        # Output:        Hello
-print(text.center(20, "-"))    # Output: -------Hello--------
+The `ljust()` method left-aligns text:
 
-# Left-align
-print(text.ljust(20))         # Output: Hello
-print(text.ljust(20, "."))    # Output: Hello...............
+```python
+print(text.ljust(20))
+# Output: Hello
+print(text.ljust(20, "."))
+# Output: Hello...............
+```
 
-# Right-align
-print(text.rjust(20))         # Output:               Hello
-print(text.rjust(20, "."))    # Output: ...............Hello
+The `rjust()` method right-aligns text:
 
-# Zero-fill (for numeric strings)
+```python
+print(text.rjust(20))
+# Output:               Hello
+print(text.rjust(20, "."))
+# Output: ...............Hello
+```
+
+The `zfill()` method pads a numeric string with zeros:
+
+```python
 number = "42"
-print(number.zfill(6))        # Output: 000042
+print(number.zfill(6))
+# Output: 000042
 ```
 
 ## Practical Examples
 
-Combining methods together:
+We combine methods to clean and process user input:
 
 ```python
-# Clean and process user input
 user_input = "  ALICE smith  "
 cleaned = user_input.strip().title()
-print(cleaned)  # Output: Alice Smith
-
-# Validate an email address
-email = "user@example.com"
-is_valid = "@" in email and email.endswith(".com")
-print(is_valid)  # Output: True
-
-# Extract domain from email
-email = "user@example.com"
-username, domain = email.split("@")
-print(domain)  # Output: example.com
-
-# Count words in a sentence
-sentence = "The quick brown fox jumps over the lazy dog"
-word_count = len(sentence.split())
-print(word_count)  # Output: 9
+print(cleaned)
+# Output: Alice Smith
 ```
 
-## Remember
+We validate an email address:
 
-String methods do not modify the original string. They return a new string. Strings in Python are immutable, so all methods that modify strings return a copy:
+```python
+email = "user@example.com"
+is_valid = "@" in email and email.endswith(".com")
+print(is_valid)
+# Output: True
+```
+
+We extract the domain from an email:
+
+```python
+email = "user@example.com"
+username, domain = email.split("@")
+print(domain)
+# Output: example.com
+```
+
+We count words in a sentence:
+
+```python
+sentence = "The quick brown fox jumps over the lazy dog"
+word_count = len(sentence.split())
+print(word_count)
+# Output: 9
+```
+
+## Key Insight
+
+String methods do not modify the original string. They return a new string. Since strings in Python are immutable, all methods that appear to modify strings actually return a copy:
 
 ```python
 text = "Hello"
 new_text = text.upper()
-
-print(text)      # Output: Hello (unchanged!)
-print(new_text)  # Output: HELLO (new value)
+print(text)
+# Output: Hello (unchanged)
+print(new_text)
+# Output: HELLO (new value)
 ```

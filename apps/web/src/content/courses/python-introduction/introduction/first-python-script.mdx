@@ -6,24 +6,24 @@ order: 4
 
 # Writing Your First Python Script
 
-Now that you have your environment set up, it's time to write your first Python program. This section teaches you the fundamentals of Python syntax through practical examples.
+We write our first Python program after setting up the environment. This section covers Python syntax fundamentals through practical examples.
 
-## What is a Script?
+## What is a Script
 
-A Python script is simply a file containing Python code that your computer can execute. Scripts have the `.py` extension and contain instructions that Python interprets line by line.
+A Python script is a file containing Python code that the computer executes. Scripts have the `.py` extension. Python interprets the instructions line by line.
 
-## Your First Program: Hello, World!
+## Hello, World!
 
-The traditional first program in any language prints "Hello, World!" to the screen. Let's start there.
+The traditional first program prints "Hello, World!" to the screen.
 
-Create a file called `hello_world.py`:
+We create `hello_world.py`:
 
 ```python
 # This is my first Python program
 print("Hello, World!")
 ```
 
-Run it:
+We run it:
 
 ```bash
 python hello_world.py
@@ -35,14 +35,14 @@ Output:
 Hello, World!
 ```
 
-That one line of code introduced you to:
+This one line of code demonstrates:
 - Python's `print()` function
-- How to write strings (text in quotes)
+- Writing strings (text in quotes)
 - Comments (text preceded by `#`)
 
 ## Comments
 
-Comments are notes for humans reading your code. Python ignores them when running.
+Comments provide notes for humans reading code. Python ignores comments when running.
 
 ```python
 # This is a single-line comment
@@ -62,7 +62,7 @@ print(area)  # outputs: 50
 
 ## Variables and Data Types
 
-Variables store information for later use. Python has several basic data types:
+Variables store information for later use. Python provides several basic data types.
 
 ### Numbers
 
@@ -83,23 +83,20 @@ division = year / 4  # Result is a float: 506.0
 
 ### Strings
 
-Strings are text data:
+Strings hold text data:
 
 ```python
-# Creating strings
 name = "Alice"
 greeting = 'Hello, World!'  # Single or double quotes work
 message = """This is a multi-line
 string that spans
 several lines."""
 
-# String operations
 first_name = "John"
 last_name = "Doe"
 full_name = first_name + " " + last_name  # Concatenation
 print(full_name)  # Output: John Doe
 
-# String methods
 name_upper = name.upper()
 name_lower = name.lower()
 name_length = len(name)
@@ -109,19 +106,17 @@ print(f"{name_upper}, length: {name_length}")
 
 ### Booleans
 
-Boolean values represent truth or falsehood:
+Booleans represent true or false:
 
 ```python
 is_python_fun = True
 is_sky_green = False
 
-# Comparison operators return booleans
 result = 10 > 5    # True
 result = 7 == 7    # True (double equals for comparison)
 result = 3 != 5    # True (not equal)
 result = 10 <= 5   # False
 
-# Logical operations
 and_result = True and False   # False
 or_result = True or False     # True
 not_result = not True          # False
@@ -129,23 +124,19 @@ not_result = not True          # False
 
 ### Lists
 
-Lists hold collections of items:
+Lists hold ordered collections of items:
 
 ```python
-# Creating a list
 fruits = ["apple", "banana", "cherry"]
 numbers = [1, 2, 3, 4, 5]
 mixed = ["hello", 42, True, 3.14]
 
-# Accessing items (indexing starts at 0)
-first_fruit = fruits[0]    # "apple"
+first_fruit = fruits[0]    # "apple" (indexing starts at 0)
 second_number = numbers[1] # 2
 
-# Slicing
 first_two = fruits[0:2]   # ["apple", "banana"]
 last_two = numbers[3:]     # [4, 5]
 
-# Modifying lists
 fruits.append("date")      # Add to end
 fruits.insert(1, "apricot") # Insert at index
 fruits.remove("banana")    # Remove by value
@@ -159,7 +150,6 @@ print(fruits)  # Modified list
 Dictionaries store key-value pairs:
 
 ```python
-# Creating a dictionary
 person = {
     "name": "Alice",
     "age": 30,
@@ -167,20 +157,16 @@ person = {
     "is_student": False
 }
 
-# Accessing values
 name = person["name"]
 age = person.get("age")
 
-# Adding and modifying
 person["email"] = "alice@example.com"
 person["age"] = 31  # Update existing
 
-# Dictionary methods
 keys = person.keys()
 values = person.values()
 items = person.items()
 
-# Looping through dictionaries
 for key, value in person.items():
     print(f"{key}: {value}")
 ```
@@ -228,35 +214,32 @@ elif temperature > 60:
 else:
     print("It's cold outside!")
 
-# Ternary operator (inline conditional)
 weather = "hot" if temperature > 80 else "pleasant"
 print(f"The weather is {weather}.")
 ```
 
-### Loops
+### For Loops
 
-**For loops** iterate over sequences:
+For loops iterate over sequences:
 
 ```python
-# Looping through a list
 fruits = ["apple", "banana", "cherry"]
 for fruit in fruits:
     print(f"I like {fruit}")
 
-# Using range()
 for i in range(5):
     print(i)  # Prints 0, 1, 2, 3, 4
 
-# Range with start and stop
 for i in range(2, 6):
     print(i)  # Prints 2, 3, 4, 5
 
-# Looping with index
 for index, fruit in enumerate(fruits):
     print(f"{index + 1}. {fruit}")
 ```
 
-**While loops** repeat while a condition is true:
+### While Loops
+
+While loops repeat while a condition is true:
 
 ```python
 countdown = 5
@@ -269,13 +252,11 @@ print("Liftoff!")
 ### Loop Control
 
 ```python
-# Break: exit the loop early
 for number in range(10):
     if number == 5:
         break
     print(number)  # Prints 0, 1, 2, 3, 4
 
-# Continue: skip to next iteration
 for number in range(5):
     if number == 2:
         continue
@@ -287,16 +268,13 @@ for number in range(5):
 Functions are reusable blocks of code:
 
 ```python
-# Defining a function
 def greet(name):
     """Return a greeting message for the given name."""
     return f"Hello, {name}! Nice to meet you."
 
-# Calling a function
 message = greet("Alice")
 print(message)
 
-# Function with multiple parameters
 def calculate_area(length, width):
     """Calculate the area of a rectangle."""
     return length * width
@@ -304,7 +282,6 @@ def calculate_area(length, width):
 area = calculate_area(10, 5)
 print(f"The area is {area} square units.")
 
-# Default parameter values
 def power(base, exponent=2):
     return base ** exponent
 
@@ -312,7 +289,7 @@ print(power(3))    # 9 (3^2)
 print(power(3, 3)) # 27 (3^3)
 ```
 
-### Working with Multiple Return Values
+### Multiple Return Values
 
 ```python
 def get_statistics(numbers):
@@ -328,12 +305,12 @@ print(f"Total: {total}, Average: {total / count}")
 
 ## A Complete Program
 
-Let's put everything together in a program that manages a simple task list:
+We build a task manager that demonstrates putting concepts together:
 
 ```python
 """
-Task Manager - Your First Python Project
-A simple program to add, view, and manage tasks.
+Task Manager - Our First Python Project
+A program to add, view, and manage tasks.
 """
 
 def display_menu():
@@ -442,18 +419,15 @@ Your Tasks:
 
 ### List Comprehensions
 
-Create lists concisely:
+We create lists concisely with list comprehensions:
 
 ```python
-# Traditional loop approach
 squares = []
 for num in range(10):
     squares.append(num ** 2)
 
-# List comprehension approach
 squares = [num ** 2 for num in range(10)]
 
-# With conditions
 even_squares = [num ** 2 for num in range(10) if num % 2 == 0]
 # Result: [0, 4, 16, 36, 64]
 ```
@@ -465,21 +439,17 @@ name = "Alice"
 age = 30
 city = "New York"
 
-# f-strings (recommended, Python 3.6+)
 message = f"{name} is {age} years old and lives in {city}."
 print(message)
 
-# .format() method
 message = "{} is {} years old and lives in {}.".format(name, age, city)
 
-# % formatting (older style)
 message = "%s is %d years old and lives in %s." % (name, age, city)
 ```
 
 ### Error Handling
 
 ```python
-# Try-except block
 try:
     number = int(input("Enter a number: "))
     result = 10 / number
@@ -494,23 +464,20 @@ finally:
 
 ## Debugging Tips
 
-When your code doesn't work as expected:
+When code does not work as expected:
 
 ```python
-# Use print statements to check values
 def buggy_function(x, y):
     result = x + y
     print(f"DEBUG: x={x}, y={y}, result={result}")
     return result
-
-# Start simple, add complexity gradually
-# Bad: Complex code all at once
-# Good: Simple version first, then add features
 ```
 
-## What's Next?
+We start simple and add complexity gradually.
 
-Congratulations! You've written your first Python programs and learned the fundamentals:
+## What We've Learned
+
+We've written our first Python programs and learned the fundamentals:
 
 - Variables and data types
 - Control flow (if statements, loops)
@@ -518,12 +485,9 @@ Congratulations! You've written your first Python programs and learned the funda
 - Basic data structures (lists, dictionaries)
 - User interaction
 
-These concepts form the foundation of Python programming. Keep practicing by modifying the examples, creating small projects, and exploring Python's extensive standard library.
+These concepts form the foundation of Python programming. We practice by modifying examples, creating small projects, and exploring Python's extensive standard library.
 
 ```python
-# Your Python journey starts here
 print("Congratulations on writing your first Python code!")
 print("Keep practicing and have fun exploring Python.")
 ```
-
-In the next chapter, you'll dive deeper into Python's core features and learn more advanced programming techniques.

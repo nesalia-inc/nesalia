@@ -6,13 +6,13 @@ order: 1
 
 # Variables and Data Types
 
-In this part, you'll learn how to store information in your programs using variables, and you'll explore Python's fundamental data types.
+We store information in programs using variables, and we explore Python's fundamental data types.
 
 ## What Are Variables?
 
-Variables are like labeled containers that hold data. Think of them as labeled boxes where you can store values to use later in your program.
+Variables are like labeled containers that hold data. We think of them as labeled boxes where we store values to use later in a program.
 
-In Python, you create a variable by assigning a value to it using the equals sign (`=`). Unlike some other programming languages, Python doesn't require you to declare the type of a variable upfront.
+In Python, we create a variable by assigning a value to it using the equals sign (`=`). Python does not require us to declare the type of a variable upfront.
 
 ```python
 # Creating variables
@@ -44,17 +44,17 @@ age2 = 30
 _is_private = True
 
 # Invalid variable names
-# 2age = 20        # Can't start with a number
-# first-name = "John"  # Can't use hyphens
+# 2age = 20        # Cannot start with a number
+# first-name = "John"  # Cannot use hyphens
 ```
 
 ## Python's Built-in Data Types
 
-Python comes with several built-in data types that you'll use frequently.
+Python provides several built-in data types that we use frequently.
 
 ### Strings (str)
 
-Strings are used to represent text. You can create them using single quotes or double quotes.
+Strings represent text. We create them using single quotes or double quotes.
 
 ```python
 # String examples
@@ -124,7 +124,7 @@ is_older = age > 18  # True if age is greater than 18
 
 ## Checking Types with type()
 
-You can find out what type a variable is using the `type()` function.
+We find out what type a variable is using the `type()` function.
 
 ```python
 name = "Alice"
@@ -140,7 +140,7 @@ print(type(is_student)) # <class 'bool'>
 
 ## Type Conversion
 
-You can convert between different types using built-in functions.
+We convert between different types using built-in functions.
 
 ```python
 # String to integer
@@ -176,7 +176,7 @@ if result is None:
 
 ### Multiple Assignment
 
-Python allows you to assign multiple variables in one line.
+Python allows us to assign multiple variables in one line.
 
 ```python
 # Multiple assignment
@@ -198,12 +198,10 @@ a, b = b, a  # Now a = 10 and b = 5
 
 ## Summary
 
-In this part, you learned:
+We covered:
 
 - Variables store data values and are created by assignment
 - Python has several built-in data types: strings, integers, floats, and booleans
-- Use `type()` to check a variable's type
-- Convert between types using `int()`, `str()`, `float()`, and `bool()`
+- We use `type()` to check a variable's type
+- We convert between types using `int()`, `str()`, `float()`, and `bool()`
 - The special `None` value represents absence of data
-
-These fundamental concepts will serve as the foundation for writing Python programs. In the next part, you'll learn how to perform operations on these values using operators.

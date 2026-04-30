@@ -6,18 +6,18 @@ order: 5
 
 # Type Annotations Basics
 
-Type annotations (or type hints) allow you to indicate the expected types of variables, function parameters, and return values. While Python doesn't enforce these types at runtime, they improve code readability and enable better tooling support.
+Type annotations (or type hints) indicate the expected types of variables, function parameters, and return values. Python does not enforce these types at runtime, but they improve code readability and enable better tooling support.
 
 ## Why Use Type Annotations?
 
 - **Code readability** — Clearer indication of expected types
 - **Better IDE support** — Improved autocomplete and error detection
 - **Documentation** — Self-documenting code
-- **Static analysis** — Tools like mypy can catch errors before runtime
+- **Static analysis** — Tools like mypy catch errors before runtime
 
 ## Variable Annotations
 
-You can annotate variable types using a colon:
+We annotate variable types using a colon:
 
 ```python
 name: str = "Alice"
@@ -26,11 +26,11 @@ height: float = 1.75
 is_student: bool = True
 ```
 
-These annotations don't change how the code runs.
+These annotations do not change how the code runs.
 
 ## Function Parameter Annotations
 
-Add type hints to function parameters:
+We add type hints to function parameters:
 
 ```python
 def greet(name: str) -> str:
@@ -50,7 +50,7 @@ Hello, Alice!
 8
 ```
 
-The annotation `name: str` means the parameter should be a string, and `-> str` indicates the return type.
+The annotation `name: str` indicates the parameter should be a string, and `-> str` indicates the return type.
 
 ## Common Type Annotations
 
@@ -98,7 +98,7 @@ Alice
 
 ### Optional Types
 
-Use `Optional` for values that might be `None`:
+We use `Optional` for values that might be `None`:
 
 ```python
 from typing import Optional
@@ -120,7 +120,7 @@ None
 
 ## Union Types
 
-When a parameter can have multiple types, use `Union`:
+When a parameter can have multiple types, we use `Union`:
 
 ```python
 from typing import Union
@@ -168,7 +168,7 @@ Output:
 
 ## Any Type
 
-Use `Any` when the type is unknown:
+We use `Any` when the type is unknown:
 
 ```python
 from typing import Any
@@ -183,7 +183,7 @@ print_value([1, 2, 3])
 
 ## Type Annotations with None
 
-When a function doesn't return a value, use `-> None`:
+When a function does not return a value, we use `-> None`:
 
 ```python
 def print_message(message: str) -> None:
@@ -192,7 +192,7 @@ def print_message(message: str) -> None:
 
 This explicitly indicates the function returns nothing.
 
-## Modern Python (3.9+) Syntax
+## Python 3.9+ Syntax
 
 Python 3.9 introduced generic types without the `typing` module:
 
@@ -205,11 +205,11 @@ def get_name(person: dict[str, str]) -> str:
     return person.get("name", "Unknown")
 ```
 
-This course uses the newer syntax, but both approaches are valid.
+Both the older `typing` module syntax and the newer built-in generic syntax are valid.
 
 ## Summary
 
-- Type annotations don't enforce types at runtime
+- Type annotations do not enforce types at runtime
 - Use `str`, `int`, `float`, `bool` for basic types
 - Use `List`, `Dict`, `Optional`, `Union` from `typing` module
 - Use `Callable` for functions passed as parameters

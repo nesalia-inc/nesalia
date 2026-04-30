@@ -6,7 +6,7 @@ order: 2
 
 # Operators
 
-Operators are special symbols that perform operations on values and variables. In this part, you'll learn about arithmetic operators for calculations, comparison operators for making decisions, and logical operators for combining conditions.
+We use operators to perform operations on values and variables. We work with arithmetic operators for calculations, comparison operators for making decisions, and logical operators for combining conditions.
 
 ## Arithmetic Operators
 
@@ -25,7 +25,7 @@ print(a / b)   # Division: 3.333...
 
 ### Integer Division and Modulus
 
-When you need whole numbers from division, Python provides two additional operators:
+When we need whole numbers from division, Python provides two additional operators:
 
 ```python
 a, b = 10, 3
@@ -34,27 +34,30 @@ print(a // b)  # Floor division: 3 (rounds down)
 print(a % b)   # Modulus: 1 (remainder after division)
 ```
 
-The floor division (`//`) always rounds down, while the modulus (`%`) gives you the remainder.
+Floor division (`//`) always rounds down, while the modulus (`%`) gives us the remainder.
 
 ```python
-# Practical example: splitting items
+# Splitting items into boxes
 total = 17
 items_per_box = 5
 
 full_boxes = total // items_per_box  # 3
 remaining = total % items_per_box    # 2
+
+print(f"Full boxes: {full_boxes}, items left over: {remaining}")
+# Full boxes: 3, items left over: 2
 ```
 
 ### Exponentiation
 
-Use `**` to raise a number to a power:
+We use `**` to raise a number to a power:
 
 ```python
 base = 2
 exponent = 8
 
 result = base ** exponent  # 256
-print(2 ** 10)             # 1024 (useful for powers of 2)
+print(2 ** 10)             # 1024 (powers of 2 are common in computing)
 ```
 
 ## Comparison Operators
@@ -83,7 +86,7 @@ print(age <= 18)  # Less than or equal: True
 
 ### Comparing Strings
 
-You can also compare strings alphabetically:
+We compare strings alphabetically:
 
 ```python
 print("apple" == "apple")   # True
@@ -119,7 +122,7 @@ print(is_minor)  # False
 
 ### Combining Operators
 
-You can combine multiple operators in one expression:
+We combine multiple operators in one expression:
 
 ```python
 temperature = 22
@@ -132,7 +135,7 @@ print(nice_weather)  # True
 
 ### Operator Precedence
 
-When you have multiple operators, Python follows a specific order (precedence):
+When we have multiple operators, Python follows a specific order (precedence):
 
 ```python
 # Highest to lowest precedence:
@@ -147,13 +150,13 @@ When you have multiple operators, Python follows a specific order (precedence):
 result = 2 + 3 * 4      # 14 (multiplication first)
 result = (2 + 3) * 4    # 20 (parentheses first)
 
-# Combining logical operators
+# Combining logical operators for loan approval
 age = 20
 income = 50000
 credit_score = 700
 
-# Can this person get a loan?
 approved = age >= 18 and (income > 30000 or credit_score > 650)
+print(approved)  # True
 ```
 
 ## Assignment Operators
@@ -243,12 +246,12 @@ is_valid_username = username == "admin"
 is_valid_password = password == "secret123"
 is_authenticated = is_valid_username and is_valid_password
 
-print(f"Access granted: {is_authenticated}")  # True
+print(f"Access granted: {is_authenticated}")  # Access granted: True
 ```
 
 ## Summary
 
-In this part, you learned:
+We covered:
 
 - **Arithmetic operators**: `+`, `-`, `*`, `/`, `//`, `%`, `**` for calculations
 - **Comparison operators**: `==`, `!=`, `<`, `>`, `<=`, `>=` for comparisons
@@ -256,5 +259,3 @@ In this part, you learned:
 - **Assignment operators**: `+=`, `-=`, `*=`, etc. for convenient updates
 - **Identity operators**: `is`, `is not` for object comparison
 - **Membership operators**: `in`, `not in` for checking containment
-
-These operators are the building blocks for making your programs perform calculations and decisions. In the next part, you'll learn how to document your code using comments and format it for readability.

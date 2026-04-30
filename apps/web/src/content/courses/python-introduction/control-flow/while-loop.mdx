@@ -6,7 +6,7 @@ order: 3
 
 # The while Loop
 
-The `while` loop in Python repeatedly executes a block of code as long as a condition is true. It is useful when you do not know in advance how many iterations are needed.
+We use the `while` loop when we need to repeat code an unknown number of times, continuing as long as a condition remains true.
 
 ## Basic Syntax
 
@@ -14,6 +14,8 @@ The `while` loop in Python repeatedly executes a block of code as long as a cond
 while condition:
     # code to execute while condition is true
 ```
+
+Python checks the condition before each iteration. If it is true, we execute the block and check again. When the condition becomes false, the loop stops.
 
 ## Simple Example
 
@@ -34,9 +36,11 @@ Output:
 4
 ```
 
+We initialize `count` to 0, then loop while `count < 5`. Each iteration prints the current value, then increments it. When `count` reaches 5, the condition is false and we exit.
+
 ## Loop with User Input
 
-A common use case for `while` loops is waiting for valid input:
+We use `while` loops to keep asking for input until we receive valid data:
 
 ```python
 password = ""
@@ -47,9 +51,11 @@ while password != "secret":
 print("Access granted!")
 ```
 
+This loops until the user types "secret".
+
 ## Infinite Loops
 
-Be careful with `while` loops - if the condition never becomes false, the loop runs forever:
+If the condition never becomes false, the loop runs forever. We must ensure the condition will eventually be met:
 
 ```python
 # This creates an infinite loop
@@ -61,7 +67,7 @@ To stop an infinite loop, press `Ctrl+C` in most terminals.
 
 ## Using a Flag
 
-A common pattern to control a `while` loop:
+We control loop execution with a boolean flag when the stopping condition depends on events inside the loop:
 
 ```python
 active = True
@@ -89,7 +95,7 @@ Loop ended
 
 ## While with else
 
-Similar to `for` loops, `while` loops can have an `else` clause that executes when the condition becomes false:
+The `while` loop supports an `else` clause that runs when the condition becomes false:
 
 ```python
 count = 0
@@ -111,7 +117,7 @@ Condition became false - else block executed
 
 ## Breaking Out of a while Loop
 
-You can use the `break` statement to exit a `while` loop early:
+We exit a `while` loop early using `break`:
 
 ```python
 count = 0
@@ -136,9 +142,11 @@ Output:
 Loop ended with break
 ```
 
+`break` exits the innermost loop immediately.
+
 ## Skipping Iterations with continue
 
-The `continue` statement skips the rest of the current iteration and moves to the next one:
+We skip to the next iteration using `continue`, bypassing any code that remains in the current block:
 
 ```python
 count = 0
@@ -160,7 +168,11 @@ Output:
 5
 ```
 
+When `count` equals 3, we skip the `print` and continue to the next iteration.
+
 ## Practical Example: Guessing Game
+
+We build a complete guessing game with `while`:
 
 ```python
 import random
@@ -183,7 +195,11 @@ while guess != secret_number:
         print(f"Correct! You got it in {attempts} attempts!")
 ```
 
+We loop until the guess matches the secret number. The loop tracks attempts and provides feedback after each guess.
+
 ## Practical Example: Menu-Driven Program
+
+We create a menu system that runs until the user quits:
 
 ```python
 choice = ""
@@ -206,10 +222,14 @@ while choice != "quit":
         print("Invalid choice, please try again.")
 ```
 
+The loop continues as long as the user has not entered "quit".
+
 ## Summary
 
-- `while` loops execute as long as the condition is true
-- Always ensure the condition will eventually become false to avoid infinite loops
-- Use `break` to exit the loop early
-- Use `continue` to skip to the next iteration
-- The `else` clause executes when the condition becomes false
+- `while` loops repeat as long as the condition is true
+- We must update variables in the condition to avoid infinite loops
+- `break` exits the loop immediately
+- `continue` skips to the next iteration
+- The `else` clause runs when the condition becomes false
+- Flags help us control loops from inside the body
+- We use `while` when we do not know the number of iterations in advance

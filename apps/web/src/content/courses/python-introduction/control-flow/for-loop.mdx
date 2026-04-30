@@ -6,7 +6,7 @@ order: 2
 
 # The for Loop and range()
 
-The `for` loop in Python is used to iterate over sequences such as lists, strings, or ranges. It allows you to execute a block of code repeatedly for each item in a sequence.
+We use the `for` loop to iterate over any sequence: lists, strings, ranges, or other iterable objects.
 
 ## Basic Syntax
 
@@ -14,6 +14,8 @@ The `for` loop in Python is used to iterate over sequences such as lists, string
 for item in sequence:
     # code to execute for each item
 ```
+
+The loop binds each item in the sequence to the variable name, then executes the block. We repeat this for every item in the sequence.
 
 ## Iterating Over a List
 
@@ -31,9 +33,11 @@ banana
 cherry
 ```
 
+On each iteration, `fruit` takes the value of the next item in the list.
+
 ## Using range()
 
-The `range()` function generates a sequence of numbers. It is commonly used with `for` loops to repeat code a specific number of times.
+We use `range()` to generate sequences of numbers. This is useful when we need to repeat code a specific number of times.
 
 ### range(stop)
 
@@ -51,6 +55,8 @@ Output:
 4
 ```
 
+`range(5)` generates numbers from 0 up to but not including 5.
+
 ### range(start, stop)
 
 ```python
@@ -65,6 +71,8 @@ Output:
 4
 5
 ```
+
+We pass a start and stop to begin from a number other than 0.
 
 ### range(start, stop, step)
 
@@ -82,7 +90,11 @@ Output:
 8
 ```
 
+The step argument controls the interval between numbers. Here we count by twos.
+
 ## Iterating Over a String
+
+Strings are sequences of characters, so we iterate over them the same way:
 
 ```python
 for letter in "Python":
@@ -101,7 +113,7 @@ n
 
 ## Using range() with len()
 
-Often, you may need both the index and the value when iterating. You can combine `range()` with `len()`:
+When we need the index and value together, we combine `range()` with `len()`:
 
 ```python
 colors = ["red", "green", "blue"]
@@ -117,27 +129,11 @@ Index 1: green
 Index 2: blue
 ```
 
-## The enumerate() Function
-
-While `range()` with `len()` works, `enumerate()` is a cleaner way to get both index and value:
-
-```python
-colors = ["red", "green", "blue"]
-
-for index, color in enumerate(colors):
-    print(f"Index {index}: {color}")
-```
-
-Output:
-```
-Index 0: red
-Index 1: green
-Index 2: blue
-```
+`len(colors)` returns 3, and `range(3)` produces indices 0, 1, 2.
 
 ## Nested for Loops
 
-You can nest `for` loops inside each other:
+We nest one `for` loop inside another when we need to iterate over multiple dimensions:
 
 ```python
 for i in range(3):
@@ -155,9 +151,11 @@ Output:
 (2, 1)
 ```
 
+The outer loop runs three times. For each outer iteration, the inner loop runs twice.
+
 ## Loop Else Clause
 
-Python allows an optional `else` block that executes after the loop finishes normally (not interrupted by `break`):
+Python loops support an optional `else` block that runs after the loop completes normally (not interrupted by `break`):
 
 ```python
 for i in range(3):
@@ -174,9 +172,11 @@ Output:
 Loop completed successfully
 ```
 
+The `else` block executes because `break` never interrupted the loop.
+
 ## List Comprehensions
 
-A concise way to create lists using `for` loops:
+We use a concise syntax to create lists directly from `for` loops:
 
 ```python
 squares = [x**2 for x in range(5)]
@@ -188,10 +188,15 @@ Output:
 [0, 1, 4, 9, 16]
 ```
 
+The expression `x**2` runs for each `x` in `range(5)`, and results accumulate into the list.
+
 ## Summary
 
-- Use `for item in sequence` to iterate over any sequence
-- `range(n)` generates numbers from 0 to n-1
-- `range(start, stop)` generates numbers from start to stop-1
-- `range(start, stop, step)` generates numbers with a custom step
-- `enumerate()` provides both index and value in a single loop
+- `for item in sequence` iterates over any sequence
+- `range(n)` produces numbers 0 to n-1
+- `range(start, stop)` produces numbers from start to stop-1
+- `range(start, stop, step)` produces numbers with the given interval
+- `range()` with `len()` gives us both index and value
+- Nested loops iterate over multiple dimensions
+- The `else` block runs when the loop finishes without `break`
+- List comprehensions create lists inline in a single expression

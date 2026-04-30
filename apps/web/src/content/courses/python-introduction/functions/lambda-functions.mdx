@@ -6,11 +6,11 @@ order: 4
 
 # Lambda Functions
 
-Lambda functions are small, anonymous functions that can be defined in a single line. They're useful when you need a simple function for a short period of time.
+Lambda functions are small, anonymous functions that we define in a single line. We use them when we need a simple function for a short period of time.
 
 ## Basic Syntax
 
-A lambda function is defined using the `lambda` keyword:
+We define a lambda function using the `lambda` keyword:
 
 ```python
 # Regular function
@@ -44,7 +44,7 @@ The lambda function takes one parameter (`x`) and returns `x ** 2`.
 
 ### 1. Sorting with Custom Key
 
-Lambda functions are commonly used with the `key` parameter in sorting:
+Lambda functions work well with the `key` parameter in sorting:
 
 ```python
 names = ["Charlie", "Alice", "Bob"]
@@ -99,7 +99,7 @@ Output:
 
 ## Multiple Parameters
 
-Lambda functions can accept multiple parameters:
+Lambda functions accept multiple parameters:
 
 ```python
 # A lambda with two parameters
@@ -113,7 +113,7 @@ print(greet())
 
 ## Lambda in List Comprehensions
 
-Lambdas can be used in list comprehensions for conditional logic:
+We use lambdas in list comprehensions for conditional logic:
 
 ```python
 # Classify numbers as even or odd
@@ -130,11 +130,11 @@ Output:
 
 ## Limitations of Lambda
 
-Lambda functions have some limitations:
+Lambda functions have restrictions:
 
-1. **No statements** — You can't use `if`, `for`, `while`, or other statements
+1. **No statements** — We cannot use `if`, `for`, `while`, or other statements
 2. **Single expression** — Only one expression is allowed
-3. **No docstrings** — Lambda functions can't have documentation
+3. **No docstrings** — Lambda functions cannot have documentation
 4. **Hard to debug** — Anonymous functions are harder to trace in error messages
 
 ## When to Use Lambda
@@ -143,12 +143,12 @@ Use lambda when:
 
 - The function is simple (one expression)
 - The function is short-lived (used once or twice)
-- You're passing it as an argument to a higher-order function
+- We pass it as an argument to a higher-order function
 
 Use a regular function when:
 
 - The function is complex
-- You need documentation
+- Documentation is needed
 - The function will be reused many times
 
 ## Example: Combining Operations
@@ -175,6 +175,6 @@ Output:
 
 - Lambda functions are anonymous, single-expression functions
 - Syntax: `lambda parameters: expression`
-- Commonly used with `sorted()`, `filter()`, and `map()`
-- Limited compared to regular functions
-- Best for short, simple operations passed to other functions
+- We use them commonly with `sorted()`, `filter()`, and `map()`
+- They have limitations compared to regular functions
+- They work best for short, simple operations passed to other functions

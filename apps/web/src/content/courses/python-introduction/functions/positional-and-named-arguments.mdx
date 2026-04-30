@@ -6,7 +6,7 @@ order: 6
 
 # Positional and Named Arguments
 
-Python functions can be called using positional arguments, named arguments (keyword arguments), or a combination of both. Understanding the difference helps you write and use functions more effectively.
+Python functions accept positional arguments, named arguments (keyword arguments), or both. Understanding the difference helps us write and use functions more effectively.
 
 ## Positional Arguments
 
@@ -48,7 +48,7 @@ Using parameter names makes the code clearer about what each value represents.
 
 ## Mixing Positional and Named Arguments
 
-You can mix both approaches in a single call:
+We can mix both approaches in a single call:
 
 ```python
 def describe_pet(animal, name, age):
@@ -58,7 +58,7 @@ describe_pet("dog", name="Max", age=3)
 describe_pet(animal="cat", name="Whiskers", age=5)
 ```
 
-Important: Positional arguments must come before named arguments.
+Positional arguments must come before named arguments.
 
 ## Default Parameters with Arguments
 
@@ -126,7 +126,7 @@ Inside the function, `kwargs` is a dictionary containing all keyword arguments.
 
 ## Combining `*args` and `**kwargs`
 
-You can use both together to accept any combination of arguments:
+We use both together to accept any combination of arguments:
 
 ```python
 def flexible(*args, **kwargs):
@@ -176,7 +176,7 @@ experience: 5 years
 
 ## Keyword-Only Arguments
 
-In Python 3, you can require certain arguments to be passed as keyword arguments using `*`:
+Python 3 allows us to require certain arguments to be passed as keyword arguments using `*`:
 
 ```python
 def greet(name, *, greeting="Hello"):
@@ -184,7 +184,7 @@ def greet(name, *, greeting="Hello"):
 
 greet("Alice")
 greet("Bob", greeting="Hi")
-# This would fail: greet("Carol", "Hey")
+# This fails: greet("Carol", "Hey")
 ```
 
 The `*` forces `greeting` to be passed as a keyword argument.
@@ -196,4 +196,4 @@ The `*` forces `greeting` to be passed as a keyword argument.
 - Positional arguments must come before named arguments
 - `*args` accepts multiple positional arguments as a tuple
 - `**kwargs` accepts multiple keyword arguments as a dictionary
-- Use `*` to make arguments keyword-only
+- We use `*` to make arguments keyword-only

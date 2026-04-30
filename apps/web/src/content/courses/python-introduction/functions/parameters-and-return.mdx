@@ -6,11 +6,11 @@ order: 2
 
 # Function Parameters and Return Values
 
-Functions become powerful when you understand how to work with different kinds of parameters and return values.
+Functions become powerful when we understand how to work with different kinds of parameters and return values.
 
 ## Default Parameters
 
-You can give parameters default values. These are used when the caller doesn't provide them:
+We give parameters default values to use when the caller does not provide them:
 
 ```python
 def greet(name, greeting="Hello"):
@@ -52,7 +52,7 @@ Max is 3 years old
 
 ## Returning Multiple Values
 
-Python functions can return multiple values as a tuple:
+Python functions return multiple values as a tuple:
 
 ```python
 def get_stats(numbers):
@@ -68,7 +68,7 @@ Output:
 (10, 50, 150)
 ```
 
-You can also unpack the values directly:
+We unpack the values directly:
 
 ```python
 minimum, maximum, total = get_stats([10, 20, 30, 40, 50])
@@ -77,7 +77,7 @@ print(f"Min: {minimum}, Max: {maximum}, Total: {total}")
 
 ## Returning Early with `return`
 
-You can use `return` to exit a function early:
+We use `return` to exit a function early:
 
 ```python
 def find_first_even(numbers):
@@ -99,7 +99,7 @@ None
 
 ## None as a Return Value
 
-If you don't explicitly return a value, the function returns `None`:
+If a function does not explicitly return a value, it returns `None`:
 
 ```python
 def print_message(message):
@@ -118,7 +118,7 @@ Return value: None
 
 ## Type Hints for Parameters
 
-You can add type hints to indicate expected types:
+We add type hints to indicate expected types:
 
 ```python
 def greet(name: str) -> str:
@@ -131,7 +131,7 @@ print(greet("Alice"))
 print(add(5, 3))
 ```
 
-Type hints don't enforce types at runtime, but they help with code readability and tooling.
+Type hints do not enforce types at runtime, but they improve code readability and tooling support.
 
 ## Practice Examples
 
@@ -185,7 +185,7 @@ Output:
 ## Summary
 
 - Default parameters provide fallback values
-- Functions can return multiple values as tuples
-- Use `return` to exit a function early
+- Functions return multiple values as tuples
+- We use `return` to exit a function early
 - Functions without `return` statements return `None`
 - Type hints improve code documentation
