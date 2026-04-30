@@ -3,10 +3,12 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { PanelLeftIcon } from 'lucide-react';
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -14,7 +16,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 
 interface Chapter {
   slug: string;
@@ -135,6 +139,7 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
   const courseSlug = params.course_slug as string;
   const section = params.section as string;
   const chapterSlug = params.chapter_slug as string;
+  const { state, toggleSidebar } = useSidebar();
 
   const sections = getCourseSections(courseSlug);
 
@@ -168,6 +173,18 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
           );
         })}
       </SidebarContent>
+      <SidebarFooter className="border-t border-border p-2">
+        <div className="flex items-center justify-end">
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => toggleSidebar()}
+            aria-label="Toggle sidebar"
+          >
+            <PanelLeftIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );
