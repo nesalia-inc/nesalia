@@ -6,13 +6,15 @@ order: 2
 
 # Operators
 
-We use operators to perform operations on values and variables. We work with arithmetic operators for calculations, comparison operators for making decisions, and logical operators for combining conditions.
+Operators are symbols that perform operations on values and variables. You will work with arithmetic operators for calculations, comparison operators for making decisions, and logical operators for combining conditions.
 
 ## Arithmetic Operators
 
-Arithmetic operators perform mathematical calculations.
+Arithmetic operators perform mathematical calculations. You use these to add, subtract, multiply, and divide numbers.
 
 ### Basic Arithmetic
+
+You can perform the four basic math operations in Python:
 
 ```python
 a, b = 10, 3
@@ -23,18 +25,23 @@ print(a * b)   # Multiplication: 30
 print(a / b)   # Division: 3.333...
 ```
 
+Note that division (`/`) always returns a float, even when the numbers divide evenly.
+
 ### Integer Division and Modulus
 
-When we need whole numbers from division, Python provides two additional operators:
+When you need whole numbers from division, Python provides two additional operators:
+
+- **Floor division** (`//`) - divides and rounds down to the nearest whole number
+- **Modulus** (`%`) - returns the remainder after division
 
 ```python
 a, b = 10, 3
 
-print(a // b)  # Floor division: 3 (rounds down)
-print(a % b)   # Modulus: 1 (remainder after division)
+print(a // b)  # 3 (floor division - rounds down)
+print(a % b)   # 1 (modulus - remainder after division)
 ```
 
-Floor division (`//`) always rounds down, while the modulus (`%`) gives us the remainder.
+Floor division is useful when you need to split items into groups and only care about complete groups. The modulus operator gives you what is "left over" after dividing.
 
 ```python
 # Splitting items into boxes
@@ -48,9 +55,11 @@ print(f"Full boxes: {full_boxes}, items left over: {remaining}")
 # Full boxes: 3, items left over: 2
 ```
 
+This example shows a common real-world use: you have 17 items and each box holds 5. Floor division tells you how many complete boxes you can fill, and modulus tells you how many items are left over.
+
 ### Exponentiation
 
-We use `**` to raise a number to a power:
+You use `**` to raise a number to a power (multiply a number by itself a certain number of times):
 
 ```python
 base = 2
@@ -60,44 +69,50 @@ result = base ** exponent  # 256
 print(2 ** 10)             # 1024 (powers of 2 are common in computing)
 ```
 
+Exponentiation is common in computing because powers of 2 appear frequently in memory addressing and algorithms.
+
 ## Comparison Operators
 
-Comparison operators compare two values and return a boolean (`True` or `False`).
+Comparison operators compare two values and return a boolean (`True` or `False`). You use these operators to make decisions in your code.
 
 ### Equality and Inequality
+
+To check if values are equal or different, you use:
 
 ```python
 x, y = 5, 10
 
-print(x == y)  # Equal: False
-print(x != y)  # Not equal: True
+print(x == y)  # False (equal)
+print(x != y)  # True (not equal)
 ```
 
 ### Greater Than and Less Than
 
+To compare magnitudes, you use:
+
 ```python
 age = 18
 
-print(age > 17)   # Greater than: True
-print(age < 18)   # Less than: False
-print(age >= 18)  # Greater than or equal: True
-print(age <= 18)  # Less than or equal: True
+print(age > 17)   # True (greater than)
+print(age < 18)   # False (less than)
+print(age >= 18)  # True (greater than or equal)
+print(age <= 18)  # True (less than or equal)
 ```
 
 ### Comparing Strings
 
-We compare strings alphabetically:
+You can also compare strings alphabetically. Python compares strings character by character using their Unicode values:
 
 ```python
 print("apple" == "apple")   # True
-print("apple" == "Apple")   # False (case-sensitive)
-print("apple" < "banana")   # True (alphabetically earlier)
-print("cat" > "bat")        # True
+print("apple" == "Apple")   # False (case-sensitive - uppercase has different Unicode value)
+print("apple" < "banana")   # True ("apple" comes before "banana" alphabetically)
+print("cat" > "bat")        # True ("c" comes after "b")
 ```
 
 ## Logical Operators
 
-Logical operators combine boolean values to make decisions.
+Logical operators combine boolean values to make complex decisions. You use `and`, `or`, and `not` to combine multiple conditions.
 
 ### and, or, not
 
@@ -105,24 +120,26 @@ Logical operators combine boolean values to make decisions.
 age = 25
 has_license = True
 
-# and - both conditions must be True
+# and - both conditions must be True for the result to be True
 can_drive = age >= 18 and has_license
-print(can_drive)  # True
+print(can_drive)  # True (both conditions are met)
 
-# or - at least one condition must be True
+# or - at least one condition must be True for the result to be True
 is_weekend = False
 is_holiday = True
 can_rest = is_weekend or is_holiday
-print(can_rest)  # True
+print(can_rest)  # True (at least one condition is met)
 
-# not - reverses the boolean value
+# not - reverses the boolean value (True becomes False, False becomes True)
 is_minor = not (age >= 18)
 print(is_minor)  # False
 ```
 
+These three operators form the foundation of boolean algebra in programming. You will use them extensively when writing conditional statements (which you will learn about in the [Control Flow](/courses/python-introduction/control-flow/if-statements) section).
+
 ### Combining Operators
 
-We combine multiple operators in one expression:
+You can combine multiple operators in one expression to create complex conditions:
 
 ```python
 temperature = 22
@@ -135,21 +152,28 @@ print(nice_weather)  # True
 
 ### Operator Precedence
 
-When we have multiple operators, Python follows a specific order (precedence):
+When you have multiple operators in one expression, Python follows a specific order called **precedence**. Precedence determines which operators are evaluated first. Operators with higher precedence are evaluated before those with lower precedence.
 
 ```python
-# Highest to lowest precedence:
-# 1. Parentheses ()
-# 2. Exponentiation **
-# 3. Multiplication *, Division /, //, %
-# 4. Addition +, Subtraction -
-# 5. Comparison operators: ==, !=, <, >, <=, >=
-# 6. Logical operators: not, and, or
+# Highest to lowest precedence in Python:
+# 1. Parentheses ()           - evaluated first
+# 2. Exponentiation **        - evaluated second
+# 3. Multiplication *, Division /, //, %  - evaluated third
+# 4. Addition +, Subtraction -  - evaluated fourth
+# 5. Comparison operators: ==, !=, <, >, <=, >=  - evaluated fifth
+# 6. Logical operators: not, and, or  - evaluated last
+```
 
-# Example of precedence
-result = 2 + 3 * 4      # 14 (multiplication first)
-result = (2 + 3) * 4    # 20 (parentheses first)
+Understanding precedence is important because it affects the result of your expressions:
 
+```python
+result = 2 + 3 * 4      # 14 (multiplication happens first: 3 * 4 = 12, then 2 + 12 = 14)
+result = (2 + 3) * 4    # 20 (parentheses happen first: 2 + 3 = 5, then 5 * 4 = 20)
+```
+
+When you are unsure about precedence, use parentheses to make your intention clear. This also makes your code easier to read.
+
+```python
 # Combining logical operators for loan approval
 age = 20
 income = 50000
@@ -161,9 +185,11 @@ print(approved)  # True
 
 ## Assignment Operators
 
-Assignment operators combine an operation with assignment for convenience.
+Assignment operators combine an operation with assignment. These operators let you update a variable's value without writing the variable twice.
 
 ### Compound Assignment
+
+Instead of writing `count = count + 5`, you can write `count += 5`:
 
 ```python
 count = 10
@@ -178,47 +204,53 @@ count *= 2    # Same as: count = count * 2
 print(count)  # 24
 ```
 
-### Other Compound Operators
+### All Compound Operators
+
+All arithmetic operators have a corresponding compound assignment operator:
 
 ```python
 x = 10
 
-x /= 2    # x = x / 2  -> 5.0
-x //= 2   # x = x // 2 -> 2
-x %= 3    # x = x % 3  -> 2
-x **= 2   # x = x ** 2 -> 4
+x /= 2    # Same as: x = x / 2  -> 5.0
+x //= 2   # Same as: x = x // 2 -> 2.0
+x %= 3    # Same as: x = x % 3  -> 2.0
+x **= 2   # Same as: x = x ** 2 -> 4.0
 ```
 
 ## Identity Operators
 
-Identity operators check if two variables refer to the same object in memory.
+Identity operators check if two variables refer to the same object in memory, not just if they have the same value. This is different from equality, which only checks if values are the same.
 
 ```python
 a = [1, 2, 3]
 b = [1, 2, 3]
 c = a
 
-print(a is b)     # False (different objects, same content)
-print(a is c)     # True (same object)
+print(a is b)     # False (a and b are different objects in memory)
+print(a is c)     # True (c points to the same object as a)
 print(a is not b) # True
 ```
 
+This distinction matters because in Python, some values like lists are **mutable** (they can be changed after creation), while others like strings and numbers are **immutable** (they cannot be changed). When you use `is`, you are checking object identity, which is useful when you want to know if two variables point to the same object in memory.
+
 ## Membership Operators
 
-Membership operators check if a value exists within a sequence.
+Membership operators check if a value exists within a sequence such as a list, tuple, or string. This is useful when you need to check if an item is present in a collection.
 
 ```python
 fruits = ["apple", "banana", "cherry"]
 
-print("apple" in fruits)       # True
-print("orange" in fruits)      # False
-print("orange" not in fruits)  # True
+print("apple" in fruits)       # True (apple is in the list)
+print("orange" in fruits)      # False (orange is not in the list)
+print("orange" not in fruits)  # True (orange is definitely not in the list)
 
-# Works with strings too
+# Works with strings too - checking if a substring exists
 text = "Hello, World!"
 print("Hello" in text)         # True
 print("Python" in text)        # False
 ```
+
+The `in` operator is case-sensitive, so "Hello" and "hello" are treated as different values.
 
 ## Practical Examples
 
@@ -236,6 +268,8 @@ print(f"Average: {average:.2f}")  # Average: 85.00
 print(f"Passed: {passed}")        # Passed: True
 ```
 
+This example combines arithmetic operators (to calculate the average) with a comparison operator (to check if the student passed).
+
 ### Checking Login Credentials
 
 ```python
@@ -249,13 +283,17 @@ is_authenticated = is_valid_username and is_valid_password
 print(f"Access granted: {is_authenticated}")  # Access granted: True
 ```
 
+This example shows how logical operators work together: the user is authenticated only if both the username and password are correct.
+
 ## Summary
 
-We covered:
+This chapter covered:
 
 - **Arithmetic operators**: `+`, `-`, `*`, `/`, `//`, `%`, `**` for calculations
 - **Comparison operators**: `==`, `!=`, `<`, `>`, `<=`, `>=` for comparisons
 - **Logical operators**: `and`, `or`, `not` for combining conditions
 - **Assignment operators**: `+=`, `-=`, `*=`, etc. for convenient updates
-- **Identity operators**: `is`, `is not` for object comparison
-- **Membership operators**: `in`, `not in` for checking containment
+- **Identity operators**: `is`, `is not` for checking object identity
+- **Membership operators**: `in`, `not in` for checking if a value is in a sequence
+
+These operators form the foundation of Python expressions and are used throughout all Python programs.
