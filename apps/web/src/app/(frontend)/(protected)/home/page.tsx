@@ -40,7 +40,7 @@ export default async function HomePage() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/courses/python-introduction/01-introduction">
+              <Link href="/courses/python-introduction/introduction/what-is-python">
                 Start Course
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
