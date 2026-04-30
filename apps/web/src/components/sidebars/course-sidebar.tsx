@@ -71,7 +71,7 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
           const sectionSlug = sec.title.toLowerCase().replace(/\s+/g, '-');
           return (
             <SidebarGroup key={sec.title}>
-              <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+              <SidebarGroupLabel className="text-muted-foreground">
                 {sec.title}
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -80,9 +80,9 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
                     const isActive = section === sectionSlug && chapterSlug === chapter.slug;
                     return (
                       <SidebarMenuItem key={chapter.slug}>
-                        <SidebarMenuButton asChild isActive={isActive} className="text-sm">
+                        <SidebarMenuButton asChild isActive={isActive}>
                           <Link href={`/courses/${courseSlug}/${sectionSlug}/${chapter.slug}`}>
-                            {chapter.order}. {chapter.title}
+                            {chapter.title}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
