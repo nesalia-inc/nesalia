@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { BookOpen } from 'lucide-react';
 
 import {
   Sidebar,
@@ -14,9 +13,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
 
@@ -71,40 +67,32 @@ export function CourseSidebar({ ...props }: React.ComponentProps<typeof Sidebar>
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
       <SidebarContent className="bg-background">
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Course Content
-            </div>
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {sections.map((sec) => (
-                <SidebarMenuItem key={sec.title}>
-                  <SidebarMenuButton className="font-medium text-sm">
-                    {sec.title}
-                  </SidebarMenuButton>
-                  <SidebarMenuSub>
-                    {sec.chapters.map((chapter) => {
-                      const sectionSlug = sec.title.toLowerCase().replace(/\s+/g, '-');
-                      const isActive = section === sectionSlug && chapterSlug === chapter.slug;
-                      return (
-                        <SidebarMenuSubItem key={chapter.slug}>
-                          <SidebarMenuSubButton asChild isActive={isActive}>
-                            <Link href={`/courses/${courseSlug}/${sectionSlug}/${chapter.slug}`}>
-                              {chapter.order}. {chapter.title}
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      );
-                    })}
-                  </SidebarMenuSub>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {sections.map((sec) => {
+          const sectionSlug = sec.title.toLowerCase().replace(/\s+/g, '-');
+          return (
+            <SidebarGroup key={sec.title}>
+              <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                {sec.title}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {sec.chapters.map((chapter) => {
+                    const isActive = section === sectionSlug && chapterSlug === chapter.slug;
+                    return (
+                      <SidebarMenuItem key={chapter.slug}>
+                        <SidebarMenuButton asChild isActive={isActive} className="text-sm">
+                          <Link href={`/courses/${courseSlug}/${sectionSlug}/${chapter.slug}`}>
+                            {chapter.order}. {chapter.title}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
