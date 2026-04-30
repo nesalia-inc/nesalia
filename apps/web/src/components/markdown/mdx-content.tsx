@@ -143,29 +143,6 @@ const sharedComponents = {
       </a>
     );
   },
-  table: ({ children }: { children: React.ReactNode }) => (
-    <div className="my-6 w-full overflow-y-auto">
-      <table className="w-full border-collapse">{children}</table>
-    </div>
-  ),
-  thead: ({ children }: { children: React.ReactNode }) => (
-    <thead className="border-b bg-muted/50">{children}</thead>
-  ),
-  th: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <th className="px-4 py-2 text-left font-semibold" {...props}>
-      {children}
-    </th>
-  ),
-  td: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td className="border-t px-4 py-2" {...props}>
-      {children}
-    </td>
-  ),
-  tr: ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-    <tr className="border-b hover:bg-muted/20" {...props}>
-      {children}
-    </tr>
-  ),
   hr: () => <hr className="my-8 border-border" />,
 };
 
