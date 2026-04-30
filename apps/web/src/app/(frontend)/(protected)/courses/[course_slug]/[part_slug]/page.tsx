@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { deesseAuth } from "@/lib/deesse";
 import { headers } from "next/headers";
 import { MDXContent } from "@/components/markdown/mdx-content";
+import matter from "gray-matter";
 import fs from "fs";
 import path from "path";
 
@@ -28,7 +29,8 @@ async function getChapterContent(courseSlug: string, partSlug: string) {
   }
 
   const fileContent = fs.readFileSync(filePath, "utf-8");
-  return fileContent;
+  const { content } = matter(fileContent);
+  return content;
 }
 
 export default async function Page({ params }: PageProps) {
