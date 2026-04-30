@@ -1,0 +1,260 @@
+---
+title: "Operators"
+description: "Perform calculations and make decisions with arithmetic, comparison, and logical operators."
+order: 2
+---
+
+# Operators
+
+Operators are special symbols that perform operations on values and variables. In this part, you'll learn about arithmetic operators for calculations, comparison operators for making decisions, and logical operators for combining conditions.
+
+## Arithmetic Operators
+
+Arithmetic operators perform mathematical calculations.
+
+### Basic Arithmetic
+
+```python
+a, b = 10, 3
+
+print(a + b)   # Addition: 13
+print(a - b)   # Subtraction: 7
+print(a * b)   # Multiplication: 30
+print(a / b)   # Division: 3.333...
+```
+
+### Integer Division and Modulus
+
+When you need whole numbers from division, Python provides two additional operators:
+
+```python
+a, b = 10, 3
+
+print(a // b)  # Floor division: 3 (rounds down)
+print(a % b)   # Modulus: 1 (remainder after division)
+```
+
+The floor division (`//`) always rounds down, while the modulus (`%`) gives you the remainder.
+
+```python
+# Practical example: splitting items
+total = 17
+items_per_box = 5
+
+full_boxes = total // items_per_box  # 3
+remaining = total % items_per_box    # 2
+```
+
+### Exponentiation
+
+Use `**` to raise a number to a power:
+
+```python
+base = 2
+exponent = 8
+
+result = base ** exponent  # 256
+print(2 ** 10)             # 1024 (useful for powers of 2)
+```
+
+## Comparison Operators
+
+Comparison operators compare two values and return a boolean (`True` or `False`).
+
+### Equality and Inequality
+
+```python
+x, y = 5, 10
+
+print(x == y)  # Equal: False
+print(x != y)  # Not equal: True
+```
+
+### Greater Than and Less Than
+
+```python
+age = 18
+
+print(age > 17)   # Greater than: True
+print(age < 18)   # Less than: False
+print(age >= 18)  # Greater than or equal: True
+print(age <= 18)  # Less than or equal: True
+```
+
+### Comparing Strings
+
+You can also compare strings alphabetically:
+
+```python
+print("apple" == "apple")   # True
+print("apple" == "Apple")   # False (case-sensitive)
+print("apple" < "banana")   # True (alphabetically earlier)
+print("cat" > "bat")        # True
+```
+
+## Logical Operators
+
+Logical operators combine boolean values to make decisions.
+
+### and, or, not
+
+```python
+age = 25
+has_license = True
+
+# and - both conditions must be True
+can_drive = age >= 18 and has_license
+print(can_drive)  # True
+
+# or - at least one condition must be True
+is_weekend = False
+is_holiday = True
+can_rest = is_weekend or is_holiday
+print(can_rest)  # True
+
+# not - reverses the boolean value
+is_minor = not (age >= 18)
+print(is_minor)  # False
+```
+
+### Combining Operators
+
+You can combine multiple operators in one expression:
+
+```python
+temperature = 22
+is_raining = False
+
+# Is it nice weather for a walk?
+nice_weather = temperature > 15 and temperature < 30 and not is_raining
+print(nice_weather)  # True
+```
+
+### Operator Precedence
+
+When you have multiple operators, Python follows a specific order (precedence):
+
+```python
+# Highest to lowest precedence:
+# 1. Parentheses ()
+# 2. Exponentiation **
+# 3. Multiplication *, Division /, //, %
+# 4. Addition +, Subtraction -
+# 5. Comparison operators: ==, !=, <, >, <=, >=
+# 6. Logical operators: not, and, or
+
+# Example of precedence
+result = 2 + 3 * 4      # 14 (multiplication first)
+result = (2 + 3) * 4    # 20 (parentheses first)
+
+# Combining logical operators
+age = 20
+income = 50000
+credit_score = 700
+
+# Can this person get a loan?
+approved = age >= 18 and (income > 30000 or credit_score > 650)
+```
+
+## Assignment Operators
+
+Assignment operators combine an operation with assignment for convenience.
+
+### Compound Assignment
+
+```python
+count = 10
+
+count += 5    # Same as: count = count + 5
+print(count)  # 15
+
+count -= 3    # Same as: count = count - 3
+print(count)  # 12
+
+count *= 2    # Same as: count = count * 2
+print(count)  # 24
+```
+
+### Other Compound Operators
+
+```python
+x = 10
+
+x /= 2    # x = x / 2  -> 5.0
+x //= 2   # x = x // 2 -> 2
+x %= 3    # x = x % 3  -> 2
+x **= 2   # x = x ** 2 -> 4
+```
+
+## Identity Operators
+
+Identity operators check if two variables refer to the same object in memory.
+
+```python
+a = [1, 2, 3]
+b = [1, 2, 3]
+c = a
+
+print(a is b)     # False (different objects, same content)
+print(a is c)     # True (same object)
+print(a is not b) # True
+```
+
+## Membership Operators
+
+Membership operators check if a value exists within a sequence.
+
+```python
+fruits = ["apple", "banana", "cherry"]
+
+print("apple" in fruits)       # True
+print("orange" in fruits)      # False
+print("orange" not in fruits)  # True
+
+# Works with strings too
+text = "Hello, World!"
+print("Hello" in text)         # True
+print("Python" in text)        # False
+```
+
+## Practical Examples
+
+### Calculating a Grade Average
+
+```python
+homework = 85
+midterm = 78
+final = 92
+
+average = (homework + midterm + final) / 3
+passed = average >= 60
+
+print(f"Average: {average:.2f}")  # Average: 85.00
+print(f"Passed: {passed}")        # Passed: True
+```
+
+### Checking Login Credentials
+
+```python
+username = "admin"
+password = "secret123"
+
+is_valid_username = username == "admin"
+is_valid_password = password == "secret123"
+is_authenticated = is_valid_username and is_valid_password
+
+print(f"Access granted: {is_authenticated}")  # True
+```
+
+## Summary
+
+In this part, you learned:
+
+- **Arithmetic operators**: `+`, `-`, `*`, `/`, `//`, `%`, `**` for calculations
+- **Comparison operators**: `==`, `!=`, `<`, `>`, `<=`, `>=` for comparisons
+- **Logical operators**: `and`, `or`, `not` for combining conditions
+- **Assignment operators**: `+=`, `-=`, `*=`, etc. for convenient updates
+- **Identity operators**: `is`, `is not` for object comparison
+- **Membership operators**: `in`, `not in` for checking containment
+
+These operators are the building blocks for making your programs perform calculations and decisions. In the next part, you'll learn how to document your code using comments and format it for readability.

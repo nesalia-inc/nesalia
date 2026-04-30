@@ -1,0 +1,529 @@
+---
+title: "Writing Your First Python Script"
+description: "Learn Python basics by writing your first complete program with variables, functions, and user interaction."
+order: 4
+---
+
+# Writing Your First Python Script
+
+Now that you have your environment set up, it's time to write your first Python program. This section teaches you the fundamentals of Python syntax through practical examples.
+
+## What is a Script?
+
+A Python script is simply a file containing Python code that your computer can execute. Scripts have the `.py` extension and contain instructions that Python interprets line by line.
+
+## Your First Program: Hello, World!
+
+The traditional first program in any language prints "Hello, World!" to the screen. Let's start there.
+
+Create a file called `hello_world.py`:
+
+```python
+# This is my first Python program
+print("Hello, World!")
+```
+
+Run it:
+
+```bash
+python hello_world.py
+```
+
+Output:
+
+```
+Hello, World!
+```
+
+That one line of code introduced you to:
+- Python's `print()` function
+- How to write strings (text in quotes)
+- Comments (text preceded by `#`)
+
+## Comments
+
+Comments are notes for humans reading your code. Python ignores them when running.
+
+```python
+# This is a single-line comment
+
+"""
+This is a multi-line comment.
+It can span several lines.
+Useful for longer explanations.
+"""
+
+# Calculate the area of a rectangle
+length = 10  # length in meters
+width = 5    # width in meters
+area = length * width  # area in square meters
+print(area)  # outputs: 50
+```
+
+## Variables and Data Types
+
+Variables store information for later use. Python has several basic data types:
+
+### Numbers
+
+```python
+# Integers (whole numbers)
+age = 25
+year = 2024
+
+# Floats (decimal numbers)
+temperature = 98.6
+price = 19.99
+
+# Arithmetic operations
+sum_total = age + year
+product = age * 2
+division = year / 4  # Result is a float: 506.0
+```
+
+### Strings
+
+Strings are text data:
+
+```python
+# Creating strings
+name = "Alice"
+greeting = 'Hello, World!'  # Single or double quotes work
+message = """This is a multi-line
+string that spans
+several lines."""
+
+# String operations
+first_name = "John"
+last_name = "Doe"
+full_name = first_name + " " + last_name  # Concatenation
+print(full_name)  # Output: John Doe
+
+# String methods
+name_upper = name.upper()
+name_lower = name.lower()
+name_length = len(name)
+print(f"{name_upper}, length: {name_length}")
+# Output: ALICE, length: 5
+```
+
+### Booleans
+
+Boolean values represent truth or falsehood:
+
+```python
+is_python_fun = True
+is_sky_green = False
+
+# Comparison operators return booleans
+result = 10 > 5    # True
+result = 7 == 7    # True (double equals for comparison)
+result = 3 != 5    # True (not equal)
+result = 10 <= 5   # False
+
+# Logical operations
+and_result = True and False   # False
+or_result = True or False     # True
+not_result = not True          # False
+```
+
+### Lists
+
+Lists hold collections of items:
+
+```python
+# Creating a list
+fruits = ["apple", "banana", "cherry"]
+numbers = [1, 2, 3, 4, 5]
+mixed = ["hello", 42, True, 3.14]
+
+# Accessing items (indexing starts at 0)
+first_fruit = fruits[0]    # "apple"
+second_number = numbers[1] # 2
+
+# Slicing
+first_two = fruits[0:2]   # ["apple", "banana"]
+last_two = numbers[3:]     # [4, 5]
+
+# Modifying lists
+fruits.append("date")      # Add to end
+fruits.insert(1, "apricot") # Insert at index
+fruits.remove("banana")    # Remove by value
+removed = fruits.pop()     # Remove and return last item
+
+print(fruits)  # Modified list
+```
+
+### Dictionaries
+
+Dictionaries store key-value pairs:
+
+```python
+# Creating a dictionary
+person = {
+    "name": "Alice",
+    "age": 30,
+    "city": "New York",
+    "is_student": False
+}
+
+# Accessing values
+name = person["name"]
+age = person.get("age")
+
+# Adding and modifying
+person["email"] = "alice@example.com"
+person["age"] = 31  # Update existing
+
+# Dictionary methods
+keys = person.keys()
+values = person.values()
+items = person.items()
+
+# Looping through dictionaries
+for key, value in person.items():
+    print(f"{key}: {value}")
+```
+
+## Operators
+
+### Arithmetic Operators
+
+```python
+a, b = 10, 3
+
+print(a + b)   # Addition: 13
+print(a - b)   # Subtraction: 7
+print(a * b)   # Multiplication: 30
+print(a / b)   # Division: 3.333...
+print(a // b)  # Floor division: 3
+print(a % b)   # Modulo (remainder): 1
+print(a ** b)  # Exponentiation: 1000
+```
+
+### Comparison Operators
+
+```python
+x, y = 5, 10
+
+print(x == y)  # Equal: False
+print(x != y)  # Not equal: True
+print(x < y)   # Less than: True
+print(x > y)   # Greater than: False
+print(x <= y)  # Less than or equal: True
+print(x >= y)  # Greater than or equal: False
+```
+
+## Control Flow
+
+### Conditional Statements
+
+```python
+temperature = 72
+
+if temperature > 80:
+    print("It's hot outside!")
+elif temperature > 60:
+    print("It's nice weather.")
+else:
+    print("It's cold outside!")
+
+# Ternary operator (inline conditional)
+weather = "hot" if temperature > 80 else "pleasant"
+print(f"The weather is {weather}.")
+```
+
+### Loops
+
+**For loops** iterate over sequences:
+
+```python
+# Looping through a list
+fruits = ["apple", "banana", "cherry"]
+for fruit in fruits:
+    print(f"I like {fruit}")
+
+# Using range()
+for i in range(5):
+    print(i)  # Prints 0, 1, 2, 3, 4
+
+# Range with start and stop
+for i in range(2, 6):
+    print(i)  # Prints 2, 3, 4, 5
+
+# Looping with index
+for index, fruit in enumerate(fruits):
+    print(f"{index + 1}. {fruit}")
+```
+
+**While loops** repeat while a condition is true:
+
+```python
+countdown = 5
+while countdown > 0:
+    print(countdown)
+    countdown -= 1
+print("Liftoff!")
+```
+
+### Loop Control
+
+```python
+# Break: exit the loop early
+for number in range(10):
+    if number == 5:
+        break
+    print(number)  # Prints 0, 1, 2, 3, 4
+
+# Continue: skip to next iteration
+for number in range(5):
+    if number == 2:
+        continue
+    print(number)  # Prints 0, 1, 3, 4
+```
+
+## Functions
+
+Functions are reusable blocks of code:
+
+```python
+# Defining a function
+def greet(name):
+    """Return a greeting message for the given name."""
+    return f"Hello, {name}! Nice to meet you."
+
+# Calling a function
+message = greet("Alice")
+print(message)
+
+# Function with multiple parameters
+def calculate_area(length, width):
+    """Calculate the area of a rectangle."""
+    return length * width
+
+area = calculate_area(10, 5)
+print(f"The area is {area} square units.")
+
+# Default parameter values
+def power(base, exponent=2):
+    return base ** exponent
+
+print(power(3))    # 9 (3^2)
+print(power(3, 3)) # 27 (3^3)
+```
+
+### Working with Multiple Return Values
+
+```python
+def get_statistics(numbers):
+    """Return multiple statistics."""
+    return min(numbers), max(numbers), sum(numbers), len(numbers)
+
+data = [10, 20, 30, 40, 50]
+minimum, maximum, total, count = get_statistics(data)
+
+print(f"Min: {minimum}, Max: {maximum}")
+print(f"Total: {total}, Average: {total / count}")
+```
+
+## A Complete Program
+
+Let's put everything together in a program that manages a simple task list:
+
+```python
+"""
+Task Manager - Your First Python Project
+A simple program to add, view, and manage tasks.
+"""
+
+def display_menu():
+    """Show the available options."""
+    print("\n" + "=" * 40)
+    print("       TASK MANAGER")
+    print("=" * 40)
+    print("1. View tasks")
+    print("2. Add a task")
+    print("3. Remove a task")
+    print("4. Exit")
+    print("-" * 40)
+
+def view_tasks(tasks):
+    """Display all current tasks."""
+    if not tasks:
+        print("No tasks yet. Add some tasks first!")
+        return
+
+    print("\nYour Tasks:")
+    for index, task in enumerate(tasks, 1):
+        print(f"  {index}. {task}")
+
+def add_task(tasks):
+    """Add a new task."""
+    task = input("Enter your task: ").strip()
+    if task:
+        tasks.append(task)
+        print(f"Added: '{task}'")
+    else:
+        print("Task cannot be empty.")
+
+def remove_task(tasks):
+    """Remove a task by number."""
+    if not tasks:
+        print("No tasks to remove.")
+        return
+
+    view_tasks(tasks)
+    try:
+        choice = int(input("Enter task number to remove: "))
+        if 1 <= choice <= len(tasks):
+            removed = tasks.pop(choice - 1)
+            print(f"Removed: '{removed}'")
+        else:
+            print("Invalid task number.")
+    except ValueError:
+        print("Please enter a valid number.")
+
+def main():
+    """Main program loop."""
+    tasks = []
+    running = True
+
+    print("Welcome to Task Manager!")
+
+    while running:
+        display_menu()
+        choice = input("Choose an option (1-4): ").strip()
+
+        if choice == "1":
+            view_tasks(tasks)
+        elif choice == "2":
+            add_task(tasks)
+        elif choice == "3":
+            remove_task(tasks)
+        elif choice == "4":
+            print("Goodbye!")
+            running = False
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
+```
+
+**Sample output:**
+
+```
+Welcome to Task Manager!
+
+========================================
+       TASK MANAGER
+========================================
+1. View tasks
+2. Add a task
+3. Remove a task
+4. Exit
+----------------------------------------
+Choose an option (1-4): 2
+Enter your task: Learn Python
+Added: 'Learn Python'
+
+Choose an option (1-4): 2
+Enter your task: Write my first script
+Added: 'Write my first script'
+
+Choose an option (1-4): 1
+
+Your Tasks:
+  1. Learn Python
+  2. Write my first script
+```
+
+## Common Python Patterns
+
+### List Comprehensions
+
+Create lists concisely:
+
+```python
+# Traditional loop approach
+squares = []
+for num in range(10):
+    squares.append(num ** 2)
+
+# List comprehension approach
+squares = [num ** 2 for num in range(10)]
+
+# With conditions
+even_squares = [num ** 2 for num in range(10) if num % 2 == 0]
+# Result: [0, 4, 16, 36, 64]
+```
+
+### String Formatting
+
+```python
+name = "Alice"
+age = 30
+city = "New York"
+
+# f-strings (recommended, Python 3.6+)
+message = f"{name} is {age} years old and lives in {city}."
+print(message)
+
+# .format() method
+message = "{} is {} years old and lives in {}.".format(name, age, city)
+
+# % formatting (older style)
+message = "%s is %d years old and lives in %s." % (name, age, city)
+```
+
+### Error Handling
+
+```python
+# Try-except block
+try:
+    number = int(input("Enter a number: "))
+    result = 10 / number
+    print(f"Result: {result}")
+except ValueError:
+    print("That's not a valid number.")
+except ZeroDivisionError:
+    print("Cannot divide by zero.")
+finally:
+    print("Operation complete.")
+```
+
+## Debugging Tips
+
+When your code doesn't work as expected:
+
+```python
+# Use print statements to check values
+def buggy_function(x, y):
+    result = x + y
+    print(f"DEBUG: x={x}, y={y}, result={result}")
+    return result
+
+# Start simple, add complexity gradually
+# Bad: Complex code all at once
+# Good: Simple version first, then add features
+```
+
+## What's Next?
+
+Congratulations! You've written your first Python programs and learned the fundamentals:
+
+- Variables and data types
+- Control flow (if statements, loops)
+- Functions
+- Basic data structures (lists, dictionaries)
+- User interaction
+
+These concepts form the foundation of Python programming. Keep practicing by modifying the examples, creating small projects, and exploring Python's extensive standard library.
+
+```python
+# Your Python journey starts here
+print("Congratulations on writing your first Python code!")
+print("Keep practicing and have fun exploring Python.")
+```
+
+In the next chapter, you'll dive deeper into Python's core features and learn more advanced programming techniques.

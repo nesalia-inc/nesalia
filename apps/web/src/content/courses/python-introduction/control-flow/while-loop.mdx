@@ -1,0 +1,215 @@
+---
+title: "The while Loop"
+description: "Learn how to use while loops for repetition in Python."
+order: 3
+---
+
+# The while Loop
+
+The `while` loop in Python repeatedly executes a block of code as long as a condition is true. It is useful when you do not know in advance how many iterations are needed.
+
+## Basic Syntax
+
+```python
+while condition:
+    # code to execute while condition is true
+```
+
+## Simple Example
+
+```python
+count = 0
+
+while count < 5:
+    print(count)
+    count += 1
+```
+
+Output:
+```
+0
+1
+2
+3
+4
+```
+
+## Loop with User Input
+
+A common use case for `while` loops is waiting for valid input:
+
+```python
+password = ""
+
+while password != "secret":
+    password = input("Enter the password: ")
+
+print("Access granted!")
+```
+
+## Infinite Loops
+
+Be careful with `while` loops - if the condition never becomes false, the loop runs forever:
+
+```python
+# This creates an infinite loop
+# while True:
+#     print("This runs forever")
+```
+
+To stop an infinite loop, press `Ctrl+C` in most terminals.
+
+## Using a Flag
+
+A common pattern to control a `while` loop:
+
+```python
+active = True
+count = 0
+
+while active:
+    print(f"Count is {count}")
+    count += 1
+
+    if count >= 5:
+        active = False
+
+print("Loop ended")
+```
+
+Output:
+```
+Count is 0
+Count is 1
+Count is 2
+Count is 3
+Count is 4
+Loop ended
+```
+
+## While with else
+
+Similar to `for` loops, `while` loops can have an `else` clause that executes when the condition becomes false:
+
+```python
+count = 0
+
+while count < 3:
+    print(count)
+    count += 1
+else:
+    print("Condition became false - else block executed")
+```
+
+Output:
+```
+0
+1
+2
+Condition became false - else block executed
+```
+
+## Breaking Out of a while Loop
+
+You can use the `break` statement to exit a `while` loop early:
+
+```python
+count = 0
+
+while True:
+    print(count)
+    count += 1
+
+    if count >= 5:
+        break
+
+print("Loop ended with break")
+```
+
+Output:
+```
+0
+1
+2
+3
+4
+Loop ended with break
+```
+
+## Skipping Iterations with continue
+
+The `continue` statement skips the rest of the current iteration and moves to the next one:
+
+```python
+count = 0
+
+while count < 5:
+    count += 1
+
+    if count == 3:
+        continue
+
+    print(count)
+```
+
+Output:
+```
+1
+2
+4
+5
+```
+
+## Practical Example: Guessing Game
+
+```python
+import random
+
+secret_number = random.randint(1, 10)
+guess = 0
+attempts = 0
+
+print("I'm thinking of a number between 1 and 10...")
+
+while guess != secret_number:
+    guess = int(input("Take a guess: "))
+    attempts += 1
+
+    if guess < secret_number:
+        print("Too low!")
+    elif guess > secret_number:
+        print("Too high!")
+    else:
+        print(f"Correct! You got it in {attempts} attempts!")
+```
+
+## Practical Example: Menu-Driven Program
+
+```python
+choice = ""
+
+while choice != "quit":
+    print("\n--- Menu ---")
+    print("1. Say hello")
+    print("2. Say goodbye")
+    print("3. Quit")
+
+    choice = input("Enter your choice: ")
+
+    if choice == "1":
+        print("Hello, World!")
+    elif choice == "2":
+        print("Goodbye!")
+    elif choice == "3":
+        print("Thanks for using the menu!")
+    else:
+        print("Invalid choice, please try again.")
+```
+
+## Summary
+
+- `while` loops execute as long as the condition is true
+- Always ensure the condition will eventually become false to avoid infinite loops
+- Use `break` to exit the loop early
+- Use `continue` to skip to the next iteration
+- The `else` clause executes when the condition becomes false

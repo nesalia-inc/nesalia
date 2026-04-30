@@ -1,0 +1,272 @@
+---
+title: "String Formatting"
+description: "Learn different ways to format strings in Python including f-strings and the format method."
+order: 3
+---
+
+# String Formatting
+
+String formatting allows you to insert values into strings. Python offers several ways to do this, from simple concatenation to powerful f-strings.
+
+## String Concatenation
+
+The simplest approach is using the `+` operator:
+
+```python
+name = "Alice"
+age = 25
+greeting = "Hello, " + name + "! You are " + str(age) + " years old."
+
+print(greeting)  # Output: Hello, Alice! You are 25 years old.
+```
+
+Note that you need to convert non-string values to strings using `str()`.
+
+## The format() Method
+
+The `format()` method is more flexible and readable:
+
+```python
+# Using positional arguments
+template = "Hello, {}! You are {} years old."
+print(template.format("Alice", 25))
+# Output: Hello, Alice! You are 25 years old.
+
+# Using named arguments
+template = "Hello, {name}! You are {age} years old."
+print(template.format(name="Bob", age=30))
+# Output: Hello, Bob! You are 30 years old.
+
+# Mixed positional and named arguments
+template = "{0} is {1} years old. {0} likes {activity}."
+print(template.format("Alice", 25, activity="coding"))
+# Output: Alice is 25 years old. Alice likes coding.
+```
+
+### Formatting Numbers
+
+Control decimal places and number formatting:
+
+```python
+# Decimal places
+pi = 3.14159
+print("Pi is approximately {:.2f}".format(pi))
+# Output: Pi is approximately 3.14
+
+# Thousands separator
+population = 7800000000
+print("World population: {:,}".format(population))
+# Output: World population: 7,800,000,000
+
+# Percentage
+ratio = 0.75
+print("Progress: {:.0%}".format(ratio))
+# Output: Progress: 75%
+
+# Pad with zeros
+number = 42
+print("Number: {:05}".format(number))
+# Output: Number: 00042
+```
+
+### Alignment
+
+Control text alignment within a specified width:
+
+```python
+name = "Alice"
+value = 42
+
+# Right-align (default)
+print("|{:>10}|".format(name))
+# Output: |     Alice|
+
+# Left-align
+print("|{:<10}|".format(name))
+# Output: |Alice     |
+
+# Center
+print("|{:^10}|".format(name))
+# Output: |   Alice   |
+
+# Fill character
+print("|{:*^10}|".format(name))
+# Output: |***Alice***|
+```
+
+## F-Strings (Formatted String Literals)
+
+F-strings, introduced in Python 3.6, are the most modern and readable way to format strings:
+
+```python
+name = "Alice"
+age = 25
+
+# Simple f-string
+print(f"Hello, {name}! You are {age} years old.")
+# Output: Hello, Alice! You are 25 years old.
+
+# Include expressions
+a = 5
+b = 3
+print(f"{a} + {b} = {a + b}")
+# Output: 5 + 3 = 8
+```
+
+### F-String Features
+
+#### Calling Functions and Methods
+
+You can call functions and methods directly in f-strings:
+
+```python
+name = "alice"
+print(f"Hello, {name.upper()}!")
+# Output: Hello, ALICE!
+
+# Use len() function
+text = "Python"
+print(f"The word '{text}' has {len(text)} letters.")
+# Output: The word 'Python' has 6 letters.
+```
+
+#### F-String Formatting Options
+
+Add formatting specs inside f-strings:
+
+```python
+# Numbers
+pi = 3.14159
+print(f"Pi is approximately {pi:.2f}")
+# Output: Pi is approximately 3.14
+
+# Alignment
+name = "Alice"
+print(f"|{name:>10}|")
+# Output: |     Alice|
+
+# Percentages
+progress = 0.75
+print(f"Progress: {progress:.0%}")
+# Output: Progress: 75%
+```
+
+#### Debugging with F-Strings
+
+Python 3.8+ supports self-documenting expressions:
+
+```python
+x = 10
+y = 5
+
+# Shows variable name and value
+print(f"{x = }")
+# Output: x = 10
+
+print(f"{x + y = }")
+# Output: x + y = 15
+```
+
+## String Formatting Comparison
+
+Here's a comparison of the different methods:
+
+```python
+name = "Alice"
+age = 25
+
+# Concatenation
+result1 = "Name: " + name + ", Age: " + str(age)
+
+# format() method
+result2 = "Name: {}, Age: {}".format(name, age)
+result3 = "Name: {n}, Age: {a}".format(n=name, a=age)
+
+# f-string (recommended)
+result4 = f"Name: {name}, Age: {age}"
+
+print(result4)  # All produce: Name: Alice, Age: 25
+```
+
+## Legacy String Formatting
+
+Python also supports a `%` style similar to C's printf:
+
+```python
+name = "Alice"
+age = 25
+
+# % formatting
+result = "Name: %s, Age: %d" % (name, age)
+print(result)  # Output: Name: Alice, Age: 25
+```
+
+This style is older and less recommended in modern Python, but you may encounter it in older codebases.
+
+## Common Use Cases
+
+### Printing Tables
+
+```python
+data = [
+    ["Alice", 25, "NYC"],
+    ["Bob", 30, "LA"],
+    ["Charlie", 35, "Chicago"]
+]
+
+print(f"{'Name':<10} {'Age':<5} {'City':<10}")
+print("-" * 25)
+for name, age, city in data:
+    print(f"{name:<10} {age:<5} {city:<10}")
+```
+
+Output:
+```
+Name       Age   City
+-------------------------
+Alice      25    NYC
+Bob        30    LA
+Charlie    35    Chicago
+```
+
+### Formatted Output
+
+```python
+# Currency format
+price = 19.99
+print(f"Price: ${price:.2f}")
+# Output: Price: $19.99
+
+# Scientific notation
+number = 12345678
+print(f"Number: {number:.2e}")
+# Output: Number: 1.23e+07
+```
+
+## Best Practices
+
+1. **Use f-strings for new code** — They are the most readable and efficient option
+2. **Be consistent** — Pick one formatting style and use it throughout your project
+3. **Use meaningful variable names in f-strings** — They make debugging easier
+4. **Convert types appropriately** — Remember that f-strings handle types automatically
+
+```python
+# Good example
+user = "Alice"
+score = 95
+print(f"User {user} scored {score} points.")
+
+# Avoid
+print("User " + user + " scored " + str(score) + " points.")
+```
+
+## Quick Reference
+
+| Method | Syntax | Example |
+|--------|--------|---------|
+| Concatenation | `str1 + str2` | `"A" + "B"` |
+| format() | `"{x}".format(x=value)` | `"{n}".format(n="A")` |
+| f-string | `f"{value}"` | `f"{n}"` |
+| % formatting | `"%s" % value` | `"%s" % "A"` |
+
+Choose f-strings for most situations due to their readability and performance.

@@ -1,0 +1,199 @@
+---
+title: "Positional and Named Arguments"
+description: "Understand the difference between positional and named arguments in Python functions."
+order: 6
+---
+
+# Positional and Named Arguments
+
+Python functions can be called using positional arguments, named arguments (keyword arguments), or a combination of both. Understanding the difference helps you write and use functions more effectively.
+
+## Positional Arguments
+
+Positional arguments are matched by their position in the function call:
+
+```python
+def describe_pet(animal, name, age):
+    print(f"{name} is a {animal} who is {age} years old")
+
+describe_pet("dog", "Max", 3)
+```
+
+Output:
+
+```
+Max is a dog who is 3 years old
+```
+
+The first value ("dog") goes to the first parameter (`animal`), the second ("Max") to `name`, and so on.
+
+## Named Arguments (Keyword Arguments)
+
+Named arguments are matched by parameter name, regardless of position:
+
+```python
+def describe_pet(animal, name, age):
+    print(f"{name} is a {animal} who is {age} years old")
+
+describe_pet(name="Max", animal="dog", age=3)
+```
+
+Output:
+
+```
+Max is a dog who is 3 years old
+```
+
+Using parameter names makes the code clearer about what each value represents.
+
+## Mixing Positional and Named Arguments
+
+You can mix both approaches in a single call:
+
+```python
+def describe_pet(animal, name, age):
+    print(f"{name} is a {animal} who is {age} years old")
+
+describe_pet("dog", name="Max", age=3)
+describe_pet(animal="cat", name="Whiskers", age=5)
+```
+
+Important: Positional arguments must come before named arguments.
+
+## Default Parameters with Arguments
+
+Default parameters make arguments optional:
+
+```python
+def greet(name, greeting="Hello"):
+    print(f"{greeting}, {name}!")
+
+greet("Alice")
+greet("Bob", greeting="Hi")
+greet("Carol", "Hey")
+```
+
+Output:
+
+```
+Hello, Alice!
+Hi, Bob!
+Hey, Carol!
+```
+
+## Using `*args` for Variable Positional Arguments
+
+The `*args` syntax allows a function to accept any number of positional arguments:
+
+```python
+def sum_all(*args):
+    return sum(args)
+
+print(sum_all(1, 2, 3))
+print(sum_all(10, 20, 30, 40, 50))
+```
+
+Output:
+
+```
+6
+150
+```
+
+Inside the function, `args` is a tuple containing all positional arguments.
+
+## Using `**kwargs` for Variable Keyword Arguments
+
+The `**kwargs` syntax allows a function to accept any number of keyword arguments:
+
+```python
+def print_info(**kwargs):
+    for key, value in kwargs.items():
+        print(f"{key}: {value}")
+
+print_info(name="Alice", age=25, city="New York")
+```
+
+Output:
+
+```
+name: Alice
+age: 25
+city: New York
+```
+
+Inside the function, `kwargs` is a dictionary containing all keyword arguments.
+
+## Combining `*args` and `**kwargs`
+
+You can use both together to accept any combination of arguments:
+
+```python
+def flexible(*args, **kwargs):
+    print("Positional arguments:")
+    for arg in args:
+        print(f"  {arg}")
+
+    print("Keyword arguments:")
+    for key, value in kwargs.items():
+        print(f"  {key}: {value}")
+
+flexible("a", "b", "c", name="Alice", age=25)
+```
+
+Output:
+
+```
+Positional arguments:
+  a
+  b
+  c
+Keyword arguments:
+  name: Alice
+  age: 25
+```
+
+## Practical Example: String Formatter
+
+```python
+def create_profile(name, title="Developer", **info):
+    print(f"Name: {name}")
+    print(f"Title: {title}")
+    for key, value in info.items():
+        print(f"{key}: {value}")
+
+create_profile("Alice", "Engineer", skills="Python", experience="5 years")
+```
+
+Output:
+
+```
+Name: Alice
+Title: Engineer
+skills: Python
+experience: 5 years
+```
+
+## Keyword-Only Arguments
+
+In Python 3, you can require certain arguments to be passed as keyword arguments using `*`:
+
+```python
+def greet(name, *, greeting="Hello"):
+    print(f"{greeting}, {name}!")
+
+greet("Alice")
+greet("Bob", greeting="Hi")
+# This would fail: greet("Carol", "Hey")
+```
+
+The `*` forces `greeting` to be passed as a keyword argument.
+
+## Summary
+
+- Positional arguments are matched by position
+- Named arguments are matched by parameter name
+- Positional arguments must come before named arguments
+- `*args` accepts multiple positional arguments as a tuple
+- `**kwargs` accepts multiple keyword arguments as a dictionary
+- Use `*` to make arguments keyword-only

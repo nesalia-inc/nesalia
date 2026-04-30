@@ -1,0 +1,312 @@
+---
+title: "Tuples and Immutability"
+description: "Learn about tuples, Python's immutable ordered data structure."
+order: 2
+---
+
+# Tuples and Immutability
+
+A tuple is similar to a list, but with one key difference: tuples are immutable, meaning their contents cannot be changed after creation.
+
+## Creating Tuples
+
+Create a tuple by placing items inside parentheses, separated by commas:
+
+```python
+# Empty tuple
+empty_tuple = ()
+
+# Tuple with values
+coordinates = (10, 20)
+colors = ("red", "green", "blue")
+
+# Single element tuple (note the comma)
+single = (42,)  # The comma is required!
+
+# Tuple without parentheses (packing)
+point = 10, 20
+
+# Creating from other iterables
+tuple_from_list = tuple([1, 2, 3])
+tuple_from_string = tuple("hello")  # ('h', 'e', 'l', 'l', 'o')
+```
+
+## Accessing Elements
+
+Like lists, tuples are zero-indexed and support negative indexing:
+
+```python
+person = ("Alice", 25, "Engineer")
+
+print(person[0])      # Alice
+print(person[1])      # 25
+print(person[-1])     # Engineer
+print(person[-2])     # 25
+
+# Slicing works the same as lists
+print(person[1:3])    # (25, 'Engineer')
+```
+
+## Why Use Tuples?
+
+Tuples offer several advantages:
+
+### 1. Immutability
+
+Tuples cannot be modified, which provides data protection:
+
+```python
+dimensions = (1920, 1080)
+
+# This will raise an error:
+# dimensions[0] = 2560  # TypeError!
+
+# You can only reassign the entire variable
+dimensions = (2560, 1440)
+```
+
+### 2. Performance
+
+Tuples are slightly more memory-efficient than lists and faster to access:
+
+```python
+import sys
+
+my_list = [1, 2, 3, 4, 5]
+my_tuple = (1, 2, 3, 4, 5)
+
+print(sys.getsizeof(my_list))   # Larger memory footprint
+print(sys.getsizeof(my_tuple))  # Smaller memory footprint
+```
+
+### 3. Tuples as Dictionary Keys
+
+Because they are immutable, tuples can be used as dictionary keys:
+
+```python
+# Valid: tuples as dictionary keys
+locations = {
+    ("New York", "USA"): "NYC",
+    ("Tokyo", "Japan"): "Tokyo",
+    ("London", "UK"): "London"
+}
+
+print(locations[("New York", "USA")])  # NYC
+```
+
+### 4. Return Multiple Values
+
+Functions can return tuples to provide multiple values:
+
+```python
+def get_stats(numbers):
+    return min(numbers), max(numbers), sum(numbers)
+
+stats = get_stats([1, 2, 3, 4, 5])
+print(stats)  # (1, 5, 15)
+
+# Unpack the tuple
+minimum, maximum, total = get_stats([1, 2, 3, 4, 5])
+print(f"Min: {minimum}, Max: {maximum}, Total: {total}")
+```
+
+## Tuple Operations
+
+While you cannot modify tuples, you can perform many other operations:
+
+### Concatenation
+
+```python
+tuple1 = (1, 2, 3)
+tuple2 = (4, 5, 6)
+combined = tuple1 + tuple2  # (1, 2, 3, 4, 5, 6)
+```
+
+### Repetition
+
+```python
+repeated = ("Hi",) * 3  # ('Hi', 'Hi', 'Hi')
+```
+
+### Membership Testing
+
+```python
+colors = ("red", "green", "blue")
+
+print("red" in colors)     # True
+print("yellow" not in colors)  # True
+```
+
+### Iteration
+
+```python
+for color in ("red", "green", "blue"):
+    print(color)
+```
+
+## Tuple Methods
+
+Tuples have only two built-in methods due to their immutability:
+
+### Counting Occurrences
+
+```python
+values = (1, 2, 2, 3, 2, 4, 2)
+
+print(values.count(2))  # 3 (number of times 2 appears)
+```
+
+### Finding Index
+
+```python
+values = (1, 2, 3, 4, 5)
+
+print(values.index(3))   # 2 (first index of value 3)
+print(values.index(2, 3))  # 4 (start searching from index 3)
+```
+
+## Tuple Packing and Unpacking
+
+### Packing
+
+Putting values into a tuple:
+
+```python
+point = 10, 20, 30  # Packing into a tuple
+```
+
+### Unpacking
+
+Extracting values from a tuple into variables:
+
+```python
+point = (10, 20, 30)
+x, y, z = point
+
+print(x)  # 10
+print(y)  # 20
+print(z)  # 30
+```
+
+### Extended Unpacking
+
+```python
+# Python 3 feature
+head, *body, tail = (1, 2, 3, 4, 5)
+
+print(head)  # 1
+print(body)  # [2, 3, 4]
+print(tail)  # 5
+```
+
+## Named Tuples
+
+Named tuples provide a way to access elements by name while maintaining tuple properties:
+
+```python
+from collections import namedtuple
+
+# Create a named tuple type
+Point = namedtuple('Point', ['x', 'y', 'z'])
+
+# Create instances
+point1 = Point(10, 20, 30)
+point2 = Point(x=5, y=15, z=25)
+
+# Access by index or name
+print(point1[0])    # 10
+print(point1.x)     # 10
+print(point2.y)     # 15
+
+# Named tuples are still tuples
+print(point1 == point2)  # False
+x, y, z = point1  # Unpacking still works
+```
+
+## Comparing Tuples
+
+Tuples can be compared element-by-element:
+
+```python
+# Lexicographic comparison
+print((1, 2, 3) < (1, 3, 2))   # True (2 < 3 at second position)
+print((1, 2, 3) < (1, 2, 4))   # True (3 < 4 at third position)
+print((1, 2, 3) == (1, 2, 3))  # True
+
+# Useful for sorting
+students = [("Alice", 85), ("Bob", 92), ("Charlie", 78)]
+sorted_students = sorted(students)
+print(sorted_students)  # [('Alice', 85), ('Bob', 92), ('Charlie', 78)]
+```
+
+## Converting Between Lists and Tuples
+
+```python
+# List to tuple
+my_list = [1, 2, 3]
+my_tuple = tuple(my_list)
+print(my_tuple)  # (1, 2, 3)
+
+# Tuple to list
+my_tuple = (1, 2, 3)
+my_list = list(my_tuple)
+print(my_list)  # [1, 2, 3]
+```
+
+## Practice Examples
+
+### Example 1: Swapping Variables
+
+```python
+# Traditional way (needs temporary variable)
+a, b = 5, 10
+temp = a
+a = b
+b = temp
+
+# Tuple unpacking way (elegant and Pythonic)
+a, b = 5, 10
+a, b = b, a  # Values are swapped without temp variable
+print(f"a: {a}, b: {b}")  # a: 10, b: 5
+```
+
+### Example 2: Multiple Return Values
+
+```python
+def divide(a, b):
+    quotient = a // b
+    remainder = a % b
+    return quotient, remainder
+
+q, r = divide(17, 5)
+print(f"17 divided by 5: quotient = {q}, remainder = {r}")
+```
+
+### Example 3: Using Tuples as Keys
+
+```python
+# Store configuration settings
+settings = {
+    ("database", "host"): "localhost",
+    ("database", "port"): 5432,
+    ("server", "ip"): "127.0.0.1",
+    ("server", "port"): 8000
+}
+
+# Retrieve values
+db_host = settings[("database", "host")]
+print(f"Database host: {db_host}")
+```
+
+## Tuples vs Lists
+
+| Feature | Tuple | List |
+|---------|-------|------|
+| Syntax | `(1, 2, 3)` | `[1, 2, 3]` |
+| Mutability | Immutable | Mutable |
+| Performance | Faster, less memory | Slower, more memory |
+| Methods | 2 methods | Many methods |
+| Use as dict keys | Yes | No |
+| Hashable | Yes | No |
+
+Choose tuples when you need an immutable, ordered collection of items, such as coordinates, configuration settings, or data that should not change. Tuples are a fundamental part of Python and are used extensively in returning multiple values from functions and as dictionary keys.

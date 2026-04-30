@@ -1,0 +1,217 @@
+---
+title: "Type Annotations Basics"
+description: "Learn how to add type hints to your Python functions and variables."
+order: 5
+---
+
+# Type Annotations Basics
+
+Type annotations (or type hints) allow you to indicate the expected types of variables, function parameters, and return values. While Python doesn't enforce these types at runtime, they improve code readability and enable better tooling support.
+
+## Why Use Type Annotations?
+
+- **Code readability** — Clearer indication of expected types
+- **Better IDE support** — Improved autocomplete and error detection
+- **Documentation** — Self-documenting code
+- **Static analysis** — Tools like mypy can catch errors before runtime
+
+## Variable Annotations
+
+You can annotate variable types using a colon:
+
+```python
+name: str = "Alice"
+age: int = 25
+height: float = 1.75
+is_student: bool = True
+```
+
+These annotations don't change how the code runs.
+
+## Function Parameter Annotations
+
+Add type hints to function parameters:
+
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+def add(a: int, b: int) -> int:
+    return a + b
+
+print(greet("Alice"))
+print(add(5, 3))
+```
+
+Output:
+
+```
+Hello, Alice!
+8
+```
+
+The annotation `name: str` means the parameter should be a string, and `-> str` indicates the return type.
+
+## Common Type Annotations
+
+### Basic Types
+
+```python
+def process(data: str, count: int, rate: float) -> bool:
+    return count > 0 and rate > 0.0
+```
+
+### List Types
+
+```python
+from typing import List
+
+def sum_list(numbers: List[int]) -> int:
+    return sum(numbers)
+
+print(sum_list([1, 2, 3, 4, 5]))
+```
+
+Output:
+
+```
+15
+```
+
+### Dictionary Types
+
+```python
+from typing import Dict
+
+def get_name(person: Dict[str, str]) -> str:
+    return person.get("name", "Unknown")
+
+person = {"name": "Alice", "email": "alice@example.com"}
+print(get_name(person))
+```
+
+Output:
+
+```
+Alice
+```
+
+### Optional Types
+
+Use `Optional` for values that might be `None`:
+
+```python
+from typing import Optional
+
+def find_user(user_id: int) -> Optional[str]:
+    users = {1: "Alice", 2: "Bob"}
+    return users.get(user_id)
+
+print(find_user(1))
+print(find_user(99))
+```
+
+Output:
+
+```
+Alice
+None
+```
+
+## Union Types
+
+When a parameter can have multiple types, use `Union`:
+
+```python
+from typing import Union
+
+def process(value: Union[int, str]) -> str:
+    return f"Value: {value}"
+
+print(process(42))
+print(process("hello"))
+```
+
+Output:
+
+```
+Value: 42
+Value: hello
+```
+
+## Callable Types
+
+For functions that accept other functions as parameters:
+
+```python
+from typing import Callable
+
+def apply_operation(func: Callable[[int, int], int], a: int, b: int) -> int:
+    return func(a, b)
+
+def add(a: int, b: int) -> int:
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    return a * b
+
+print(apply_operation(add, 3, 5))
+print(apply_operation(multiply, 3, 5))
+```
+
+Output:
+
+```
+8
+15
+```
+
+## Any Type
+
+Use `Any` when the type is unknown:
+
+```python
+from typing import Any
+
+def print_value(value: Any) -> None:
+    print(f"Value: {value}")
+
+print_value("hello")
+print_value(42)
+print_value([1, 2, 3])
+```
+
+## Type Annotations with None
+
+When a function doesn't return a value, use `-> None`:
+
+```python
+def print_message(message: str) -> None:
+    print(message)
+```
+
+This explicitly indicates the function returns nothing.
+
+## Modern Python (3.9+) Syntax
+
+Python 3.9 introduced generic types without the `typing` module:
+
+```python
+# Python 3.9+
+def sum_list(numbers: list[int]) -> int:
+    return sum(numbers)
+
+def get_name(person: dict[str, str]) -> str:
+    return person.get("name", "Unknown")
+```
+
+This course uses the newer syntax, but both approaches are valid.
+
+## Summary
+
+- Type annotations don't enforce types at runtime
+- Use `str`, `int`, `float`, `bool` for basic types
+- Use `List`, `Dict`, `Optional`, `Union` from `typing` module
+- Use `Callable` for functions passed as parameters
+- Python 3.9+ supports built-in generic types
+- Type hints improve code documentation and tooling support

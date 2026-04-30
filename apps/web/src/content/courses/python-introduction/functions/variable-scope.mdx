@@ -1,0 +1,179 @@
+---
+title: "Variable Scope"
+description: "Understand local, global, and nonlocal scope in Python functions."
+order: 3
+---
+
+# Variable Scope
+
+Scope determines where a variable can be accessed in your code. Understanding scope helps you avoid bugs and unexpected behavior.
+
+## Local Scope
+
+Variables defined inside a function are local to that function:
+
+```python
+def my_function():
+    local_variable = "I'm local"
+    print(local_variable)
+
+my_function()
+print(local_variable)  # This would cause an error
+```
+
+Output:
+
+```
+I'm local
+Traceback (most recent call last):
+NameError: name 'local_variable' is not defined
+```
+
+The variable `local_variable` only exists inside `my_function`.
+
+## Global Scope
+
+Variables defined outside all functions are global:
+
+```python
+global_variable = "I'm global"
+
+def my_function():
+    print(global_variable)
+
+my_function()
+print(global_variable)
+```
+
+Output:
+
+```
+I'm global
+I'm global
+```
+
+Global variables can be accessed from anywhere, including inside functions.
+
+## Using `global` Keyword
+
+To modify a global variable from inside a function, use the `global` keyword:
+
+```python
+counter = 0
+
+def increment():
+    global counter
+    counter += 1
+
+print(counter)
+increment()
+print(counter)
+increment()
+print(counter)
+```
+
+Output:
+
+```
+0
+1
+2
+```
+
+Without the `global` keyword, Python would create a new local variable instead.
+
+## nonlocal Scope
+
+The `nonlocal` keyword lets you modify a variable in an enclosing (non-global) scope:
+
+```python
+def outer():
+    count = 0
+
+    def inner():
+        nonlocal count
+        count += 1
+        print(f"Inside inner: {count}")
+
+    inner()
+    inner()
+    print(f"Inside outer: {count}")
+
+outer()
+```
+
+Output:
+
+```
+Inside inner: 1
+Inside inner: 2
+Inside outer: 2
+```
+
+This is useful when you have nested functions.
+
+## Scope and Function Parameters
+
+Function parameters behave like local variables:
+
+```python
+def my_function(x):
+    print(f"x is {x}")
+
+my_function(5)
+print(x)  # This would cause an error
+```
+
+The parameter `x` only exists inside the function.
+
+## Common Pitfalls
+
+### Pitfall 1: Modifying Global Variables Accidentally
+
+```python
+count = 10
+
+def update():
+    count = count + 1  # This causes an error!
+
+update()
+```
+
+This fails because Python sees `count` as a local variable that hasn't been initialized.
+
+### Pitfall 2: Reusing Variable Names
+
+```python
+x = "global"
+
+def my_function():
+    x = "local"
+    print(x)
+
+my_function()
+print(x)
+```
+
+Output:
+
+```
+local
+global
+```
+
+The local `x` inside the function doesn't affect the global `x`.
+
+## Best Practices
+
+1. **Minimize global variables** — They make code harder to debug and test
+2. **Use function parameters** — Pass data into functions instead of relying on globals
+3. **Use `nonlocal` sparingly** — Nested functions can make code harder to follow
+4. **Choose descriptive names** — Avoid short names that might conflict with globals
+
+## Summary
+
+- Local variables exist only inside the function where they're defined
+- Global variables exist everywhere and can be accessed from any function
+- Use `global` to modify a global variable from within a function
+- Use `nonlocal` to modify a variable in an enclosing scope
+- Function parameters are always local to that function

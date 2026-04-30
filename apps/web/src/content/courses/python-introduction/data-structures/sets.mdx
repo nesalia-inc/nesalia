@@ -1,0 +1,363 @@
+---
+title: "Sets and Set Operations"
+description: "Discover sets, Python's unordered collection of unique elements."
+order: 3
+---
+
+# Sets and Set Operations
+
+A set is an unordered collection of unique elements. Sets are useful when you need to store unique values and perform mathematical set operations like union, intersection, and difference.
+
+## Creating Sets
+
+Create a set by placing items inside curly braces, separated by commas:
+
+```python
+# Empty set (note: {} creates a dictionary, not a set)
+empty_set = set()
+
+# Set with values
+colors = {"red", "green", "blue"}
+
+# Set from a list
+numbers = set([1, 2, 2, 3, 3, 4])
+print(numbers)  # {1, 2, 3, 4} (duplicates removed automatically)
+
+# Set from a string
+letters = set("hello")
+print(letters)  # {'h', 'e', 'l', 'o'} (unique characters)
+```
+
+## Key Properties of Sets
+
+### Unordered
+
+Sets maintain no particular order for elements:
+
+```python
+my_set = {3, 1, 4, 1, 5, 9, 2, 6}
+print(my_set)  # {1, 2, 3, 4, 5, 6, 9} - order may vary
+```
+
+### Unique Elements
+
+Sets automatically remove duplicates:
+
+```python
+items = {1, 2, 2, 3, 3, 3, 4, 4, 4}
+print(items)  # {1, 2, 3, 4}
+```
+
+### Immutable Elements Only
+
+Sets can only contain immutable (hashable) elements:
+
+```python
+# Valid: numbers, strings, tuples
+valid_set = {1, "hello", (1, 2, 3)}
+
+# Invalid: lists, dictionaries, other sets
+# invalid_set = {[1, 2, 3]}  # TypeError!
+```
+
+## Adding and Removing Elements
+
+```python
+fruits = {"apple", "banana"}
+
+# Add a single element
+fruits.add("cherry")
+
+# Add multiple elements
+fruits.update(["orange", "grape"])
+
+# Remove an element (raises error if not found)
+fruits.remove("banana")
+
+# Remove an element (doesn't raise error if not found)
+fruits.discard("mango")  # No error, even though mango doesn't exist
+
+# Remove and return a random element
+popped = fruits.pop()
+
+# Clear all elements
+fruits.clear()
+
+print(fruits)  # set()
+```
+
+## Membership Testing
+
+Fast O(1) lookup for checking if an element exists:
+
+```python
+numbers = {1, 2, 3, 4, 5}
+
+print(3 in numbers)      # True
+print(10 not in numbers)  # True
+
+# Works quickly even for large sets
+large_set = set(range(1000000))
+print(500000 in large_set)  # Very fast lookup
+```
+
+## Set Operations
+
+### Union
+
+Combine all elements from multiple sets:
+
+```python
+set1 = {1, 2, 3}
+set2 = {3, 4, 5}
+
+# Using | operator
+union = set1 | set2
+
+# Using union() method
+union = set1.union(set2)
+
+print(union)  # {1, 2, 3, 4, 5}
+```
+
+### Intersection
+
+Find common elements:
+
+```python
+set1 = {1, 2, 3, 4}
+set2 = {3, 4, 5, 6}
+
+# Using & operator
+intersection = set1 & set2
+
+# Using intersection() method
+intersection = set1.intersection(set2)
+
+print(intersection)  # {3, 4}
+```
+
+### Difference
+
+Find elements in one set but not another:
+
+```python
+set1 = {1, 2, 3, 4}
+set2 = {3, 4, 5, 6}
+
+# Using - operator
+difference = set1 - set2
+
+# Using difference() method
+difference = set1.difference(set2)
+
+print(difference)  # {1, 2}
+```
+
+### Symmetric Difference
+
+Find elements in either set but not both:
+
+```python
+set1 = {1, 2, 3, 4}
+set2 = {3, 4, 5, 6}
+
+# Using ^ operator
+sym_diff = set1 ^ set2
+
+# Using symmetric_difference() method
+sym_diff = set1.symmetric_difference(set2)
+
+print(sym_diff)  # {1, 2, 5, 6}
+```
+
+## Set Methods for Comparisons
+
+### Subset
+
+Check if all elements of one set are in another:
+
+```python
+a = {1, 2}
+b = {1, 2, 3, 4}
+
+print(a.issubset(b))  # True
+print(a <= b)        # True
+
+# Proper subset (not equal)
+print(a < b)          # True
+print(b < b)          # False
+```
+
+### Superset
+
+Check if a set contains all elements of another:
+
+```python
+a = {1, 2, 3, 4}
+b = {1, 2}
+
+print(a.issuperset(b))  # True
+print(a >= b)           # True
+
+# Proper superset
+print(a > b)            # True
+print(a > a)            # False
+```
+
+### Disjoint
+
+Check if sets have no common elements:
+
+```python
+a = {1, 2, 3}
+b = {4, 5, 6}
+c = {3, 4, 5}
+
+print(a.isdisjoint(b))  # True (no common elements)
+print(a.isdisjoint(c))  # False (3 is in both)
+```
+
+## Iterating Over Sets
+
+```python
+fruits = {"apple", "banana", "cherry"}
+
+# Basic iteration
+for fruit in fruits:
+    print(fruit)
+
+# With enumeration (order not guaranteed)
+for index, fruit in enumerate(fruits):
+    print(f"{index}: {fruit}")
+```
+
+## Set Comprehensions
+
+```python
+# Basic set comprehension
+squares = {x**2 for x in range(10)}
+print(squares)  # {0, 1, 4, 9, 16, 25, 36, 49, 64, 81}
+
+# With condition
+even_squares = {x**2 for x in range(10) if x % 2 == 0}
+print(even_squares)  # {0, 4, 16, 36, 64}
+```
+
+## Converting Between Sets and Other Collections
+
+```python
+# List to set (removes duplicates)
+my_list = [1, 2, 2, 3, 3, 3]
+my_set = set(my_list)
+print(my_set)  # {1, 2, 3}
+
+# Set to list
+my_set = {1, 2, 3}
+my_list = list(my_set)
+print(my_list)  # [1, 2, 3] (order not guaranteed)
+
+# String to set (unique characters)
+my_set = set("hello")
+print(my_set)  # {'h', 'e', 'l', 'o'}
+```
+
+## Practice Examples
+
+### Example 1: Removing Duplicates
+
+```python
+# Remove duplicates from a list while preserving order
+def remove_duplicates(items):
+    return list(set(items))
+
+numbers = [1, 2, 2, 3, 3, 3, 4, 4, 5]
+unique = remove_duplicates(numbers)
+print(unique)  # May not preserve order: [1, 2, 3, 4, 5]
+
+# For preserving order, use dict.fromkeys()
+def remove_duplicates_ordered(items):
+    return list(dict.fromkeys(items))
+
+unique_ordered = remove_duplicates_ordered(numbers)
+print(unique_ordered)  # [1, 2, 3, 4, 5]
+```
+
+### Example 2: Finding Common Elements
+
+```python
+# Find common elements between two lists
+list1 = ["apple", "banana", "cherry", "orange"]
+list2 = ["banana", "orange", "grape", "kiwi"]
+
+common = set(list1) & set(list2)
+print(common)  # {'banana', 'orange'}
+
+# Find elements unique to each list
+only_in_list1 = set(list1) - set(list2)
+only_in_list2 = set(list2) - set(list1)
+print(f"Only in list1: {only_in_list1}")  # {'apple', 'cherry'}
+print(f"Only in list2: {only_in_list2}")  # {'grape', 'kiwi'}
+```
+
+### Example 3: Set Operations for Students
+
+```python
+# Track which students are in each class
+class_a = {"Alice", "Bob", "Charlie", "David"}
+class_b = {"Charlie", "David", "Eve", "Frank"}
+
+# Students in at least one class
+all_students = class_a | class_b
+print(f"All students: {all_students}")
+
+# Students in both classes
+both_classes = class_a & class_b
+print(f"In both classes: {both_classes}")
+
+# Students in class_a but not in class_b
+only_class_a = class_a - class_b
+print(f"Only in class A: {only_class_a}")
+
+# Students in exactly one class
+only_one = class_a ^ class_b
+print(f"Exactly one class: {only_one}")
+```
+
+### Example 4: Word Frequency with Sets
+
+```python
+# Find unique words in text
+text1 = "the quick brown fox jumps over the lazy dog"
+text2 = "the lazy dog sleeps by the quick brown fox"
+
+words1 = set(text1.split())
+words2 = set(text2.split())
+
+common_words = words1 & words2
+unique_to_text1 = words1 - words2
+unique_to_text2 = words2 - words1
+
+print(f"Common words: {common_words}")
+print(f"Unique to text 1: {unique_to_text1}")
+print(f"Unique to text 2: {unique_to_text2}")
+```
+
+## When to Use Sets
+
+Sets are ideal when you need to:
+
+- Store unique values with no duplicates
+- Perform mathematical set operations (union, intersection, difference)
+- Test membership quickly (faster than lists for large collections)
+- Remove duplicates from a collection efficiently
+- Compare two collections to find similarities or differences
+
+Avoid using sets when:
+
+- You need to maintain order
+- You need to store duplicate values
+- You need indexed access to elements
+- You need mutable elements inside the collection
+
+Sets are a powerful tool in Python for handling collections of unique items and performing set operations efficiently.

@@ -1,0 +1,274 @@
+---
+title: "Enumerate and zip"
+description: "Learn how to use enumerate() and zip() to work with iterables in Python."
+order: 5
+---
+
+# Enumerate and zip
+
+Python provides two powerful built-in functions for working with iterables: `enumerate()` and `zip()`. These functions make it easier to loop through data while accessing indices, keys, or multiple sequences simultaneously.
+
+## The enumerate() Function
+
+`enumerate()` adds a counter to an iterable and returns it as an enumerate object. This allows you to access both the index and the value of each item in a single loop.
+
+### Basic Syntax
+
+```python
+for index, value in enumerate(iterable):
+    # code
+```
+
+### Basic Example
+
+```python
+fruits = ["apple", "banana", "cherry"]
+
+for index, fruit in enumerate(fruits):
+    print(f"{index}: {fruit}")
+```
+
+Output:
+```
+0: apple
+1: banana
+2: cherry
+```
+
+### Starting Index from 1
+
+```python
+fruits = ["apple", "banana", "cherry"]
+
+for index, fruit in enumerate(fruits, start=1):
+    print(f"{index}: {fruit}")
+```
+
+Output:
+```
+1: apple
+2: banana
+3: cherry
+```
+
+### Practical Example: Creating a Numbered List
+
+```python
+items = ["First", "Second", "Third", "Fourth"]
+
+print("Select an item:")
+for index, item in enumerate(items, start=1):
+    print(f"  {index}. {item}")
+
+choice = int(input("Enter your choice: "))
+if 1 <= choice <= len(items):
+    print(f"You selected: {items[choice - 1]}")
+```
+
+## The zip() Function
+
+`zip()` combines multiple iterables element-wise, returning tuples of corresponding elements. It stops when the shortest iterable is exhausted.
+
+### Basic Syntax
+
+```python
+for item1, item2 in zip(iterable1, iterable2):
+    # code
+```
+
+### Basic Example
+
+```python
+names = ["Alice", "Bob", "Charlie"]
+ages = [25, 30, 35]
+
+for name, age in zip(names, ages):
+    print(f"{name} is {age} years old")
+```
+
+Output:
+```
+Alice is 25 years old
+Bob is 30 years old
+Charlie is 35 years old
+```
+
+### Combining Three Iterables
+
+```python
+names = ["Alice", "Bob", "Charlie"]
+ages = [25, 30, 35]
+cities = ["New York", "London", "Paris"]
+
+for name, age, city in zip(names, ages, cities):
+    print(f"{name} ({age}) from {city}")
+```
+
+Output:
+```
+Alice (25) from New York
+Bob (30) from London
+Charlie (35) from Paris
+```
+
+### Different Length Iterables
+
+```python
+names = ["Alice", "Bob", "Charlie"]
+scores = [95, 88]  # Only 2 items
+
+for name, score in zip(names, scores):
+    print(f"{name}: {score}")
+```
+
+Output:
+```
+Alice: 95
+Bob: 88
+```
+
+## Practical Examples
+
+### Creating a Dictionary from Two Lists
+
+```python
+keys = ["name", "age", "city"]
+values = ["Alice", 25, "New York"]
+
+person = dict(zip(keys, values))
+print(person)
+```
+
+Output:
+```
+{'name': 'Alice', 'age': 25, 'city': 'New York'}
+```
+
+### Finding Corresponding Elements
+
+```python
+list1 = [1, 2, 3, 4, 5]
+list2 = [10, 20, 30, 40, 50]
+
+print("Sums:")
+for a, b in zip(list1, list2):
+    print(f"  {a} + {b} = {a + b}")
+```
+
+Output:
+```
+Sums:
+  1 + 10 = 11
+  2 + 20 = 22
+  3 + 30 = 33
+  4 + 40 = 44
+  5 + 50 = 55
+```
+
+### Iterating Over Multiple Sequences with enumerate
+
+```python
+products = ["Laptop", "Mouse", "Keyboard"]
+prices = [999, 29, 79]
+stock = [10, 50, 30]
+
+print("Inventory:")
+for index, (product, price, qty) in enumerate(zip(products, prices, stock)):
+    total = price * qty
+    print(f"{index + 1}. {product}: ${price} x {qty} = ${total}")
+```
+
+Output:
+```
+Inventory:
+1. Laptop: $999 x 10 = $9990
+2. Mouse: $29 x 50 = $1450
+3. Keyboard: $79 x 30 = $2370
+```
+
+### Transposing Data with zip
+
+```python
+data = [
+    ["Alice", "Bob", "Charlie"],
+    [25, 30, 35],
+    ["New York", "London", "Paris"]
+]
+
+# Transpose rows to columns
+for name, age, city in zip(*data):
+    print(f"{name} ({age}) from {city}")
+```
+
+Output:
+```
+Alice (25) from New York
+Bob (30) from London
+Charlie (35) from Paris
+```
+
+## Converting to Lists
+
+Both `enumerate()` and `zip()` return special iterator objects. To get a list, wrap them with `list()`:
+
+```python
+fruits = ["apple", "banana", "cherry"]
+
+# List of tuples
+enum_list = list(enumerate(fruits))
+print(enum_list)
+```
+
+Output:
+```
+[(0, 'apple'), (1, 'banana'), (2, 'cherry')]
+```
+
+```python
+names = ["Alice", "Bob"]
+ages = [25, 30]
+
+zip_list = list(zip(names, ages))
+print(zip_list)
+```
+
+Output:
+```
+[('Alice', 25), ('Bob', 30)]
+```
+
+## Using with list() to Create Lists Directly
+
+```python
+# Create a list of squares with their indices
+numbers = [1, 2, 3, 4, 5]
+squares_with_index = [(i, n**2) for i, n in enumerate(numbers)]
+print(squares_with_index)
+```
+
+Output:
+```
+[(0, 1), (1, 4), (2, 9), (3, 16), (4, 25)]
+```
+
+```python
+# Create a list of full names from first and last names
+first_names = ["John", "Jane", "Jim"]
+last_names = ["Doe", "Smith", "Brown"]
+
+full_names = [f"{first} {last}" for first, last in zip(first_names, last_names)]
+print(full_names)
+```
+
+Output:
+```
+['John Doe', 'Jane Smith', 'Jim Brown']
+```
+
+## Summary
+
+- `enumerate()` adds a counter to an iterable, yielding (index, value) tuples
+- `zip()` combines multiple iterables element-wise into tuples
+- Both return iterators that can be converted to lists or used directly in loops
+- `start` parameter in `enumerate()` allows customizing the starting index
+- `zip()` stops when the shortest iterable is exhausted

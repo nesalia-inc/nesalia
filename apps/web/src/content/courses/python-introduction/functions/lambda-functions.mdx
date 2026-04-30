@@ -1,0 +1,180 @@
+---
+title: "Lambda Functions"
+description: "Learn about anonymous functions using lambda expressions in Python."
+order: 4
+---
+
+# Lambda Functions
+
+Lambda functions are small, anonymous functions that can be defined in a single line. They're useful when you need a simple function for a short period of time.
+
+## Basic Syntax
+
+A lambda function is defined using the `lambda` keyword:
+
+```python
+# Regular function
+def square(x):
+    return x ** 2
+
+# Lambda function
+square = lambda x: x ** 2
+
+print(square(5))
+```
+
+Output:
+
+```
+25
+```
+
+The lambda function takes one parameter (`x`) and returns `x ** 2`.
+
+## Lambda vs Regular Functions
+
+| Aspect | Lambda | Regular Function |
+|--------|--------|------------------|
+| Syntax | Single line | Multiple lines |
+| Name | Anonymous | Named |
+| Use case | Short, simple operations | Complex operations |
+| Documentation | No docstring support | Docstrings supported |
+
+## Common Use Cases
+
+### 1. Sorting with Custom Key
+
+Lambda functions are commonly used with the `key` parameter in sorting:
+
+```python
+names = ["Charlie", "Alice", "Bob"]
+
+# Sort by length
+sorted_by_length = sorted(names, key=lambda name: len(name))
+print(sorted_by_length)
+
+# Sort alphabetically (default)
+sorted_alphabetically = sorted(names)
+print(sorted_alphabetically)
+```
+
+Output:
+
+```
+['Bob', 'Alice', 'Charlie']
+['Alice', 'Bob', 'Charlie']
+```
+
+### 2. Filtering Data
+
+```python
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# Filter even numbers
+even_numbers = list(filter(lambda x: x % 2 == 0, numbers))
+print(even_numbers)
+```
+
+Output:
+
+```
+[2, 4, 6, 8, 10]
+```
+
+### 3. Mapping Values
+
+```python
+numbers = [1, 2, 3, 4, 5]
+
+# Double each number
+doubled = list(map(lambda x: x * 2, numbers))
+print(doubled)
+```
+
+Output:
+
+```
+[2, 4, 6, 8, 10]
+```
+
+## Multiple Parameters
+
+Lambda functions can accept multiple parameters:
+
+```python
+# A lambda with two parameters
+add = lambda a, b: a + b
+print(add(3, 5))
+
+# A lambda with no parameters
+greet = lambda: "Hello!"
+print(greet())
+```
+
+## Lambda in List Comprehensions
+
+Lambdas can be used in list comprehensions for conditional logic:
+
+```python
+# Classify numbers as even or odd
+numbers = [1, 2, 3, 4, 5]
+classification = [(lambda x: "even" if x % 2 == 0 else "odd")(x) for x in numbers]
+print(classification)
+```
+
+Output:
+
+```
+['odd', 'even', 'odd', 'even', 'odd']
+```
+
+## Limitations of Lambda
+
+Lambda functions have some limitations:
+
+1. **No statements** — You can't use `if`, `for`, `while`, or other statements
+2. **Single expression** — Only one expression is allowed
+3. **No docstrings** — Lambda functions can't have documentation
+4. **Hard to debug** — Anonymous functions are harder to trace in error messages
+
+## When to Use Lambda
+
+Use lambda when:
+
+- The function is simple (one expression)
+- The function is short-lived (used once or twice)
+- You're passing it as an argument to a higher-order function
+
+Use a regular function when:
+
+- The function is complex
+- You need documentation
+- The function will be reused many times
+
+## Example: Combining Operations
+
+```python
+students = [
+    {"name": "Alice", "grade": 85},
+    {"name": "Bob", "grade": 92},
+    {"name": "Carol", "grade": 78}
+]
+
+# Sort by grade (descending)
+sorted_students = sorted(students, key=lambda s: s["grade"], reverse=True)
+print([s["name"] for s in sorted_students])
+```
+
+Output:
+
+```
+['Bob', 'Alice', 'Carol']
+```
+
+## Summary
+
+- Lambda functions are anonymous, single-expression functions
+- Syntax: `lambda parameters: expression`
+- Commonly used with `sorted()`, `filter()`, and `map()`
+- Limited compared to regular functions
+- Best for short, simple operations passed to other functions

@@ -1,0 +1,411 @@
+---
+title: "Setting Up Your Development Environment"
+description: "Install Python, set up a code editor, and configure your workspace for Python development."
+order: 3
+---
+
+# Setting Up Your Development Environment
+
+Before you can start writing Python code, you need to set up your development environment. This section guides you through installing Python, choosing a code editor, and configuring your workspace.
+
+## Installing Python
+
+Python runs on all major operating systems: Windows, macOS, and Linux.
+
+### Windows Installation
+
+1. Visit the official Python website: [python.org](https://python.org)
+2. Download the latest Python 3.12+ installer for Windows
+3. Run the installer
+4. **Important:** Check the box labeled "Add Python to PATH"
+5. Click "Install Now"
+
+To verify the installation, open Command Prompt and type:
+
+```bash
+python --version
+```
+
+You should see output like:
+
+```
+Python 3.12.0
+```
+
+### macOS Installation
+
+macOS usually comes with Python pre-installed, but it's often an older version. We recommend installing the latest version using Homebrew:
+
+```bash
+# Install Homebrew if you don't have it
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Install Python
+brew install python
+```
+
+Verify with:
+
+```bash
+python3 --version
+```
+
+### Linux Installation
+
+Most Linux distributions include Python. On Ubuntu or Debian:
+
+```bash
+sudo apt update
+sudo apt install python3 python3-pip
+```
+
+Verify:
+
+```bash
+python3 --version
+```
+
+## Installing pip
+
+pip is Python's package manager—it lets you install libraries and tools created by the Python community.
+
+Python 3.4+ comes with pip bundled. To verify pip is installed:
+
+```bash
+pip --version
+```
+
+### Installing Your First Package
+
+Let's install a useful package to verify everything works:
+
+```bash
+pip install requests
+```
+
+This command installs the `requests` library, commonly used for making HTTP requests.
+
+```python
+# Test your installation with requests
+import requests
+
+response = requests.get("https://api.github.com")
+print(f"Status: {response.status_code}")
+print(f"Python package installation works!")
+```
+
+## Choosing a Code Editor
+
+You need a text editor specifically designed for coding. Here are the best options:
+
+### Visual Studio Code (Recommended for Beginners)
+
+VS Code is a free, lightweight editor with excellent Python support.
+
+**Installation:**
+
+1. Download from [code.visualstudio.com](https://code.visualstudio.com)
+2. Install the Python extension:
+   - Press `Ctrl+Shift+X` (Windows) or `Cmd+Shift+X` (macOS)
+   - Search for "Python"
+   - Click "Install" on the official Microsoft Python extension
+
+**Key Features:**
+- Syntax highlighting
+- IntelliSense (code completion)
+- Integrated terminal
+- Debugging support
+
+### PyCharm
+
+PyCharm is a dedicated Python IDE with professional-grade features.
+
+**Editions:**
+- **Community** — Free, open-source
+- **Professional** — Paid, with extra features for web development
+
+### IDLE
+
+IDLE comes bundled with Python. It's simple but functional.
+
+```bash
+# Launch IDLE from terminal
+idle
+```
+
+### Basic Editor Setup for Python
+
+Whatever editor you choose, configure these settings:
+
+1. **Indent with spaces** (4 spaces per indent level)
+2. **Line endings** — Use Unix-style (LF)
+3. **Font** — Use a monospace font like Fira Code, Consolas, or Monaco
+
+## Creating Your First Project
+
+Let's create a structured project to organize your Python code.
+
+### Project Directory Structure
+
+```
+my-python-project/
+    ├── src/
+    │   └── main.py
+    ├── tests/
+    │   └── test_main.py
+    ├── requirements.txt
+    └── README.md
+```
+
+### Creating Directories
+
+**Windows:**
+```bash
+mkdir my-python-project
+cd my-python-project
+mkdir src tests
+```
+
+**macOS/Linux:**
+```bash
+mkdir -p my-python-project/src my-python-project/tests
+cd my-python-project
+```
+
+### Creating requirements.txt
+
+This file lists your project's dependencies:
+
+```text
+requests>=2.31.0
+```
+
+Install dependencies with:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Virtual Environments
+
+Virtual environments keep your project's dependencies isolated from other projects and the system.
+
+### Why Use Virtual Environments?
+
+- **Isolation** — Different projects can use different library versions
+- **Cleanliness** — No global system pollution
+- **Reproducibility** — Easy to recreate exact environment elsewhere
+
+### Creating a Virtual Environment
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Your terminal prompt will change to show the active environment:
+
+```
+(venv) C:\Users\YourName\my-project>
+```
+
+### Installing Packages in the Virtual Environment
+
+```bash
+pip install requests
+```
+
+Now `requests` is installed only in this virtual environment.
+
+### Exiting the Virtual Environment
+
+```bash
+deactivate
+```
+
+## Running Python Code
+
+There are multiple ways to execute Python code:
+
+### Interactive Mode
+
+Start the Python interpreter by typing `python` or `python3`:
+
+```bash
+python
+```
+
+You'll see the prompt:
+
+```python
+>>> print("Hello, Python!")
+Hello, Python!
+>>> 2 + 2
+4
+>>> name = "Python Learner"
+>>> f"Welcome to {name}!"
+'Welcome to Python Learner!'
+```
+
+### Running a Script
+
+Create a file called `hello.py`:
+
+```python
+# hello.py
+def greet(name):
+    return f"Hello, {name}! Welcome to Python."
+
+if __name__ == "__main__":
+    name = input("Enter your name: ")
+    print(greet(name))
+```
+
+Run it:
+
+```bash
+python hello.py
+```
+
+### Using VS Code
+
+1. Open your project folder in VS Code
+2. Create a new file: `Ctrl+N` or `Cmd+N`
+3. Save as `.py` file: `Ctrl+S` or `Cmd+S`
+4. Run: Press `F5` to debug or `Ctrl+Enter` to run the current line
+
+### Using the Terminal
+
+```bash
+# Run any Python script
+python path/to/script.py
+
+# Run with specific Python version
+python3 path/to/script.py
+```
+
+## Code Editor Customization
+
+### VS Code Settings
+
+Create a `.vscode/settings.json` file in your project:
+
+```json
+{
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "black",
+    "python.testing.pytestEnabled": true,
+    "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "files.insertFinalNewline": true
+}
+```
+
+### Recommended VS Code Extensions
+
+- **Python** — Microsoft's official Python extension
+- **Pylance** — Fast type checking and language server
+- **Python Preview** — See output alongside your code
+- **GitLens** — Git integration
+
+## Troubleshooting Common Issues
+
+### "python is not recognized"
+
+**Solution:** Python wasn't added to your PATH. Re-run the installer and check "Add Python to PATH", or manually add Python to your system PATH.
+
+### "pip is not recognized"
+
+**Solution:**
+
+```bash
+python -m pip
+```
+
+### Wrong Python version
+
+**Solution:**
+
+```bash
+# Check which Python is being used
+which python  # macOS/Linux
+where python  # Windows
+
+# Use python3 explicitly
+python3 script.py
+```
+
+### Virtual environment problems on Windows
+
+**Solution:**
+
+```bash
+# Enable script execution if blocked
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+## Your Development Environment Checklist
+
+Before moving on, verify your setup:
+
+- [ ] Python installed and working (`python --version`)
+- [ ] pip working (`pip --version`)
+- [ ] Code editor installed and configured
+- [ ] Virtual environment creation working
+- [ ] Can run a simple script
+
+```python
+# Test script - save as test_setup.py
+import sys
+import pip
+import os
+
+def test_environment():
+    print(f"Python version: {sys.version}")
+    print(f"Python executable: {sys.executable}")
+    print(f"pip version: {pip.__version__}")
+    print(f"Current directory: {os.getcwd()}")
+    print("\nYour Python environment is ready!")
+
+if __name__ == "__main__":
+    test_environment()
+```
+
+Run this test script to confirm everything is working:
+
+```bash
+python test_setup.py
+```
+
+## Next Steps
+
+With your environment set up, you're ready to write your first Python script. In the next section, you'll learn the fundamentals of Python syntax and create working programs.
+
+```python
+# Let's verify everything works in one script
+print("=" * 50)
+print("Python Environment Test")
+print("=" * 50)
+
+# Test basic operations
+numbers = [1, 2, 3, 4, 5]
+squared = [n ** 2 for n in numbers]
+print(f"Numbers: {numbers}")
+print(f"Squared: {squared}")
+
+# Test string operations
+message = "Python is installed and working!"
+print(f"\nMessage: {message}")
+
+print("\nYou're ready to start coding!")
+```
+
+In the next section, we'll write your first complete Python program together.

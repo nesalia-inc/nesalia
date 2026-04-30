@@ -1,0 +1,299 @@
+---
+title: "Python vs Other Programming Languages"
+description: "Compare Python's strengths and weaknesses against Java, JavaScript, C++, and other popular languages."
+order: 2
+---
+
+# Python vs Other Programming Languages
+
+Python is one of many programming languages available today. Understanding how Python compares to other popular languages helps you make informed decisions about when and where to use each one.
+
+## Overview of Popular Programming Languages
+
+Each programming language has evolved to solve specific problems or fit particular programming philosophies:
+
+| Language | Created | Paradigm | Primary Use Cases |
+|----------|---------|----------|-------------------|
+| Python | 1991 | Multi-paradigm | Web, data science, automation |
+| JavaScript | 1995 | Event-driven | Web frontend/backend |
+| Java | 1995 | Object-oriented | Enterprise, Android, web |
+| C++ | 1985 | Multi-paradigm | Systems, games, performance |
+| Go | 2009 | Concurrent | Cloud, servers, networking |
+| Rust | 2010 | Systems | Safety-critical, performance |
+
+## Python vs JavaScript
+
+Both Python and JavaScript are excellent choices for beginners, but they serve different primary purposes.
+
+### Syntax Comparison
+
+**Python:**
+```python
+# Creating a function in Python
+def greet(name):
+    return f"Hello, {name}! Welcome to Python."
+
+message = greet("Alice")
+print(message)
+```
+
+**JavaScript:**
+```javascript
+// Creating a function in JavaScript
+function greet(name) {
+    return `Hello, ${name}! Welcome to JavaScript.`;
+}
+
+const message = greet("Alice");
+console.log(message);
+```
+
+### Key Differences
+
+- **Execution environment** — JavaScript runs primarily in browsers; Python runs on servers and local machines
+- **Typing** — Both are dynamically typed, but Python uses indentation for blocks while JavaScript uses braces
+- **Use cases** — JavaScript dominates web development; Python leads in data science and general scripting
+
+```python
+# Python's indentation-based syntax
+if True:
+    print("Indentation matters in Python")
+    if False:
+        print("This won't print")
+    else:
+        print("Blocks are defined by indentation")
+```
+
+## Python vs Java
+
+Java and Python share the "readable code" philosophy but approach problems differently.
+
+### Syntax Comparison
+
+**Python:**
+```python
+# Python - concise and readable
+class Dog:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def bark(self):
+        return f"{self.name} says Woof!"
+
+my_dog = Dog("Buddy", 3)
+print(my_dog.bark())
+```
+
+**Java:**
+```java
+// Java - requires explicit typing and structure
+public class Dog {
+    private String name;
+    private int age;
+
+    public Dog(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String bark() {
+        return name + " says Woof!";
+    }
+
+    public static void main(String[] args) {
+        Dog myDog = new Dog("Buddy", 3);
+        System.out.println(myDog.bark());
+    }
+}
+```
+
+### Key Differences
+
+| Aspect | Python | Java |
+|--------|--------|------|
+| **Type system** | Dynamic (duck typing) | Static (explicit types) |
+| **Compilation** | Interpreted | Compiled to bytecode |
+| **Syntax** | Indentation-based | Brace-based |
+| **Lines of code** | Fewer | More |
+| **Learning curve** | Gentle | Steeper |
+
+## Python vs C++
+
+C++ and Python occupy opposite ends of the performance-versus-productivity spectrum.
+
+### Performance Comparison
+
+**C++ (compiled, fast):**
+```cpp
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int main() {
+    std::vector<int> numbers = {5, 2, 8, 1, 9, 3};
+    std::sort(numbers.begin(), numbers.end());
+
+    for (int num : numbers) {
+        std::cout << num << " ";
+    }
+    return 0;
+}
+```
+
+**Python (interpreted, productive):**
+```python
+# Python - same result, less code
+numbers = [5, 2, 8, 1, 9, 3]
+numbers.sort()
+
+for num in numbers:
+    print(num, end=" ")
+```
+
+### When to Choose Each
+
+**Choose C++ when:**
+- Performance is critical (games, operating systems, real-time systems)
+- You need precise memory control
+- Building resource-constrained embedded systems
+
+**Choose Python when:**
+- Development speed matters more than raw performance
+- You need rapid prototyping
+- Working with data analysis or machine learning
+
+```python
+# Python's simplicity for complex tasks
+# C++ would require 10x more code for the same functionality
+
+data = [{"name": "Alice", "score": 95},
+        {"name": "Bob", "score": 87},
+        {"name": "Carol", "score": 92}]
+
+# Sort by score in one line
+sorted_data = sorted(data, key=lambda x: x["score"], reverse=True)
+
+for person in sorted_data:
+    print(f"{person['name']}: {person['score']}")
+```
+
+## Python vs Go
+
+Go (created by Google) and Python both aim for simplicity, but with different priorities.
+
+### Syntax Comparison
+
+**Python:**
+```python
+# Python - flexible and readable
+def calculate_stats(numbers):
+    total = sum(numbers)
+    average = total / len(numbers) if numbers else 0
+    return {"total": total, "average": average}
+
+result = calculate_stats([10, 20, 30, 40, 50])
+print(f"Total: {result['total']}, Average: {result['average']}")
+```
+
+**Go:**
+```go
+package main
+
+import "fmt"
+
+func calculateStats(numbers []int) (total int, average float64) {
+    for _, num := range numbers {
+        total += num
+    }
+    if len(numbers) > 0 {
+        average = float64(total) / float64(len(numbers))
+    }
+    return
+}
+
+func main() {
+    total, average := calculateStats([]int{10, 20, 30, 40, 50})
+    fmt.Printf("Total: %d, Average: %f\n", total, average)
+}
+```
+
+### Key Differences
+
+- **Error handling** — Go uses explicit error return values; Python uses exceptions
+- **Concurrency** — Go has built-in goroutines; Python uses libraries like asyncio
+- **Static vs dynamic typing** — Go requires explicit types; Python is dynamically typed
+- **Compilation** — Go compiles to a single binary; Python is interpreted
+
+## Python vs Rust
+
+Rust and Python represent the tradeoff between memory safety and programmer convenience.
+
+### Python Simplicity:
+```python
+# Python makes tasks easy
+import json
+
+data = {"language": "Python", "strength": "Readability"}
+json_string = json.dumps(data, indent=2)
+print(json_string)
+
+# Parsing back
+parsed = json.loads(json_string)
+print(parsed["language"])
+```
+
+### Rust Safety:
+```rust
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+struct Language {
+    name: String,
+    strength: String,
+}
+
+fn main() {
+    let data = Language {
+        name: String::from("Rust"),
+        strength: String::from("Memory Safety"),
+    };
+
+    let json = serde_json::to_string_pretty(&data).unwrap();
+    println!("{}", json);
+}
+```
+
+## When to Choose Python
+
+Python is the right choice when:
+
+1. **Learning to program** — Python's syntax mirrors natural language, making it ideal for beginners
+2. **Rapid development** — When time-to-market matters more than raw performance
+3. **Data science and ML** — The ecosystem (pandas, NumPy, TensorFlow, PyTorch) is unmatched
+4. **Scripting and automation** — Python excels at glue code and task automation
+5. **Prototyping** — Quickly test ideas before committing to a more complex implementation
+
+```python
+# Python's strength: accomplish a lot with minimal code
+# Data processing that would take hundreds of lines in C++
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load data
+df = pd.read_csv("sales_data.csv")
+
+# Analyze and visualize in a few lines
+df.groupby("category")["revenue"].sum().plot(kind="bar")
+plt.title("Revenue by Category")
+plt.show()
+```
+
+## Summary
+
+Every programming language involves tradeoffs. Python prioritizes developer productivity and readability over raw performance. While C++ or Rust might be better for building a game engine, Python is the better choice for building a data analysis pipeline quickly.
+
+The best approach is to learn multiple languages and choose the right tool for each job. Python is an excellent starting point—it teaches programming concepts without drowning you in syntax complexity.
+
+In the next section, we'll set up your Python development environment so you can start writing real code.

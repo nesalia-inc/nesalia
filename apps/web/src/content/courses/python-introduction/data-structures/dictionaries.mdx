@@ -1,0 +1,393 @@
+---
+title: "Dictionaries"
+description: "Learn about dictionaries, Python's powerful key-value pair data structure."
+order: 4
+---
+
+# Dictionaries
+
+A dictionary is an unordered collection of key-value pairs. Dictionaries are incredibly useful for storing and retrieving data using custom keys instead of numeric indices.
+
+## Creating Dictionaries
+
+Create a dictionary by placing key-value pairs inside curly braces:
+
+```python
+# Empty dictionary
+empty_dict = {}
+
+# Dictionary with key-value pairs
+person = {
+    "name": "Alice",
+    "age": 25,
+    "city": "New York"
+}
+
+# Using dict() constructor
+person = dict(name="Alice", age=25, city="New York")
+
+# Creating from a list of tuples
+pairs = [("name", "Alice"), ("age", 25)]
+person = dict(pairs)
+```
+
+## Accessing Values
+
+### Using Keys
+
+```python
+person = {"name": "Alice", "age": 25, "city": "New York"}
+
+# Access by key
+print(person["name"])    # Alice
+print(person["age"])     # 25
+
+# Using get() method (safer)
+print(person.get("name"))          # Alice
+print(person.get("country", "USA")) # USA (default value if key not found)
+print(person.get("country"))        # None (no default, returns None)
+```
+
+### Keys vs Indices
+
+Remember: dictionary keys are not numeric indices:
+
+```python
+# This would raise an error:
+# person[0]  # KeyError!
+
+# Always use the actual key:
+print(person["name"])  # Alice
+```
+
+## Adding and Modifying Entries
+
+```python
+person = {"name": "Alice", "age": 25}
+
+# Add new key-value pair
+person["city"] = "New York"
+
+# Modify existing value
+person["age"] = 26
+
+# Add multiple values
+person.update({"country": "USA", "occupation": "Engineer"})
+
+print(person)
+# {'name': 'Alice', 'age': 26, 'city': 'New York', 'country': 'USA', 'occupation': 'Engineer'}
+```
+
+## Removing Entries
+
+```python
+person = {"name": "Alice", "age": 25, "city": "New York"}
+
+# Remove by key (raises error if key doesn't exist)
+removed = person.pop("city")
+
+# Remove by key (doesn't raise error if key doesn't exist)
+removed = person.pop("country", None)
+
+# Remove and return last inserted pair (Python 3.7+)
+last_item = person.popitem()
+
+# Clear all entries
+person.clear()
+
+print(person)  # {}
+```
+
+## Dictionary Methods
+
+### Getting Information
+
+```python
+person = {"name": "Alice", "age": 25, "city": "New York"}
+
+print(len(person))       # 3 (number of key-value pairs)
+print(list(person.keys()))   # ['name', 'age', 'city']
+print(list(person.values())) # ['Alice', 25, 'New York']
+print(list(person.items()))  # [('name', 'Alice'), ('age', 25), ('city', 'New York')]
+```
+
+### Checking Keys
+
+```python
+person = {"name": "Alice", "age": 25}
+
+print("name" in person)      # True
+print("Alice" in person)     # False (checks keys, not values)
+print("country" not in person)  # True
+```
+
+## Iterating Over Dictionaries
+
+```python
+person = {"name": "Alice", "age": 25, "city": "New York"}
+
+# Iterate over keys (default)
+for key in person:
+    print(key)
+
+# Iterate over keys explicitly
+for key in person.keys():
+    print(key)
+
+# Iterate over values
+for value in person.values():
+    print(value)
+
+# Iterate over key-value pairs
+for key, value in person.items():
+    print(f"{key}: {value}")
+```
+
+### Iterating in Order
+
+In Python 3.7+, dictionaries maintain insertion order:
+
+```python
+person = {}
+person["name"] = "Alice"
+person["age"] = 25
+person["city"] = "New York"
+
+for key, value in person.items():
+    print(f"{key}: {value}")
+# Output (in order):
+# name: Alice
+# age: 25
+# city: New York
+```
+
+## Nested Dictionaries
+
+Dictionaries can contain other dictionaries or complex structures:
+
+```python
+# Nested dictionary
+employees = {
+    "emp1": {"name": "Alice", "role": "Engineer"},
+    "emp2": {"name": "Bob", "role": "Manager"},
+    "emp3": {"name": "Charlie", "role": "Designer"}
+}
+
+print(employees["emp1"]["name"])       # Alice
+print(employees["emp2"]["role"])        # Manager
+
+# Access nested elements safely
+role = employees.get("emp4", {}).get("role")
+print(role)  # None
+```
+
+### Lists of Dictionaries
+
+```python
+students = [
+    {"name": "Alice", "grade": 85},
+    {"name": "Bob", "grade": 92},
+    {"name": "Charlie", "grade": 78}
+]
+
+for student in students:
+    print(f"{student['name']}: {student['grade']}")
+```
+
+### Dictionary Containing Lists
+
+```python
+courses = {
+    "Python": ["Alice", "Bob", "Charlie"],
+    "JavaScript": ["David", "Eve"],
+    "Java": ["Frank", "Alice"]
+}
+
+print(courses["Python"])           # ['Alice', 'Bob', 'Charlie']
+courses["Python"].append("David")
+```
+
+## Dictionary Comprehensions
+
+Create dictionaries concisely:
+
+```python
+# Basic dictionary comprehension
+squares = {x: x**2 for x in range(5)}
+print(squares)  # {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+
+# With condition
+even_squares = {x: x**2 for x in range(10) if x % 2 == 0}
+print(even_squares)  # {0: 0, 2: 4, 4: 16, 6: 36, 8: 64}
+
+# Transform existing dictionary
+original = {"a": 1, "b": 2, "c": 3}
+doubled = {k: v*2 for k, v in original.items()}
+print(doubled)  # {'a': 2, 'b': 4, 'c': 6}
+```
+
+## Useful Patterns
+
+### Default Values
+
+```python
+from collections import defaultdict
+
+# Create dictionary with default values
+counts = defaultdict(int)
+words = ["apple", "banana", "apple", "cherry", "banana", "apple"]
+
+for word in words:
+    counts[word] += 1
+
+print(counts)  # defaultdict(<class 'int'>, {'apple': 3, 'banana': 2, 'cherry': 1})
+```
+
+### Counting with get()
+
+```python
+words = ["apple", "banana", "apple", "cherry", "banana", "apple"]
+counts = {}
+
+for word in words:
+    counts[word] = counts.get(word, 0) + 1
+
+print(counts)  # {'apple': 3, 'banana': 2, 'cherry': 1}
+```
+
+### Using setdefault()
+
+```python
+# setdefault returns the value if key exists, otherwise sets and returns default
+person = {"name": "Alice", "age": 25}
+
+# If key exists, return its value
+name = person.setdefault("name", "Unknown")  # Returns "Alice"
+
+# If key doesn't exist, set to default and return it
+country = person.setdefault("country", "USA")
+print(person)  # {'name': 'Alice', 'age': 25, 'country': 'USA'}
+```
+
+## Practice Examples
+
+### Example 1: Phonebook
+
+```python
+phonebook = {
+    "Alice": "555-1234",
+    "Bob": "555-5678",
+    "Charlie": "555-9012"
+}
+
+# Add contact
+phonebook["David"] = "555-3456"
+
+# Lookup phone number
+name = "Alice"
+if name in phonebook:
+    print(f"{name}: {phonebook[name]}")
+else:
+    print(f"{name} not found")
+
+# Delete contact
+del phonebook["Bob"]
+
+# Display all contacts
+for name, phone in phonebook.items():
+    print(f"{name}: {phone}")
+```
+
+### Example 2: Word Frequency Counter
+
+```python
+text = "the quick brown fox jumps over the lazy dog the fox"
+
+# Count word frequencies
+word_counts = {}
+for word in text.split():
+    word_counts[word] = word_counts.get(word, 0) + 1
+
+print(word_counts)
+# {'the': 2, 'quick': 1, 'brown': 1, 'fox': 2, 'jumps': 1,
+#  'over': 1, 'lazy': 1, 'dog': 1}
+```
+
+### Example 3: Inverting a Dictionary
+
+```python
+# Swap keys and values
+original = {"a": 1, "b": 2, "c": 3}
+inverted = {v: k for k, v in original.items()}
+
+print(inverted)  # {1: 'a', 2: 'b', 3: 'c'}
+
+# Note: if values are not unique, some keys will be lost
+# Use this approach to preserve all mappings:
+original = {"a": 1, "b": 2, "c": 1}
+inverted = defaultdict(list)
+for k, v in original.items():
+    inverted[v].append(k)
+
+print(dict(inverted))  # {1: ['a', 'c'], 2: ['b']}
+```
+
+### Example 4: Configuration Settings
+
+```python
+# Store and retrieve configuration
+config = {
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "mydb"
+    },
+    "server": {
+        "host": "0.0.0.0",
+        "port": 8000
+    }
+}
+
+# Access nested values
+db_host = config["database"]["host"]
+server_port = config["server"]["port"]
+
+print(f"Database: {db_host}:{config['database']['port']}")
+print(f"Server: {server_host}:{server_port}")
+
+# Update configuration safely
+config.setdefault("cache", {"host": "localhost", "port": 6379})
+```
+
+### Example 5: Student Grades
+
+```python
+students = {
+    "Alice": {"math": 85, "science": 92, "english": 88},
+    "Bob": {"math": 78, "science": 81, "english": 90},
+    "Charlie": {"math": 95, "science": 88, "english": 82}
+}
+
+# Calculate average for each student
+for name, grades in students.items():
+    average = sum(grades.values()) / len(grades)
+    print(f"{name}: {average:.2f}")
+
+# Find highest math grade
+math_grades = {name: grades["math"] for name, grades in students.items()}
+best_math = max(math_grades, key=math_grades.get)
+print(f"Best in math: {best_math} ({math_grades[best_math]})")
+```
+
+## When to Use Dictionaries
+
+Dictionaries are ideal when you need to:
+
+- Store data as key-value pairs (like a real dictionary or phonebook)
+- Look up values quickly using custom keys
+- Associate related information without numeric indices
+- Group related data together
+- Build lookup tables and caches
+- Count occurrences with meaningful keys
+
+Understanding dictionaries is essential for writing effective Python code, as they provide a flexible and efficient way to organize and access data.

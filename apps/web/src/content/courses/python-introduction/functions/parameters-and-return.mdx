@@ -1,0 +1,191 @@
+---
+title: "Function Parameters and Return Values"
+description: "Learn about different types of parameters and how to return values from functions."
+order: 2
+---
+
+# Function Parameters and Return Values
+
+Functions become powerful when you understand how to work with different kinds of parameters and return values.
+
+## Default Parameters
+
+You can give parameters default values. These are used when the caller doesn't provide them:
+
+```python
+def greet(name, greeting="Hello"):
+    print(f"{greeting}, {name}!")
+
+greet("Alice")
+greet("Bob", "Hi")
+greet("Carol", greeting="Howdy")
+```
+
+Output:
+
+```
+Hello, Alice!
+Hi, Bob!
+Howdy, Carol!
+```
+
+Default parameters must come after regular parameters in the definition.
+
+## Multiple Parameters
+
+Functions can accept any number of parameters:
+
+```python
+def describe_pet(animal, name, age):
+    print(f"I have a {animal} named {name}")
+    print(f"{name} is {age} years old")
+
+describe_pet("dog", "Max", 3)
+```
+
+Output:
+
+```
+I have a dog named Max
+Max is 3 years old
+```
+
+## Returning Multiple Values
+
+Python functions can return multiple values as a tuple:
+
+```python
+def get_stats(numbers):
+    return min(numbers), max(numbers), sum(numbers)
+
+stats = get_stats([10, 20, 30, 40, 50])
+print(stats)
+```
+
+Output:
+
+```
+(10, 50, 150)
+```
+
+You can also unpack the values directly:
+
+```python
+minimum, maximum, total = get_stats([10, 20, 30, 40, 50])
+print(f"Min: {minimum}, Max: {maximum}, Total: {total}")
+```
+
+## Returning Early with `return`
+
+You can use `return` to exit a function early:
+
+```python
+def find_first_even(numbers):
+    for num in numbers:
+        if num % 2 == 0:
+            return num
+    return None
+
+print(find_first_even([1, 3, 5, 6, 8]))
+print(find_first_even([1, 3, 5, 7, 9]))
+```
+
+Output:
+
+```
+6
+None
+```
+
+## None as a Return Value
+
+If you don't explicitly return a value, the function returns `None`:
+
+```python
+def print_message(message):
+    print(message)
+
+result = print_message("Hello")
+print(f"Return value: {result}")
+```
+
+Output:
+
+```
+Hello
+Return value: None
+```
+
+## Type Hints for Parameters
+
+You can add type hints to indicate expected types:
+
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+def add(a: int, b: int) -> int:
+    return a + b
+
+print(greet("Alice"))
+print(add(5, 3))
+```
+
+Type hints don't enforce types at runtime, but they help with code readability and tooling.
+
+## Practice Examples
+
+### Example 1: Calculator Function
+
+```python
+def calculate(operation, a, b):
+    """Perform basic arithmetic operations."""
+    if operation == "add":
+        return a + b
+    elif operation == "subtract":
+        return a - b
+    elif operation == "multiply":
+        return a * b
+    elif operation == "divide":
+        if b != 0:
+            return a / b
+        else:
+            return "Cannot divide by zero"
+    else:
+        return "Unknown operation"
+
+print(calculate("add", 10, 5))
+print(calculate("divide", 10, 0))
+```
+
+### Example 2: Temperature Converter
+
+```python
+def celsius_to_fahrenheit(celsius):
+    """Convert Celsius to Fahrenheit."""
+    return (celsius * 9/5) + 32
+
+def fahrenheit_to_celsius(fahrenheit):
+    """Convert Fahrenheit to Celsius."""
+    return (fahrenheit - 32) * 5/9
+
+print(celsius_to_fahrenheit(0))
+print(fahrenheit_to_celsius(32))
+print(celsius_to_fahrenheit(100))
+```
+
+Output:
+
+```
+32.0
+0.0
+212.0
+```
+
+## Summary
+
+- Default parameters provide fallback values
+- Functions can return multiple values as tuples
+- Use `return` to exit a function early
+- Functions without `return` statements return `None`
+- Type hints improve code documentation

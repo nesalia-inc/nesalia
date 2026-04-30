@@ -1,0 +1,324 @@
+---
+title: "Comments and Code Formatting"
+description: "Learn how to document your code with comments and format it for readability."
+order: 3
+---
+
+# Comments and Code Formatting
+
+Writing code is only part of programming. Making your code understandable to others (and your future self) is equally important. In this part, you'll learn how to use comments to document your code and apply formatting best practices.
+
+## Why Comments Matter
+
+Comments are lines in your code that Python ignores when running the program. They're meant for human readers to understand the code better.
+
+Good comments:
+- Explain the "why" not just the "what"
+- Help others understand your code
+- Remind you of your reasoning when you return to code later
+
+Bad comments:
+- State the obvious ("increments i" for `i += 1`)
+- Are outdated and contradict the code
+- Are used excessively
+
+## Single-Line Comments
+
+Use the hash symbol (`#`) to create a single-line comment:
+
+```python
+# This is a comment explaining the next line
+age = 25
+
+price = 99.99  # This comment is at the end of a line
+```
+
+## Multi-Line Comments
+
+For longer explanations, you have two options:
+
+### Triple-Quoted Strings
+
+You can use triple quotes (either `"""` or `'''`) to create multi-line strings. When placed at the beginning of a module or function, these are called docstrings and serve as documentation.
+
+```python
+"""
+This is a multi-line string.
+It's often used as a docstring to document modules, classes, and functions.
+Python ignores it during execution when it's not assigned to a variable.
+"""
+```
+
+### Using Hashes for Each Line
+
+Alternatively, you can use `#` at the start of each line:
+
+```python
+# This is a longer explanation that requires
+# multiple lines to fully explain what the
+# following code block does.
+#
+# Notice the empty line above with just a hash?
+# That's used to separate sections visually.
+```
+
+## Docstrings
+
+Docstrings are special multi-line strings placed immediately after function, class, or module definitions. They're accessible at runtime and used by documentation tools.
+
+### Function Docstrings
+
+```python
+def greet(name):
+    """
+    Greet a person by name.
+
+    Args:
+        name: The name of the person to greet.
+
+    Returns:
+        A greeting string.
+    """
+    return f"Hello, {name}!"
+```
+
+### Class Docstrings
+
+```python
+class BankAccount:
+    """
+    A simple bank account class.
+
+    Attributes:
+        balance: The current account balance.
+        account_holder: The name of the account holder.
+    """
+
+    def __init__(self, account_holder, initial_balance=0):
+        """
+        Initialize a new bank account.
+
+        Args:
+            account_holder: Name of the account owner.
+            initial_balance: Starting balance (default 0).
+        """
+        self.balance = initial_balance
+        self.account_holder = account_holder
+```
+
+## Code Formatting Best Practices
+
+While Python doesn't require formatting rules, following consistent style makes code more readable.
+
+### Indentation
+
+Python uses indentation to define code blocks. The standard is 4 spaces per level:
+
+```python
+def check_age(age):
+    if age >= 18:
+        print("You are an adult")
+        if age >= 65:
+            print("You are also a senior")
+    else:
+        print("You are a minor")
+```
+
+### Line Length
+
+Keep lines under 79-100 characters for better readability. When a line is too long, break it using parentheses:
+
+```python
+# Too long - hard to read on smaller screens
+result = calculate_average(homework_score, midterm_score, final_score, project_score, participation_score)
+
+# Better - broken into multiple lines
+result = calculate_average(
+    homework_score,
+    midterm_score,
+    final_score,
+    project_score,
+    participation_score
+)
+```
+
+### Spacing Around Operators
+
+Add spaces around operators for readability, but be consistent:
+
+```python
+# Good spacing
+total = price + tax - discount
+average = (a + b + c) / 3
+
+# Too cramped
+total = price+tax-discount
+
+# Too much space
+total = price  +  tax  -  discount
+```
+
+### Blank Lines
+
+Use blank lines to separate logical sections of code:
+
+```python
+def calculate_stats(numbers):
+    # Calculate sum
+    total = sum(numbers)
+
+    # Calculate mean
+    mean = total / len(numbers)
+
+    # Calculate variance
+    squared_diffs = [(x - mean) ** 2 for x in numbers]
+    variance = sum(squared_diffs) / len(numbers)
+
+    # Return results
+    return {
+        "mean": mean,
+        "variance": variance,
+        "std_dev": variance ** 0.5
+    }
+```
+
+## Naming Conventions
+
+Python follows specific naming conventions (PEP 8 style guide):
+
+### Variables and Functions
+
+Use lowercase with underscores for variable and function names:
+
+```python
+# Good
+user_name = "Alice"
+is_authenticated = True
+calculate_total_price = lambda items: sum(item.price for item in items)
+
+# Avoid
+userName = "Alice"        # Not Pythonic
+isauthenticated = True    # Hard to read
+CalculateTotalPrice = lambda items: sum(item.price for item in items)
+```
+
+### Constants
+
+Use uppercase with underscores for constants:
+
+```python
+MAX_RETRY_ATTEMPTS = 3
+DEFAULT_TIMEOUT = 30
+API_BASE_URL = "https://api.example.com"
+```
+
+### Classes
+
+Use CapWords (PascalCase) for class names:
+
+```python
+class BankAccount:
+    pass
+
+class UserProfile:
+    pass
+```
+
+## Practical Comment Examples
+
+### Explaining Complex Logic
+
+```python
+# Calculate discount based on loyalty tier
+# Tiers: bronze (0%), silver (5%), gold (10%), platinum (15%)
+# Discount cannot exceed 20% even with additional offers
+
+def calculate_discount(tier, base_discount):
+    tier_discounts = {
+        "bronze": 0.00,
+        "silver": 0.05,
+        "gold": 0.10,
+        "platinum": 0.15
+    }
+
+    tier_rate = tier_discounts.get(tier.lower(), 0.00)
+    combined = base_discount + tier_rate
+
+    return min(combined, 0.20)  # Cap at 20%
+```
+
+### Marking TODOs
+
+```python
+def process_payment(amount, card):
+    # TODO: Add support for multiple payment methods
+    # TODO: Implement refund functionality
+
+    if card.is_expired():
+        raise ValueError("Card has expired")
+
+    # Process payment...
+```
+
+### Documentation Before Complex Regular Expressions
+
+```python
+import re
+
+# Email validation pattern
+# Allows: letters, numbers, dots, hyphens before @
+# Allows: letters, numbers after @ with domain and TLD
+email_pattern = r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$'
+
+def is_valid_email(email):
+    """Check if email matches standard email format."""
+    return re.match(email_pattern, email) is not None
+```
+
+## Using Comments Wisely
+
+### Do
+
+```python
+# Check if user has admin privileges before allowing deletion
+if user.role == "admin" and user.is_active:
+    delete_resource(resource_id)
+
+# Retry logic: attempt up to 3 times with exponential backoff
+for attempt in range(3):
+    try:
+        connect_to_server()
+        break
+    except ConnectionError:
+        wait_time = 2 ** attempt
+```
+
+### Don't
+
+```python
+# Bad: stating the obvious
+i += 1  # Increment i
+
+# Bad: outdated comment that misleads
+# Maximum size is 100 items
+items = []  # Now it's unlimited due to requirements change
+
+# Bad: commenting out code without explanation
+# items = get_items()
+process_items(items)
+```
+
+## Summary
+
+In this part, you learned:
+
+- **Comments**: Use `#` for single-line comments and triple quotes for multi-line strings/docstrings
+- **Docstrings**: Document functions and classes with triple-quoted strings
+- **Indentation**: Use 4 spaces consistently to define code blocks
+- **Line length**: Keep lines under 79-100 characters
+- **Spacing**: Add spaces around operators, use blank lines to separate sections
+- **Naming**: Follow Python conventions (lowercase_underscores for variables, CapWords for classes)
+
+Good formatting and clear comments make a significant difference when maintaining code, especially in collaborative projects or when returning to your code after some time.
+
+With these basics of Python syntax covered, you now have a solid foundation to start building more complex programs!

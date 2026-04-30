@@ -1,0 +1,168 @@
+---
+title: "String Creation and Manipulation"
+description: "Learn how to create and manipulate strings in Python."
+order: 1
+---
+
+# String Creation and Manipulation
+
+Strings are one of the most fundamental data types in Python. They allow you to represent text and work with sequences of characters.
+
+## Creating Strings
+
+In Python, you can create strings using single quotes, double quotes, or triple quotes for multi-line strings.
+
+```python
+# Using double quotes
+greeting = "Hello, World!"
+
+# Using single quotes
+name = 'Alice'
+
+# Multi-line strings using triple quotes
+message = """This is a
+multi-line
+string"""
+```
+
+Both single and double quotes work the same way. Use whichever is more convenient, especially when the string contains quotes:
+
+```python
+# Double quotes when the string contains single quotes
+sentence = "It's a beautiful day"
+
+# Single quotes when the string contains double quotes
+quote = 'She said, "Hello!"'
+```
+
+## Escape Sequences
+
+Sometimes you need to include special characters in your strings. Python uses escape sequences that start with a backslash:
+
+```python
+# Newline character
+print("Line 1\nLine 2")
+
+# Tab character
+print("Column 1\tColumn 2")
+
+# Include a backslash
+path = "C:\\Users\\John"
+
+# Include quotes
+text = "He said \"Hello\""
+```
+
+Common escape sequences:
+
+- `\\` — Backslash
+- `\'` — Single quote
+- `\"` — Double quote
+- `\n` — Newline
+- `\t` — Tab
+
+## String Concatenation
+
+You can combine strings together using the `+` operator:
+
+```python
+first_name = "John"
+last_name = "Doe"
+full_name = first_name + " " + last_name
+
+print(full_name)  # Output: John Doe
+```
+
+You can also repeat strings with the `*` operator:
+
+```python
+separator = "-" * 10
+print(separator)  # Output: ----------
+```
+
+## String Indexing
+
+Each character in a string has an index, starting from zero. You can access individual characters using square brackets:
+
+```python
+text = "Python"
+
+print(text[0])  # Output: P
+print(text[1])  # Output: y
+print(text[2])  # Output: t
+```
+
+Python also supports negative indexing, which counts from the end of the string:
+
+```python
+text = "Python"
+
+print(text[-1])  # Output: n
+print(text[-2])  # Output: o
+print(text[-3])  # Output: h
+```
+
+## String Slicing
+
+You can extract a portion of a string using slicing. The syntax is `string[start:end]`, where the end index is not included:
+
+```python
+text = "Python Programming"
+
+# Characters from index 0 to 5 (not including 5)
+print(text[0:5])   # Output: Pytho
+
+# From index 7 to end
+print(text[7:])    # Output: Programming
+
+# From beginning to index 6
+print(text[:6])    # Output: Python
+
+# Negative indices also work
+print(text[-11:-1])  # Output: Programmin
+```
+
+You can also specify a step value with `string[start:end:step]`:
+
+```python
+text = "Python"
+
+# Every second character
+print(text[::2])   # Output: Pto
+
+# Reverse the string
+print(text[::-1])  # Output: nohtyP
+```
+
+## String Immutability
+
+Strings in Python are immutable, meaning you cannot change a string in place after creating it. However, you can create a new string based on the old one:
+
+```python
+text = "Hello"
+# text[0] = "J"  # This would raise an error!
+
+# Instead, create a new string
+new_text = "J" + text[1:]
+print(new_text)  # Output: Jello
+```
+
+## Built-in String Functions
+
+Python has several built-in functions for working with strings:
+
+```python
+text = "hello world"
+
+# Get the length of a string
+print(len(text))  # Output: 11
+
+# Convert to uppercase
+print(text.upper())  # Output: HELLO WORLD
+
+# Convert to lowercase
+print(text.lower())  # Output: hello world
+
+# Count occurrences of a character
+print(text.count("o"))  # Output: 2
+```

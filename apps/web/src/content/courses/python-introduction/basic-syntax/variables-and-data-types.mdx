@@ -1,0 +1,209 @@
+---
+title: "Variables and Data Types"
+description: "Learn how to store and work with data using variables and understand Python's built-in data types."
+order: 1
+---
+
+# Variables and Data Types
+
+In this part, you'll learn how to store information in your programs using variables, and you'll explore Python's fundamental data types.
+
+## What Are Variables?
+
+Variables are like labeled containers that hold data. Think of them as labeled boxes where you can store values to use later in your program.
+
+In Python, you create a variable by assigning a value to it using the equals sign (`=`). Unlike some other programming languages, Python doesn't require you to declare the type of a variable upfront.
+
+```python
+# Creating variables
+name = "Alice"
+age = 25
+height = 1.75
+is_student = True
+```
+
+In this example:
+- `name` stores a text value (called a string)
+- `age` stores a whole number (called an integer)
+- `height` stores a decimal number (called a float)
+- `is_student` stores a true/false value (called a boolean)
+
+## Naming Variables
+
+Python has rules for naming variables:
+
+- Variable names must start with a letter or underscore
+- The rest of the name can contain letters, numbers, and underscores
+- Names are case-sensitive (`age` and `Age` are different)
+
+```python
+# Valid variable names
+first_name = "John"
+lastName = "Doe"
+age2 = 30
+_is_private = True
+
+# Invalid variable names
+# 2age = 20        # Can't start with a number
+# first-name = "John"  # Can't use hyphens
+```
+
+## Python's Built-in Data Types
+
+Python comes with several built-in data types that you'll use frequently.
+
+### Strings (str)
+
+Strings are used to represent text. You can create them using single quotes or double quotes.
+
+```python
+# String examples
+greeting = "Hello"
+name = 'Alice'
+
+# Multi-line strings
+message = """
+This is a
+multi-line
+string
+"""
+
+# String operations
+first = "Hello"
+second = "World"
+combined = first + " " + second  # "Hello World"
+
+# String repetition
+echo = "Ha" * 3  # "HaHaHa"
+```
+
+### Integers (int)
+
+Integers are whole numbers without a decimal point.
+
+```python
+# Integer examples
+count = 42
+negative = -10
+big_number = 1_000_000  # Underscores make large numbers readable
+
+# Operations
+a = 10
+b = 3
+sum_val = a + b      # 13
+difference = a - b   # 7
+product = a * b      # 30
+```
+
+### Floating-Point Numbers (float)
+
+Floats are numbers with a decimal point.
+
+```python
+# Float examples
+price = 19.99
+temperature = -3.5
+scientific = 2.5e-3  # Scientific notation: 0.0025
+
+# Precision note
+result = 0.1 + 0.2   # 0.30000000000000004 (floating-point precision)
+```
+
+### Booleans (bool)
+
+Booleans represent truth values: `True` or `False`.
+
+```python
+# Boolean examples
+is_active = True
+is_empty = False
+
+# Boolean from comparisons
+is_older = age > 18  # True if age is greater than 18
+```
+
+## Checking Types with type()
+
+You can find out what type a variable is using the `type()` function.
+
+```python
+name = "Alice"
+age = 25
+height = 1.75
+is_student = True
+
+print(type(name))       # <class 'str'>
+print(type(age))        # <class 'int'>
+print(type(height))     # <class 'float'>
+print(type(is_student)) # <class 'bool'>
+```
+
+## Type Conversion
+
+You can convert between different types using built-in functions.
+
+```python
+# String to integer
+num_str = "42"
+num = int(num_str)      # 42
+
+# Integer to string
+age = 25
+age_str = str(age)      # "25"
+
+# String to float
+price = float("19.99")  # 19.99
+
+# Float to integer (truncates decimal)
+pi = 3.14159
+pi_int = int(pi)        # 3
+```
+
+## None Type
+
+Python has a special type called `None` which represents the absence of a value.
+
+```python
+result = None
+print(result)  # None
+
+# Checking for None
+if result is None:
+    print("No result yet")
+```
+
+## Working with Variables
+
+### Multiple Assignment
+
+Python allows you to assign multiple variables in one line.
+
+```python
+# Multiple assignment
+x, y, z = 1, 2, 3
+
+# Same value to multiple variables
+a = b = c = 10
+```
+
+### Swapping Variables
+
+Python makes it easy to swap values between variables.
+
+```python
+# Swapping values
+a, b = 5, 10
+a, b = b, a  # Now a = 10 and b = 5
+```
+
+## Summary
+
+In this part, you learned:
+
+- Variables store data values and are created by assignment
+- Python has several built-in data types: strings, integers, floats, and booleans
+- Use `type()` to check a variable's type
+- Convert between types using `int()`, `str()`, `float()`, and `bool()`
+- The special `None` value represents absence of data
+
+These fundamental concepts will serve as the foundation for writing Python programs. In the next part, you'll learn how to perform operations on these values using operators.
