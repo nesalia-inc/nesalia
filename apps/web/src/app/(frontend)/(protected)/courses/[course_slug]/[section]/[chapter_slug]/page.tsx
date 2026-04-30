@@ -7,8 +7,8 @@ import matter from "gray-matter";
 import fs from "fs";
 import path from "path";
 
-// ISR: Revalidate course pages every 60 seconds
-export const revalidate = 60
+// ISR: Revalidate course pages every hour
+export const revalidate = 3600
 
 interface Chapter {
   slug: string;
@@ -21,34 +21,43 @@ interface Section {
   chapters: Chapter[];
 }
 
-function getCourseSections(courseSlug: string): Section[] {
-  const sections: Record<string, Section[]> = {
-    'python-introduction': [
-      {
-        title: 'Introduction',
-        chapters: [
-          { slug: '01-introduction', title: 'Introduction to Python', order: 1 },
-          { slug: '02-basic-syntax', title: 'Basic Syntax', order: 2 },
-        ],
-      },
-      {
-        title: 'Control Flow',
-        chapters: [
-          { slug: 'if-statements', title: 'If Statements', order: 1 },
-        ],
-      },
-    ],
-    'advanced-python': [
-      {
-        title: 'Advanced Functions',
-        chapters: [
-          { slug: '01-advanced-functions', title: 'Advanced Functions', order: 1 },
-        ],
-      },
-    ],
-  };
-  return sections[courseSlug] || [];
+interface PathParams {
+  course_slug: string;
+  section: string;
+  chapter_slug: string;
 }
+
+function getAllPaths(): PathParams[] {
+  const courses = ['python-introduction', 'advanced-python'];
+  const paths: PathParams[] = [];
+
+  for (const courseSlug of courses) {
+    const courseDir = path.join(process.cwd(), "src", "content", "courses", courseSlug);
+    if (!fs.existsSync(courseDir)) continue;
+
+    const sections = fs.readdirSync(courseDir, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name);
+
+    for (const section of sections) {
+      const sectionDir = path.join(courseDir, section);
+      const files = fs.readdirSync(sectionDir).filter(f => f.endsWith('.mdx'));
+
+      for (const file of files) {
+        const chapterSlug = file.replace('.mdx', '');
+        paths.push({ course_slug: courseSlug, section, chapter_slug: chapterSlug });
+      }
+    }
+  }
+
+  return paths;
+}
+
+export async function generateStaticParams(): Promise<PathParams[]> {
+  return getAllPaths();
+}
+
+function getCourseSections(courseSlug: string): Section[] {
 
 async function getChapterContent(courseSlug: string, section: string, chapterSlug: string) {
   const filePath = path.join(

@@ -16,8 +16,23 @@ import {
 } from "@/components/ui/card";
 import { BookOpen } from "lucide-react";
 
-// ISR: Revalidate course overview pages every 60 seconds
-export const revalidate = 60
+// ISR: Revalidate course overview pages every hour
+export const revalidate = 3600
+
+interface PathParams {
+  course_slug: string;
+}
+
+export async function generateStaticParams(): Promise<PathParams[]> {
+  const coursesDir = path.join(process.cwd(), "src", "content", "courses");
+  if (!fs.existsSync(coursesDir)) return [];
+
+  const courses = fs.readdirSync(coursesDir, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => entry.name);
+
+  return courses.map(course_slug => ({ course_slug }));
+}
 
 interface PageProps {
   params: Promise<{
@@ -26,7 +41,7 @@ interface PageProps {
 }
 
 function getCourseData(courseSlug: string) {
-  const filePath = path.join(process.cwd(), "content", "courses", courseSlug, "index.mdx");
+  const filePath = path.join(process.cwd(), "src", "content", "courses", courseSlug, "index.mdx");
 
   if (!fs.existsSync(filePath)) {
     return null;
