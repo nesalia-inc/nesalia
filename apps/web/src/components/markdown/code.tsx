@@ -63,7 +63,7 @@ export function Code({
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
               className={cn(
-                "overflow-x-auto rounded-lg border bg-muted/30 p-4 pt-6 text-sm font-mono",
+                "overflow-x-auto rounded-lg border bg-muted/30 p-4 mt-6 text-sm font-mono",
                 className
               )}
               style={style}
@@ -89,7 +89,7 @@ export function Code({
           {({ style, tokens, getLineProps, getTokenProps }) => (
             <pre
               className={cn(
-                "overflow-x-auto rounded-lg border bg-muted/30 p-4 pt-6 text-sm font-mono",
+                "overflow-x-auto rounded-lg border bg-muted/30 p-4 mt-6 text-sm font-mono",
                 className
               )}
               style={style}
