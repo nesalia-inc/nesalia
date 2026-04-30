@@ -12,21 +12,29 @@ We store information in programs using variables, and we explore Python's fundam
 
 Variables are like labeled containers that hold data. We think of them as labeled boxes where we store values to use later in a program.
 
-In Python, we create a variable by assigning a value to it using the equals sign (`=`). Python does not require us to declare the type of a variable upfront.
+A variable has two parts: a name and a value. The name identifies the variable, and the value stores the actual data. When we write `name = "Alice"`, we create a variable named `name` that holds the value `"Alice"`.
+
+### Understanding Data Types
+
+Every value in Python has a specific type that determines what kind of data it represents. A data type defines the possible values and the operations we can perform on that data.
+
+We create variables by assigning a value to a name using the equals sign (`=`). Python automatically determines the data type based on the value we assign.
 
 ```python
 # Creating variables
-name = "Alice"
-age = 25
-height = 1.75
-is_student = True
+name = "Alice"          # text (str)
+age = 25                # number (int)
+height = 1.75            # decimal (float)
+is_student = True       # true/false (bool)
 ```
 
 In this example:
-- `name` stores a text value (called a string)
-- `age` stores a whole number (called an integer)
-- `height` stores a decimal number (called a float)
-- `is_student` stores a true/false value (called a boolean)
+- `name` holds a text value. Python stores this as a **string** (str)
+- `age` holds a whole number. Python stores this as an **integer** (int)
+- `height` holds a decimal number. Python stores this as a **float** (float)
+- `is_student` holds a true/false value. Python stores this as a **boolean** (bool)
+
+Python does not require us to declare the type of a variable upfront. The type is inferred from the value we assign.
 
 ## Naming Variables
 
@@ -35,6 +43,8 @@ Python has rules for naming variables:
 - Variable names must start with a letter or underscore
 - The rest of the name can contain letters, numbers, and underscores
 - Names are case-sensitive (`age` and `Age` are different)
+
+We use underscores to separate words in variable names for readability.
 
 ```python
 # Valid variable names
@@ -47,6 +57,8 @@ _is_private = True
 # 2age = 20        # Cannot start with a number
 # first-name = "John"  # Cannot use hyphens
 ```
+
+The first example shows valid variable names. The second block shows common mistakes we avoid.
 
 ## Python's Built-in Data Types
 
@@ -77,6 +89,12 @@ combined = first + " " + second  # "Hello World"
 echo = "Ha" * 3  # "HaHaHa"
 ```
 
+Strings support concatenation with the `+` operator. We combine strings by placing the `+` between them.
+
+The asterisk (`*`) performs repetition when used with a string and an integer. It repeats the string the number of times specified by the integer.
+
+We explore operators more thoroughly in the [Operators](/courses/python-introduction/basic-syntax/operators) section.
+
 ### Integers (int)
 
 Integers are whole numbers without a decimal point.
@@ -95,6 +113,8 @@ difference = a - b   # 7
 product = a * b      # 30
 ```
 
+We perform arithmetic operations directly on integers. The division operator (`/`) returns a float even when dividing evenly.
+
 ### Floating-Point Numbers (float)
 
 Floats are numbers with a decimal point.
@@ -109,6 +129,8 @@ scientific = 2.5e-3  # Scientific notation: 0.0025
 result = 0.1 + 0.2   # 0.30000000000000004 (floating-point precision)
 ```
 
+Floats can represent very large or very small numbers using scientific notation with the `e` notation.
+
 ### Booleans (bool)
 
 Booleans represent truth values: `True` or `False`.
@@ -121,6 +143,8 @@ is_empty = False
 # Boolean from comparisons
 is_older = age > 18  # True if age is greater than 18
 ```
+
+We often create booleans through comparison operations. Comparisons evaluate to `True` or `False`.
 
 ## Checking Types with type()
 
@@ -137,6 +161,8 @@ print(type(age))        # <class 'int'>
 print(type(height))     # <class 'float'>
 print(type(is_student)) # <class 'bool'>
 ```
+
+The `type()` function returns the data type of a value. This helps us verify what type Python has inferred.
 
 ## Type Conversion
 
@@ -159,6 +185,8 @@ pi = 3.14159
 pi_int = int(pi)        # 3
 ```
 
+When converting floats to integers, Python truncates the decimal portion rather than rounding.
+
 ## None Type
 
 Python has a special type called `None` which represents the absence of a value.
@@ -171,6 +199,8 @@ print(result)  # None
 if result is None:
     print("No result yet")
 ```
+
+We use `is None` to check if a value is `None` rather than using the equality operator.
 
 ## Working with Variables
 
@@ -186,6 +216,8 @@ x, y, z = 1, 2, 3
 a = b = c = 10
 ```
 
+Multiple assignment lets us assign different values to different variables in a single line.
+
 ### Swapping Variables
 
 Python makes it easy to swap values between variables.
@@ -195,6 +227,8 @@ Python makes it easy to swap values between variables.
 a, b = 5, 10
 a, b = b, a  # Now a = 10 and b = 5
 ```
+
+Python supports tuple unpacking which makes swapping variables intuitive without needing a temporary variable.
 
 ## Summary
 
