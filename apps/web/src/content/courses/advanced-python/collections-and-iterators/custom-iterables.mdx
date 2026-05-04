@@ -1,0 +1,331 @@
+---
+title: "Implementing Custom Iterables"
+description: "Learn how to create classes that implement the iterable and iterator protocols, with real-world examples."
+order: 2
+---
+
+# Implementing Custom Iterables
+
+Building custom iterables is a fundamental skill for creating Pythonic APIs and data structures. When you implement the iterable and iterator protocols, your objects become first-class citizens in Python's iteration ecosystem, usable in `for` loops, comprehensions, and any function expecting an iterable.
+
+## The Iterator and Iterable Protocols
+
+The **iterable protocol** requires an object to implement `__iter__()`, which returns an iterator. The **iterator protocol** requires an object to implement both `__iter__()` (returning itself) and `__next__()` (returning the next item or raising `StopIteration`). Understanding this two-layer distinction is essential: iterables produce iterators, while iterators are the objects that actually traverse data.
+
+When you write `for x in my_obj`, Python first calls `iter(my_obj)` to get an iterator, then repeatedly calls `next()` on that iterator until it raises `StopIteration`.
+
+```python
+from collections.abc import Iterator
+
+# The difference between an iterable and an iterator
+my_list = [1, 2, 3]
+
+# A list is an iterable (has __iter__)
+list_iter = iter(my_list)  # Returns an iterator
+
+# An iterator has both __iter__ and __next__
+print(next(list_iter))  # 1
+print(next(list_iter))  # 2
+print(next(list_iter))  # 3
+print(next(list_iter))  # StopIteration
+```
+
+Output:
+
+```
+1
+2
+3
+Traceback (most recent call last):
+  File "example.py", line 14, in <module>
+    next(list_iter)
+StopIteration
+```
+
+The key point is that `iter(my_list)` creates a new iterator each time. After exhausting an iterator, you cannot reuse it; you must call `iter()` again to get a fresh one.
+
+## Building a Simple Range Iterator
+
+The classic example of implementing an iterator from scratch is a custom `Range` class. It shows how the iterator protocol maintains state between calls to `next()`.
+
+```python
+class Range:
+    def __init__(self, start, stop):
+        self.start = start
+        self.stop = stop
+
+    def __iter__(self):
+        return RangeIterator(self.start, self.stop)
+
+class RangeIterator:
+    def __init__(self, start, stop):
+        self.current = start
+        self.stop = stop
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current >= self.stop:
+            raise StopIteration
+        value = self.current
+        self.current += 1
+        return value
+
+# Usage
+for num in Range(0, 5):
+    print(num)
+```
+
+Output:
+
+```
+0
+1
+2
+3
+4
+```
+
+The `Range` class is the iterable, implementing `__iter__()` to return a fresh `RangeIterator` each time. The `RangeIterator` maintains the current state (`current`) and advances on each `next()` call. When `current` reaches `stop`, it raises `StopIteration` to signal the end of the sequence.
+
+## A Line-Reading File Wrapper
+
+A practical use of custom iterables is wrapping a file to read lines lazily. This pattern is common in scenarios where you want to process a file line by line without loading it entirely into memory.
+
+```python
+class LineReader:
+    def __init__(self, filename):
+        self.filename = filename
+        self._file = None
+
+    def __iter__(self):
+        self._file = open(self.filename, 'r')
+        return self
+
+    def __next__(self):
+        if self._file is None:
+            raise RuntimeError("Iterator not started")
+        line = self._file.readline()
+        if not line:
+            self._file.close()
+            self._file = None
+            raise StopIteration
+        return line.rstrip('\n')
+
+    def __del__(self):
+        if self._file and not self._file.closed:
+            self._file.close()
+
+# Usage
+for line in LineReader("example.txt"):
+    print(f"Line: {line}")
+```
+
+This iterator opens the file when iteration begins and closes it automatically when the file is exhausted or when iteration stops early. This lazy reading approach handles files of any size with constant memory usage, similar to how generator functions work.
+
+## A Cycling Iterator
+
+A cycling iterator loops through its elements indefinitely, starting over when it reaches the end. This is useful for round-robin scheduling, periodic tasks, or generating repeating patterns.
+
+```python
+class CycleIterator:
+    def __init__(self, data):
+        self.data = data
+        self.index = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if not self.data:
+            raise StopIteration
+        value = self.data[self.index]
+        self.index = (self.index + 1) % len(self.data)
+        return value
+
+class Cycle:
+    def __init__(self, data):
+        self.data = data
+
+    def __iter__(self):
+        return CycleIterator(self.data)
+
+# Usage
+colors = Cycle(["red", "green", "blue"])
+for i, color in enumerate(colors):
+    print(color)
+    if i >= 7:
+        break
+```
+
+Output:
+
+```
+red
+green
+blue
+red
+green
+blue
+red
+green
+```
+
+The modulo operator (`% len(self.data)`) wraps the index back to zero when it exceeds the collection length, creating an infinite loop. Note that we must break explicitly because there is no natural end; the iterator never raises `StopIteration`.
+
+## A Filtering Iterator
+
+A filtering iterator passes through only elements that satisfy a predicate function. This demonstrates how iterators can encapsulate transformation logic.
+
+```python
+def is_even(n):
+    return n % 2 == 0
+
+class FilterIterator:
+    def __init__(self, iterable, predicate):
+        self.iterable = iter(iterable)
+        self.predicate = predicate
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        while True:
+            item = next(self.iterable)
+            if self.predicate(item):
+                return item
+
+class Filter:
+    def __init__(self, iterable, predicate):
+        self.iterable = iterable
+        self.predicate = predicate
+
+    def __iter__(self):
+        return FilterIterator(self.iterable, self.predicate)
+
+# Usage
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+evens = Filter(numbers, is_even)
+
+for num in evens:
+    print(num)
+```
+
+Output:
+
+```
+2
+4
+6
+8
+10
+```
+
+The `FilterIterator` uses an inner `while True` loop that keeps fetching items from the underlying iterator until it finds one that satisfies the predicate. This lazy evaluation means we only process as many items as needed.
+
+## A Chunking Iterator
+
+A chunking iterator groups elements into fixed-size batches. This is useful for batch processing, where you need to send records to an API or database in groups.
+
+```python
+class ChunkIterator:
+    def __init__(self, iterable, size):
+        self.iterable = iter(iterable)
+        self.size = size
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        chunk = []
+        for _ in range(self.size):
+            try:
+                chunk.append(next(self.iterable))
+            except StopIteration:
+                if chunk:
+                    return chunk
+                raise
+        return chunk
+
+class Chunk:
+    def __init__(self, iterable, size):
+        self.iterable = iterable
+        self.size = size
+
+    def __iter__(self):
+        return ChunkIterator(self.iterable, self.size)
+
+# Usage
+items = range(1, 11)
+for chunk in Chunk(items, 3):
+    print(list(chunk))
+```
+
+Output:
+
+```
+[1, 2, 3]
+[4, 5, 6]
+[7, 8, 9]
+[10]
+```
+
+The chunking iterator collects up to `size` elements and returns them as a list. The last chunk may be smaller than `size` if the input is not evenly divisible. The `StopIteration` handling ensures we return the final partial chunk before raising to end iteration.
+
+## Making Classes Support `in` and Other Operations
+
+When you inherit from `collections.abc` ABCs, Python automatically provides several derived methods. For example, implementing `__getitem__()` and `__len__()` on a `Sequence` subclass gives you `__contains__()` and `__iter__()` for free.
+
+```python
+from collections.abc import Sequence
+
+class OrderedSet(Sequence):
+    def __init__(self, items=None):
+        self._items = list(items) if items else []
+        self._set = set(self._items)
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __len__(self):
+        return len(self._items)
+
+    def __contains__(self, item):
+        return item in self._set
+
+    def append(self, item):
+        if item not in self._set:
+            self._items.append(item)
+            self._set.add(item)
+
+# Usage
+os = OrderedSet([1, 2, 3, 2, 1])
+print(os[0])        # 1 (index access)
+print(len(os))      # 3 (duplicate removed)
+print(2 in os)      # True (membership test)
+print(5 in os)      # False
+print(os[1:3])      # [2, 3] (slicing)
+```
+
+Output:
+
+```
+1
+3
+True
+False
+[2, 3]
+```
+
+By inheriting from `Sequence`, we get slicing and indexing behavior from just implementing `__getitem__()` and `__len__()`. We override `__contains__()` to use the set for O(1) lookups instead of O(n) list search.
+
+## Summary
+
+- The iterable protocol requires `__iter__()` returning an iterator
+- The iterator protocol requires `__iter__()` returning `self` and `__next__()` raising `StopIteration`
+- Separate the iterable (factory) from the iterator (stateful consumer) for clean design
+- `collections.abc` ABCs provide automatic derived methods when you implement core protocols
+- Custom iterables can wrap files, filter data, chunk sequences, or implement any collection type
+
+For understanding the abstract interfaces underlying these protocols, see the [ABCs for Interfaces](./abcs-interfaces.mdx) section.

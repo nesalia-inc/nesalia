@@ -1,0 +1,187 @@
+---
+title: "Union, Optional, and Literal Types"
+description: "Understand Union types for values that can be one of multiple types, Optional for nullable values, and Literal types for exact values and constant constraints."
+order: 2
+---
+
+# Union, Optional, and Literal Types
+
+Python's type system lets you express that a value might be one of several types. `Union` captures the idea of "either this type or that type". `Optional` is a shorthand for nullable values. `Literal` narrows types to specific constant values. Together they give you precise control over what values are acceptable.
+
+## Union Types
+
+A `Union` type means a value can be one of several types. The type checker verifies that every branch handles all possible types.
+
+```python
+from typing import Union
+
+def describe(value: Union[int, float, str]) -> str:
+    if isinstance(value, int):
+        return f"integer: {value}"
+    elif isinstance(value, float):
+        return f"float: {value}"
+    else:
+        return f"string: '{value}'"
+
+print(describe(42))       # integer: 42
+print(describe(3.14))     # float: 3.14
+print(describe("hello"))  # string: 'hello'
+```
+
+The parameter accepts three different types, and each `isinstance` check narrows the type within that branch. Calling `describe([1, 2, 3])` would produce a type error because `list` is not in `Union[int, float, str]`.
+
+## Optional Type
+
+`Optional[X]` is shorthand for `Union[X, None]`. It expresses that a value is either of type `X` or absent. This is the standard way to represent nullable values in Python.
+
+```python
+from typing import Optional
+
+def find_user(user_id: int) -> Optional[str]:
+    users = {1: "Alice", 2: "Bob", 3: "Carol"}
+    return users.get(user_id)  # Returns str or None
+
+name = find_user(1)
+if name is not None:
+    print(f"Found: {name}")  # name is str here, not Optional[str]
+else:
+    print("Not found")
+```
+
+The `dict.get` method already returns `V | None`, which aligns perfectly with `Optional[str]`. When you see `Optional[str]` in a type signature, read it as "either a string or None".
+
+Without `Optional`, you would write `Union[str, None]`, which is equivalent but more verbose.
+
+## Literal Types
+
+A `Literal` type restricts a value to one of a specific set of literal values. This is useful for constants, enum-like choices, and restricting strings to known values.
+
+```python
+from typing import Literal
+
+def http_status(code: Literal[200, 201, 204, 400, 404, 500]) -> str:
+    messages = {
+        200: "OK",
+        201: "Created",
+        204: "No Content",
+        400: "Bad Request",
+        404: "Not Found",
+        500: "Internal Server Error",
+    }
+    return messages[code]
+
+print(http_status(200))  # OK
+print(http_status(404))  # Not Found
+```
+
+Passing `http_status(418)` would be a type error because `418` is not in the literal list.
+
+Literal types also work with strings:
+
+```python
+from typing import Literal
+
+def process_mode(mode: Literal["read", "write", "append"]) -> None:
+    print(f"Opening file in {mode} mode")
+
+process_mode("read")   # OK
+process_mode("write")  # OK
+process_mode("r")      # Error: "r" is not in Literal["read", "write", "append"]
+```
+
+This is especially powerful when combined with function overloading, which is covered in the [@overload](/courses/advanced-python/overload) chapter.
+
+## Combining Union, Optional, and Literal
+
+These tools compose naturally. You can express complex type constraints clearly:
+
+```python
+from typing import Union, Optional, Literal
+
+def validate_input(
+    value: str,
+    kind: Literal["number", "text"],
+    default: Optional[Union[int, str]] = None,
+) -> Union[int, str]:
+    if kind == "number":
+        result = int(value) if value else default if default is not None else 0
+    else:
+        result = value.strip() if value else default if default is not None else ""
+    return result
+
+print(validate_input("  42  ", "number"))         # 42
+print(validate_input("  hello  ", "text"))        # hello
+print(validate_input("", "number", -1))           # -1
+print(validate_input("", "text", "N/A"))          # N/A
+```
+
+The `kind` parameter is constrained to exactly two string literals. The `default` parameter can be either an integer or a string, or None. The return type covers all the possible return values.
+
+## None as a Literal
+
+In Python 3.10+, `None` can be used directly as a literal type, not just as part of `Optional`:
+
+```python
+# Python 3.10+ syntax
+def maybe_int() -> int | None:  # Equivalent to Optional[int]
+    return None if False else 42
+
+# This also works for literals
+from typing import Literal
+
+def traffic_light(action: Literal["go", "stop", None]) -> None:
+    if action == "go":
+        print("Green light")
+    elif action == "stop":
+        print("Red light")
+    else:
+        print("Light is off")
+```
+
+The `int | None` syntax is called a **union shorthand** and is preferred in modern Python (3.10+). The `Union[...]` form from `typing` remains valid for earlier versions.
+
+## Exhaustiveness Checking
+
+Type checkers can verify that you handle all cases of a union or literal type. While Python does not enforce exhaustive matching at runtime, well-configured type checkers like pyright can warn you when you forget a case:
+
+```python
+from typing import Union, Literal
+
+def handle_status(code: Literal[200, 301, 404, 500]) -> str:
+    match code:
+        case 200:
+            return "Success"
+        case 301:
+            return "Redirect"
+        # Forgot 404 and 500 — type checker can warn
+        # case 404:
+        #     return "Not found"
+        # case 500:
+        #     return "Server error"
+
+# A type checker will flag the incomplete match cases
+```
+
+The pattern matching syntax also supports exhaustiveness checking in Python 3.10+.
+
+`Union`, `Optional`, and `Literal` are building blocks used throughout the rest of the course. They appear in function signatures, class attributes, and typed dictionaries. The [Type Aliases and NewType](/courses/advanced-python/type-aliases-newtype) chapter shows how to name complex type expressions for reuse.
+
+## Hands-On Exercise
+
+Create a function `parse_portfolio` that takes a value that could be:
+
+- An integer (treated as a quantity of a single asset with quantity 1)
+- A dictionary with string keys and integer values (mapping asset names to quantities)
+- None (represents an empty portfolio)
+
+The function should return a `dict[str, int]`. Write the type signature using `Union` and `Optional`.
+
+```python
+from typing import Union, Optional, Dict
+
+def parse_portfolio(
+    data: Union[int, Dict[str, int], None]
+) -> Dict[str, int]:
+    # Your implementation here
+    pass
+```

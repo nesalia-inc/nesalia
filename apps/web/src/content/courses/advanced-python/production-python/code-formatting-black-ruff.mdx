@@ -1,0 +1,296 @@
+---
+title: "Code Formatting with Black and Ruff"
+description: "Learn how to use Black for consistent code formatting and Ruff for fast linting, integrating both tools into development workflows and CI pipelines."
+order: 5
+---
+
+# Code Formatting with Black and Ruff
+
+Consistent code formatting matters in teams because style debates waste time and review focus. Two tools address this: a **formatter** automatically reformats code to follow a style guide, and a **linter** analyzes code for errors, style issues, and suspicious patterns. Black is Python's most popular formatter, while Ruff is a modern linter that is dramatically faster than older tools.
+
+## Why Formatting Consistency Matters
+
+Different team members writing code slightly differently creates visual noise that makes code harder to read. A formatter enforces consistent style automatically, eliminating debates and freeing mental energy for actual problem-solving:
+
+```python
+# Before formatting - inconsistent style
+x=1
+y=2
+def foo(a,b,c):
+    return a+b*c
+
+# After Black formatting - consistent style
+x = 1
+y = 2
+
+def foo(a, b, c):
+    return a + b * c
+```
+
+Code reviews become faster when reviewers know the formatter handled style, so reviews focus on logic and design.
+
+## Using Black
+
+Black (named after the composer) enforces a deterministic formatting style. Install it:
+
+```bash
+pip install black
+```
+
+Format a single file:
+
+```bash
+black my_module.py
+```
+
+Format an entire directory:
+
+```bash
+black src/
+```
+
+Black output shows which files changed. Re-run to confirm all files are properly formatted.
+
+### Black Configuration
+
+Black reads configuration from `pyproject.toml` or `black.ini`. Add a `[tool.black]` section:
+
+```toml
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | __pycache__
+  | build
+  | dist
+)/
+'''
+```
+
+The `line-length` setting controls how long lines can be before Black wraps them. The `target-version` specifies the minimum Python version, ensuring Black uses only syntax available in that version.
+
+### Black Format Examples
+
+Black applies consistent rules across all code:
+
+```python
+# Long lines get wrapped
+result = some_function(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+
+# Dictionary and list layouts get organized
+config = {
+    "database_url": "postgresql://localhost/db",
+    "debug": True,
+    "max_connections": 100,
+}
+
+# String quotes stay consistent
+message = "Use double quotes for consistency"
+```
+
+Black also handles import sorting, but the next tool, Ruff, handles this with additional rules.
+
+## Using Ruff for Linting
+
+Ruff is a fast Python linter written in Rust that checks code for errors and style issues. It replaces tools like `flake8`, `isort`, and `pylint` with a single fast tool:
+
+```bash
+pip install ruff
+```
+
+Run Ruff on a directory:
+
+```bash
+ruff check src/
+```
+
+Run with auto-fix:
+
+```bash
+ruff check src/ --fix
+```
+
+Ruff identifies issues and can automatically fix many of them.
+
+### Ruff Configuration
+
+Configure Ruff in `pyproject.toml`:
+
+```toml
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+```
+
+The `select` list enables specific rule groups. `E501` is ignored because Black handles line length.
+
+### Common Ruff Fixes
+
+Ruff catches many common issues:
+
+```python
+# Unused imports
+import os  # Ruff: F401 - imported but unused
+
+# Undefined variables
+undefined_var  # Ruff: F821 - undefined name
+
+# Variable shadowing builtins
+list = [1, 2, 3]  # Ruff: A001 - variable shadows built-in
+```
+
+Run `ruff check src/ --fix` to automatically correct issues like unused imports and sorting.
+
+## Integrating Black and Ruff Together
+
+Use both tools for complete code quality: Black handles formatting, Ruff handles everything else:
+
+```bash
+# Format code with Black
+black src/
+
+# Check for issues with Ruff
+ruff check src/
+```
+
+A typical workflow runs Black first to format, then Ruff to check additional rules.
+
+## Editor Integration
+
+Both tools integrate with popular editors for automatic formatting on save.
+
+### VS Code
+
+Add to `.vscode/settings.json`:
+
+```json
+{
+  "python.formatting.provider": "black",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "ms-python.python",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  }
+}
+```
+
+For Ruff, install the VS Code Ruff extension and add:
+
+```json
+{
+  "ruff.lint.args": ["--config=pyproject.toml"]
+}
+```
+
+### PyCharm
+
+Black: Install the Black connector plugin and enable "Format on save".
+
+Ruff: Use the Ruff PyCharm plugin or configure an external tool.
+
+With proper editor integration, formatting happens automatically without manual commands.
+
+## CI Pipeline Integration
+
+Add both tools to continuous integration to ensure all code meets standards:
+
+```yaml
+# .github/workflows/lint.yml
+name: Lint and Format Check
+
+on: [push, pull_request]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install black ruff
+      - name: Check formatting with Black
+        run: black --check src/
+      - name: Lint with Ruff
+        run: ruff check src/
+```
+
+The `--check` flag for Black makes it report formatting issues without modifying files, useful in CI where you want to fail but not change code.
+
+## Real Example: Pre-Commit Hook
+
+Configure both tools as pre-commit hooks to run before each commit:
+
+```bash
+pip install pre-commit
+```
+
+Create `.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3.10
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix]
+```
+
+Install the hooks:
+
+```bash
+pre-commit install
+```
+
+Now every `git commit` runs Black formatting and Ruff linting automatically. Commits fail if either tool finds issues, preventing style violations from entering the repository.
+
+## Best Practices for Code Quality Tools
+
+- **Run Black before every commit** — Use pre-commit hooks to automate this
+- **Let Black handle formatting** — Do not debate style Black enforces automatically
+- **Use Ruff for additional rules** — Enable specific rule sets relevant to your project
+- **Set reasonable line length** — 88 characters is Black's default and works well
+- **Keep CI fast** — Both Black and Ruff are fast enough to run on every commit
+
+## Summary
+
+- A formatter (Black) automatically restructures code to follow style rules
+- A linter (Ruff) analyzes code for errors and style issues without changing it
+- Black and Ruff are complementary: Black handles formatting, Ruff handles additional checks
+- Both tools integrate with editors for automatic formatting on save
+- Add both tools to CI pipelines to ensure code meets standards before merging
+- Use pre-commit hooks to run formatting and linting before every commit
+
+For more on managing development environments, see [Virtual Environments and Dependency Management](./venv-dependency-management.mdx). For ensuring type safety alongside code quality, see [Type Checking with mypy](./type-checking-mypy.mdx).

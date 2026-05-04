@@ -1,0 +1,303 @@
+---
+title: "ABCs for Interfaces"
+description: "Learn about Sized, Hashable, and Collection abstract base classes that formalize core Python protocols."
+order: 3
+---
+
+# ABCs for Interfaces
+
+Beyond the core collection ABCs covered in the first section, the `collections.abc` module provides additional abstract base classes that formalize important Python protocols. Understanding `Sized`, `Hashable`, and `Collection` gives you a deeper view of how Python's type system is constructed and how to design robust interfaces for your own classes.
+
+## Sized
+
+`Sized` is the abstract base class for objects that have a defined length, accessible via the built-in `len()` function. Any object that implements the `__len__()` method is a `Sized` object.
+
+```python
+from collections.abc import Sized
+
+class Stack:
+    def __init__(self):
+        self._items = []
+
+    def push(self, item):
+        self._items.append(item)
+
+    def pop(self):
+        if not self._items:
+            raise IndexError("pop from empty stack")
+        return self._items.pop()
+
+    def __len__(self):
+        return len(self._items)
+
+stack = Stack()
+print(isinstance(stack, Sized))  # True
+
+stack.push(1)
+stack.push(2)
+print(len(stack))  # 2
+```
+
+Output:
+
+```
+True
+2
+```
+
+The `Sized` ABC simply requires `__len__()`. This protocol is fundamental to Python: when you call `len(obj)`, Python invokes `obj.__len__()`. The ABC formalizes this relationship, allowing functions to check `isinstance(obj, Sized)` to determine if an object has a length.
+
+## Hashable
+
+`Hashable` is the abstract base class for objects that can be used as dictionary keys and set members. An object is hashable if it implements `__hash__()` and `__eq__()`. The hash value must be consistent (the same object always returns the same hash) and two objects that compare equal must have the same hash value.
+
+```python
+from collections.abc import Hashable
+
+# Most immutable built-in types are hashable
+print(isinstance(42, Hashable))           # True
+print(isinstance("hello", Hashable))      # True
+print(isinstance((1, 2, 3), Hashable))    # True
+
+# Most mutable types are not hashable
+print(isinstance([1, 2, 3], Hashable))    # False
+print(isinstance({"a": 1}, Hashable))      # False
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __hash__(self):
+        return hash((self.x, self.y))
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return False
+        return self.x == other.x and self.y == other.y
+
+p1 = Point(1, 2)
+p2 = Point(1, 2)
+p3 = Point(3, 4)
+
+print(isinstance(p1, Hashable))  # True
+print(p1 == p2)                  # True
+print(hash(p1) == hash(p2))       # True
+
+# Can be used in sets and as dict keys
+points_set = {p1, p2, p3}
+print(len(points_set))  # 2 (p1 and p2 are equal, so only one is kept)
+
+point_dict = {p1: "origin-proximity", p3: "far"}
+print(point_dict[p2])  # "origin-proximity" (p2 equals p1, so finds p1's value)
+```
+
+Output:
+
+```
+True
+True
+True
+False
+False
+True
+True
+True
+2
+origin-proximity
+```
+
+The `Point` class implements both `__hash__()` and `__eq__()`. The hash combines the tuple of coordinates, and equality checks both coordinates. When two `Point` objects are equal, they hash to the same value, which allows them to behave correctly in sets and as dictionary keys.
+
+## The Relationship Between __eq__ and __hash__
+
+If you define `__eq__()` on a class but not `__hash__()`, your class becomes unhashable. Python sets `__hash__ = None` when you define `__eq__` without `__hash__`, because defining equality typically implies the object is mutable and should not be used as a dictionary key.
+
+```python
+class BrokenPoint:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        if not isinstance(other, BrokenPoint):
+            return False
+        return self.x == other.x and self.y == other.y
+
+bp = BrokenPoint(1, 2)
+# print(hash(bp))  # TypeError: unhashable type: 'BrokenPoint'
+```
+
+Python prevents you from using `BrokenPoint` as a dictionary key or putting it in a set because if the object mutates after being inserted, its hash would change and corrupt hash-based data structures. This is a critical safety mechanism.
+
+## Collection
+
+`Collection` is an abstract base class that combines `Sized`, `Container`, and `Iterable`. It is the base interface for all collection types that can be iterated and have a known size.
+
+```python
+from collections.abc import Collection
+
+class TreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.children = []
+
+    def add_child(self, node):
+        self.children.append(node)
+
+    def __iter__(self):
+        return iter(self.children)
+
+    def __len__(self):
+        return len(self.children)
+
+    def __contains__(self, node):
+        return node in self.children
+
+# Check the ABC hierarchy
+tree = TreeNode("root")
+child1 = TreeNode("child1")
+child2 = TreeNode("child2")
+
+tree.add_child(child1)
+tree.add_child(child2)
+
+print(isinstance(tree, Collection))    # True
+print(isinstance(tree, Sized))          # True
+print(isinstance(tree, Container))      # True
+print(isinstance(tree, Iterable))       # True
+print(len(tree))                        # 2
+print(child1 in tree)                   # True
+```
+
+Output:
+
+```
+True
+True
+True
+True
+2
+True
+```
+
+The `TreeNode` class implements all three protocols required by `Collection`: `__len__()` for size, `__contains__()` for membership, and `__iter__()` for iteration. This combination makes it a full-fledged collection that works with all Python's iteration constructs.
+
+## Registering Virtual Subclasses
+
+Python's ABCs support **virtual subclass registration**, which allows you to declare that a class implements an ABC's interface without inheriting from it directly. This is useful when you cannot or do not want to modify a class's inheritance hierarchy but still want `isinstance()` checks to return `True`.
+
+```python
+from collections.abc import Sequence
+
+class MyList:
+    """A custom list-like class that doesn't inherit from list."""
+    def __init__(self, items=None):
+        self._items = list(items) if items else []
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __len__(self):
+        return len(self._items)
+
+    def __contains__(self, item):
+        return item in self._items
+
+    def __iter__(self):
+        return iter(self._items)
+
+# Register MyList as a virtual subclass of Sequence
+Sequence.register(MyList)
+
+ml = MyList([1, 2, 3, 4, 5])
+
+print(isinstance(ml, Sequence))  # True
+print(ml[0])                      # 1
+print(len(ml))                    # 5
+print(3 in ml)                    # True
+print([x * 2 for x in ml])        # [2, 4, 6, 8, 10]
+```
+
+Output:
+
+```
+True
+1
+5
+True
+[2, 4, 6, 8, 10]
+```
+
+The `register()` method adds `MyList` to the ABC's virtual subclass registry without any inheritance relationship. After registration, `isinstance(ml, Sequence)` returns `True`, and `MyList` instances work with any function expecting a `Sequence`.
+
+Virtual subclass registration is the mechanism behind the **registration pattern** for ABCs, which we explored in the [Abstract Classes and Interfaces](../abstract-classes-interfaces.mdx) section.
+
+## Using ABCs for API Contracts
+
+ABCs are valuable for defining APIs that accept diverse types while maintaining type safety. When you specify `Sized` or `Collection` as a parameter type, you allow any object implementing the required protocol, not just a specific concrete class.
+
+```python
+from collections.abc import Sized
+
+def total_length(sized):
+    """Calculate the total length of any Sized object."""
+    if not isinstance(sized, Sized):
+        raise TypeError("Object must be Sized")
+    return sum(len(item) for item in sized)
+
+strings = ["hello", "world", "python"]
+print(total_length(strings))  # 15 (5 + 5 + 5)
+
+class CustomCollection:
+    def __init__(self, items):
+        self.items = items
+
+    def __len__(self):
+        return len(self.items)
+
+coll = CustomCollection(["apple", "banana"])
+print(total_length(coll))  # 17 (5 + 6)
+```
+
+Output:
+
+```
+15
+17
+```
+
+The `total_length` function accepts any `Sized` object, including lists, strings, and any custom class implementing `__len__()`. This decouples your API from concrete types, making it more flexible and reusable.
+
+## The Complete ABC Hierarchy
+
+Understanding the full hierarchy helps you implement the right protocols for your custom collections. Here is the complete inheritance tree for the collection ABCs:
+
+```
+Collection
+  ├── Sequence
+  │   ├── ByteString
+  │   └── str, list, tuple (built-in)
+  ├── MutableSequence
+  │   └── list (built-in)
+  ├── Set
+  │   └── {frozenset, set} (built-in)
+  ├── MutableSet
+  │   └── set (built-in)
+  ├── Mapping
+  │   └── dict (built-in)
+  └── MutableMapping
+      └── dict (built-in)
+```
+
+`Collection` sits at the top, requiring all three protocols. `Sequence` and `Set` are ordered collections (though `Set` does not guarantee insertion order in all contexts). `Mapping` represents key-value associations. Each has a `Mutable` variant for collections that support in-place modifications.
+
+## Summary
+
+- `Sized` formalizes the `__len__()` protocol required by `len()`
+- `Hashable` requires both `__hash__()` and `__eq__()`; objects that compare equal must hash equal
+- `Collection` combines `Sized`, `Container`, and `Iterable` as the base for all collection types
+- Virtual subclass registration via `ABCs.register()` allows `isinstance()` checks without inheritance
+- Designing APIs around ABCs rather than concrete types produces more flexible and reusable code
+
+These ABCs form the foundation of Python's protocol-based type system. By understanding them, you can design classes that integrate seamlessly with Python's iteration and collection infrastructure. For practical applications of these protocols, see the [Custom Iterables](./custom-iterables.mdx) section.

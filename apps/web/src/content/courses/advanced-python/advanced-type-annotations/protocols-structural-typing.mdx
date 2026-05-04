@@ -1,0 +1,256 @@
+---
+title: "Protocols and Structural Typing"
+description: "Understand structural typing in Python through Protocol classes. Learn how protocols define interfaces without inheritance, the difference between nominal and structural typing, and how to use @runtime_checkable."
+order: 5
+---
+
+# Protocols and Structural Typing
+
+Protocols define interfaces based on what methods an object has, not what class it inherits from. This is called **structural typing**: if an object has the right structure (the right methods and properties), it satisfies the interface, regardless of its class hierarchy. This pattern is inspired by Go's interfaces and makes Python's type system far more flexible.
+
+## What Is Structural Typing
+
+In a **nominal type system** (like Java or C#), a type is defined by its name and inheritance. To implement an interface, a class must explicitly declare `implements SomeInterface`. In Python's **structural typing**, any object that has the required methods automatically satisfies a Protocol, without any explicit declaration.
+
+```python
+from typing import Protocol
+
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+
+class Circle:
+    def __init__(self, radius: float):
+        self.radius = radius
+
+    def draw(self) -> None:
+        print(f"Drawing circle with radius {self.radius}")
+
+class Rectangle:
+    def __init__(self, width: float, height: float):
+        self.width = width
+        self.height = height
+
+    def draw(self) -> None:
+        print(f"Drawing rectangle {self.width}x{self.height}")
+
+def render(shape: Drawable) -> None:
+    shape.draw()
+
+c = Circle(5)
+r = Rectangle(4, 6)
+
+render(c)  # OK — Circle has draw()
+render(r)  # OK — Rectangle has draw()
+```
+
+Neither `Circle` nor `Rectangle` explicitly inherits from `Drawable`. They both implement a `draw` method with the correct signature, so they are both accepted as `Drawable`. The type checker verifies structure, not inheritance.
+
+## Protocol Definition
+
+A `Protocol` is defined like a regular class, but it only contains method signatures without implementations. The `...` (ellipsis) indicates an abstract method — no body is provided.
+
+```python
+from typing import Protocol, runtime_checkable
+
+class Closeable(Protocol):
+    def close(self) -> None: ...
+
+class DatabaseConnection:
+    def close(self) -> None:
+        print("Closing database connection")
+
+# This function requires an object with a close() method
+def cleanup(conn: Closeable) -> None:
+    conn.close()
+
+db = DatabaseConnection()
+cleanup(db)  # Valid — DatabaseConnection has close()
+```
+
+## Protocol with Properties
+
+Protocols can specify properties, not just methods:
+
+```python
+from typing import Protocol
+
+class Named(Protocol):
+    @property
+    def name(self) -> str: ...
+
+class Person:
+    def __init__(self, name: str):
+        self._name = name
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+def greet(entity: Named) -> None:
+    print(f"Hello, {entity.name}")
+
+greet(Person("Alice"))  # Hello, Alice
+greet({"name": "Bob"})   # dict also has a name property — valid!
+```
+
+Note that a plain `dict` with a `"name"` key is also a valid `Named` because `dict` has a `name` property through its `__getitem__` behavior. The structural type system looks at what operations are available, not just class definitions.
+
+## @runtime_checkable for Runtime Checks
+
+By default, protocols are only checked statically by type checkers. If you need to check at runtime whether an object implements a protocol, decorate it with `@runtime_checkable`:
+
+```python
+from typing import Protocol, runtime_checkable
+
+@runtime_checkable
+class Readable(Protocol):
+    def read(self, n: int) -> str: ...
+
+class File:
+    def read(self, n: int) -> str:
+        return f"Reading {n} bytes from file"
+
+class NetworkStream:
+    def read(self, n: int) -> str:
+        return f"Reading {n} bytes from stream"
+
+def process(reader: Readable) -> None:
+    # With @runtime_checkable, you can use isinstance
+    if isinstance(reader, Readable):
+        print(reader.read(10))
+    else:
+        raise TypeError("Reader does not implement Readable protocol")
+
+process(File())        # Works
+process(NetworkStream())  # Works
+
+# A class that does NOT implement read() fails the isinstance check
+class BadReader:
+    pass
+
+process(BadReader())   # Raises TypeError at runtime
+```
+
+Without `@runtime_checkable`, `isinstance` would not work with the Protocol.
+
+## Covariance and Contravariance with Protocols
+
+Protocols can be **covariant** or **contravariant** in their type parameters, affecting how subtyping works with generic types. This is an advanced topic that becomes relevant when passing callbacks or containers.
+
+**Covariant** means `Producer[T]` can be used where `Producer[Base]` is expected if `T` is a subclass of `Base`. A `Protocol[+T]` uses a leading `+` to indicate covariance:
+
+```python
+from typing import Protocol, Generic, TypeVar
+
+T = TypeVar("T", covariant=True)
+
+class Producer(Protocol[T]):
+    def produce(self) -> T: ...
+
+class Animal:
+    pass
+
+class Dog(Animal):
+    pass
+
+def get_animal(producer: Producer[Animal]) -> Animal:
+    return producer.produce()
+
+# OK — a producer of Dog can substitute for a producer of Animal
+# because Dog is a kind of Animal
+```
+
+**Contravariant** means `Consumer[T]` can be used where `Consumer[Base]` is expected if `T` is a superclass of `Base`. A `Protocol[-T]` uses a leading `-`:
+
+```python
+from typing import Protocol, TypeVar
+
+T = TypeVar("T", contravariant=True)
+
+class Consumer(Protocol[T]):
+    def consume(self, item: T) -> None: ...
+
+def process(consumer: Consumer[Dog]) -> None:
+    consumer.consume(Dog())
+
+# OK — a consumer of Dog can substitute for a consumer of Animal
+# because anything that accepts Animal also accepts Dog
+```
+
+The `+` and `-` prefixes are only valid in Protocol definitions, not in regular Generic classes.
+
+## Protocol Inheritance
+
+Protocols can inherit from other Protocols, building up more specific interfaces:
+
+```python
+from typing import Protocol
+
+class Sized(Protocol):
+    def __len__(self) -> int: ...
+
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+
+# Compose protocols
+class DrawableSized(Sized, Drawable, Protocol):
+    """Something that can be drawn and has a size."""
+    ...
+
+class Canvas:
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+
+    def __len__(self) -> int:
+        return self.width * self.height
+
+    def draw(self) -> None:
+        print(f"Drawing canvas {self.width}x{self.height}")
+
+def layout(items: list[DrawableSized]) -> None:
+    total_size = sum(len(item) for item in items)
+    for item in items:
+        item.draw()
+    print(f"Total layout size: {total_size}")
+
+layout([Canvas(100, 50), Canvas(80, 60)])
+```
+
+`DrawableSized` combines both `Sized` and `Drawable`, so any class satisfying it must implement both `__len__` and `draw`.
+
+## Differences from ABC
+
+| Feature | Protocol | ABC |
+|---|---|---|
+| Subclass relationship | Structural — any class with matching methods | Nominal — must explicitly inherit |
+| Multiple inheritance | Can inherit multiple Protocols without conflicts | Diamond problem possible with complex hierarchies |
+| Runtime checking | Requires `@runtime_checkable` for isinstance | Built-in support via ABC |
+| Default implementations | Methods cannot have implementations (except via extension) | Can provide concrete methods |
+
+Use Protocol when you want structural typing and duck typing safety. Use ABC when you need shared implementation and registration patterns, which is covered in the [Abstract Classes and Interfaces](/courses/advanced-python/abstract-classes-interfaces) chapter.
+
+## Hands-On Exercise
+
+Create a `Comparable` Protocol that specifies an `__eq__` method taking another item of the same type and returning a `bool`. Then implement a class `Version` with major, minor, and patch integer components that satisfies this protocol (comparing versions lexicographically).
+
+```python
+from typing import Protocol, TypeVar
+
+T = TypeVar("T")
+
+class Comparable(Protocol[T]):
+    def __eq__(self, other: T) -> bool: ...
+
+class Version:
+    def __init__(self, major: int, minor: int, patch: int):
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+
+    # Implement __eq__ to satisfy Comparable
+    # v1 == v2 should return True iff all three components match
+    ...
+```
+
+Protocols are the foundation for many typing patterns in modern Python. They work especially well with [TypeVar and Bounded Generics](/courses/advanced-python/typevar-bounded-generics) for constraining generic types to those that implement specific interfaces.

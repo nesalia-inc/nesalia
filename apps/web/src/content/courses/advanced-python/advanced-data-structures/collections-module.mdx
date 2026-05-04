@@ -1,0 +1,400 @@
+---
+title: "Collections Module"
+description: "Master Python's collections module with Counter, deque, defaultdict, and OrderedDict for specialized data handling."
+order: 1
+---
+
+# Collections Module
+
+Python's `collections` module provides specialized container datatypes that supplement the built-in types like lists, dictionaries, and tuples. We reach for these specialized types when our data has specific structural requirements that the built-in types do not address efficiently.
+
+## Counter
+
+A Counter is a dictionary subclass designed for counting hashable objects. Hashable means an object has a hash value that remains constant during its lifetime, making it suitable for use as a dictionary key or as an element in a set. Strings, numbers, and tuples are hashable; lists and dictionaries are not.
+
+### Creating and Using Counter
+
+```python
+from collections import Counter
+
+# Create a counter from any iterable
+words = ["apple", "banana", "apple", "cherry", "banana", "apple"]
+counter = Counter(words)
+
+print(counter)
+# Counter({'apple': 3, 'banana': 2, 'cherry': 1})
+```
+
+This code creates a Counter by passing a list of words. The Counter automatically tallies how many times each item appears in the list. The most frequent item, "apple", appears three times.
+
+### Common Counter Operations
+
+```python
+from collections import Counter
+
+inventory = ["apple", "banana", "apple", "orange", "banana", "apple", "mango"]
+
+# Create counter
+stock = Counter(inventory)
+
+# Get count for a specific item
+print(stock["apple"])  # 3
+
+# Get the most common items
+print(stock.most_common(2))
+# [('apple', 3), ('banana', 2)]
+
+# Get all items
+print(list(stock.elements()))
+# ['apple', 'apple', 'apple', 'banana', 'banana', 'orange', 'mango']
+```
+
+The `most_common()` method returns items sorted by count, with the most frequent first. The `elements()` method returns an iterator over each element repeated as many times as its count.
+
+### Arithmetic Operations on Counters
+
+```python
+from collections import Counter
+
+# Track sales this week
+sales_week1 = Counter(apple=50, banana=30, orange=20)
+sales_week2 = Counter(apple=45, banana=35, mango=15)
+
+# Combine counters
+combined = sales_week1 + sales_week2
+print(combined)
+# Counter({'apple': 95, 'banana': 65, 'orange': 20, 'mango': 15})
+
+# Subtract counters
+returned = sales_week1 - sales_week2
+print(returned)
+# Counter({'apple': 5, 'banana': 0, 'orange': 20})
+```
+
+We can add and subtract Counters directly, which is useful for tracking inventory changes over time. The resulting counts cannot go below zero; negative values are omitted.
+
+### Real-World Example: Word Frequency Analysis
+
+```python
+from collections import Counter
+import re
+
+def analyze_text(text):
+    """Count word frequencies in text, ignoring punctuation."""
+    # Extract words (lowercase, letters only)
+    words = re.findall(r'[a-z]+', text.lower())
+
+    # Count frequencies
+    word_counts = Counter(words)
+
+    return word_counts
+
+text = """
+Python is a powerful programming language. Python emphasizes
+code readability and simplicity. Many developers love Python
+for its elegant syntax and expressive power.
+"""
+
+frequencies = analyze_text(text)
+print(frequencies.most_common(5))
+# [('python', 3), ('and', 2), ('a', 1), ('powerful', 1), ...]
+```
+
+This example processes a block of text to identify the most frequently occurring words. The regular expression extracts only alphabetic sequences, and we convert everything to lowercase for case-insensitive counting.
+
+## deque
+
+A deque (double-ended queue) provides O(1) operations at both ends of the queue. Regular lists have O(n) time complexity for adding or removing elements from the front, because all remaining elements must shift. A deque solves this performance problem when we need fast append and pop operations at both ends.
+
+### Creating and Using deque
+
+```python
+from collections import deque
+
+# Create a deque
+d = deque([1, 2, 3])
+
+# Add to right (end)
+d.append(4)
+
+# Add to left (front)
+d.appendleft(0)
+
+print(d)  # deque([0, 1, 2, 3, 4])
+```
+
+We create a deque and use `append()` to add to the right side and `appendleft()` to add to the left side. Both operations complete in constant time.
+
+### Popping from Both Ends
+
+```python
+from collections import deque
+
+d = deque([1, 2, 3, 4, 5])
+
+# Remove from right
+right = d.pop()  # Returns 5, deque is now [1, 2, 3, 4]
+
+# Remove from left
+left = d.popleft()  # Returns 1, deque is now [2, 3, 4]
+
+print(right, left)  # 5 1
+```
+
+The `pop()` and `popleft()` methods remove and return elements from respective ends with constant time complexity.
+
+### Limiting deque Size
+
+```python
+from collections import deque
+
+# Create a bounded deque that holds at most 3 items
+recent_visits = deque(maxlen=3)
+
+recent_visits.append("/home")
+recent_visits.append("/products")
+recent_visits.append("/checkout")
+print(recent_visits)  # deque(['/home', '/products', '/checkout'], maxlen=3)
+
+# Adding a 4th item removes the oldest
+recent_visits.append("/confirmation")
+print(recent_visits)  # deque(['/products', '/checkout', '/confirmation'], maxlen=3)
+```
+
+A bounded deque automatically discards the oldest element when we insert a new one past the limit. This makes it ideal for tracking the most recent N items, such as visit history or log entries.
+
+### Real-World Example: Implementing a Moving Average
+
+```python
+from collections import deque
+
+class MovingAverage:
+    """Calculate moving average of the last N values."""
+
+    def __init__(self, window_size):
+        self.window_size = window_size
+        self.values = deque(maxlen=window_size)
+
+    def add(self, value):
+        self.values.append(value)
+
+    def get_average(self):
+        if not self.values:
+            return 0.0
+        return sum(self.values) / len(self.values)
+
+# Track temperature readings with a 5-minute moving average
+temp_sensor = MovingAverage(window_size=5)
+
+readings = [22.5, 23.1, 22.8, 24.2, 23.9, 22.7, 21.5]
+for reading in readings:
+    temp_sensor.add(reading)
+    print(f"Reading: {reading}, 5-min average: {temp_sensor.get_average():.2f}")
+```
+
+This example implements a moving average calculator. As new readings arrive, the deque automatically discards the oldest reading when the window is full, keeping our average focused on only the most recent values.
+
+## defaultdict
+
+A defaultdict automatically creates default values for keys that do not exist. When we access a missing key, the defaultdict calls the factory function we provide and uses the result as the default value for that key.
+
+### Basic defaultdict Usage
+
+```python
+from collections import defaultdict
+
+# Create defaultdict with int as default factory (default value is 0)
+word_lengths = defaultdict(int)
+
+words = ["apple", "banana", "apple", "cherry", "banana", "date"]
+for word in words:
+    word_lengths[word] += 1
+
+print(dict(word_lengths))
+# {'apple': 2, 'banana': 2, 'cherry': 1, 'date': 1}
+```
+
+When we write `word_lengths[word] += 1` for a new word, the defaultdict automatically initializes that key with the default value (0 for `int`). This eliminates the need to check if the key exists before incrementing.
+
+### Different Default Factories
+
+```python
+from collections import defaultdict
+
+# list factory - default value is an empty list
+students_by_course = defaultdict(list)
+
+students_by_course["Python"].append("Alice")
+students_by_course["Python"].append("Bob")
+students_by_course["JavaScript"].append("Charlie")
+
+print(dict(students_by_course))
+# {'Python': ['Alice', 'Bob'], 'JavaScript': ['Charlie']}
+```
+
+With `list` as the factory, accessing any missing key returns an empty list. This makes grouping items by category straightforward without pre-initialization.
+
+```python
+from collections import defaultdict
+
+# set factory - default value is an empty set
+items_by_category = defaultdict(set)
+
+items_by_category["Electronics"].add("Laptop")
+items_by_category["Electronics"].add("Phone")
+items_by_category["Clothing"].add("Shirt")
+
+print(dict(items_by_category))
+# {'Electronics': {'Laptop', 'Phone'}, 'Clothing': {'Shirt'}}
+```
+
+With `set` as the factory, we can collect unique items without duplicates for each category.
+
+### Real-World Example: Grouping Data with Complex Keys
+
+```python
+from collections import defaultdict
+
+# Group transactions by date and category
+transactions = [
+    ("2024-01-15", "Food", 45.00),
+    ("2024-01-15", "Transport", 12.50),
+    ("2024-01-16", "Food", 32.00),
+    ("2024-01-15", "Food", 28.00),
+    ("2024-01-16", "Transport", 8.00),
+]
+
+# Create nested defaultdict with list as default
+by_date_category = defaultdict(lambda: defaultdict(list))
+
+for date, category, amount in transactions:
+    by_date_category[date][category].append(amount)
+
+# Calculate totals
+for date, categories in by_date_category.items():
+    print(f"\n{date}:")
+    for category, amounts in categories.items():
+        print(f"  {category}: ${sum(amounts):.2f}")
+```
+
+This example groups financial transactions by both date and category using a nested defaultdict. The lambda creates the inner defaultdict with list defaults, eliminating nested initialization logic.
+
+## OrderedDict
+
+An OrderedDict maintains the order in which key-value pairs are inserted. In Python 3.7 and later, regular dictionaries also maintain insertion order, so OrderedDict is no longer necessary for basic ordering. However, OrderedDict still provides value in specific scenarios.
+
+### When OrderedDict Differs from dict
+
+```python
+from collections import OrderedDict
+
+# Create ordered dictionary
+od = OrderedDict()
+od["first"] = 1
+od["second"] = 2
+od["third"] = 3
+
+print(od.keys())  # odict_keys(['first', 'second', 'third'])
+```
+
+The OrderedDict guarantees that iterating over it returns keys in insertion order, just as a regular dict does in Python 3.7+.
+
+### Equality Comparison Behavior
+
+```python
+from collections import OrderedDict
+
+# OrderedDict considers order in equality checks
+od1 = OrderedDict([("a", 1), ("b", 2)])
+od2 = OrderedDict([("b", 2), ("a", 1)])
+
+print(od1 == od2)  # False - order differs
+print(dict(od1) == dict(od2))  # True - regular dict ignores order
+```
+
+OrderedDict compares as unequal when key-value pairs are in different orders, whereas regular dictionaries ignore order in equality comparisons. This matters in contexts where order significance is part of the data semantics.
+
+### Move to End Operations
+
+```python
+from collections import OrderedDict
+
+od = OrderedDict([("a", 1), ("b", 2), ("c", 3)])
+
+# Move an existing key to the end
+od.move_to_end("a")
+print(list(od.keys()))  # ['b', 'c', 'a']
+
+# Move to the beginning
+od.move_to_end("a", last=False)
+print(list(od.keys()))  # ['a', 'b', 'c']
+```
+
+The `move_to_end()` method repositions an existing key while preserving the order of other keys. Setting `last=False` moves the key to the beginning instead.
+
+### Real-World Example: Implementing LRU Cache
+
+```python
+from collections import OrderedDict
+
+class LRUCache:
+    """Least Recently Used cache with limited capacity."""
+
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = OrderedDict()
+
+    def get(self, key):
+        if key not in self.cache:
+            return None
+        # Move to end (most recently used)
+        self.cache.move_to_end(key)
+        return self.cache[key]
+
+    def put(self, key, value):
+        if key in self.cache:
+            # Update and move to end
+            self.cache.move_to_end(key)
+            self.cache[key] = value
+        else:
+            # Add new item
+            if len(self.cache) >= self.capacity:
+                # Remove least recently used (first item)
+                self.cache.popitem(last=False)
+            self.cache[key] = value
+
+# Use the cache
+cache = LRUCache(capacity=3)
+cache.put("a", 1)
+cache.put("b", 2)
+cache.put("c", 3)
+print(cache.get("a"))  # 1 - "a" is now most recently used
+cache.put("d", 4)      # Evicts "b" (least recently used)
+print(cache.get("b"))  # None - evicted
+```
+
+An LRU cache evicts the least recently used item when capacity is reached. The OrderedDict's `move_to_end()` and `popitem(last=False)` methods make implementing this straightforward. When we access an item with `get()`, we move it to the end (most recently used). When we need to evict, we remove from the front (least recently used).
+
+## Choosing the Right Collection
+
+We select the appropriate specialized collection based on our specific needs:
+
+| Collection | Purpose | Time Complexity Advantage |
+|------------|---------|---------------------------|
+| Counter | Counting occurrences | O(1) increment |
+| deque | Fast add/remove at both ends | O(1) for append/pop at either end |
+| defaultdict | Default values for missing keys | No key existence check needed |
+| OrderedDict | Order-sensitive dictionaries | Move key to end in O(1) |
+
+For most cases in Python 3.7+, a regular `dict` suffices for simple key-value storage. We reach for these specialized types when we need their specific capabilities, such as counting with Counter, efficient queue operations with deque, automatic default values with defaultdict, or order-sensitive comparison with OrderedDict.
+
+## Summary
+
+The `collections` module provides datatypes that address specific data handling requirements:
+
+- **Counter** tallies object frequencies with O(1) increment operations and provides methods like `most_common()` for finding frequent items.
+- **deque** enables O(1) append and pop at both ends, making it ideal for queues and sliding window calculations.
+- **defaultdict** eliminates key existence checks by providing automatic default values through a factory function.
+- **OrderedDict** maintains explicit insertion-order semantics and provides methods like `move_to_end()` for reordering.
+
+These tools complement the built-in datatypes and enable more expressive, efficient code when our data structures have specific requirements.

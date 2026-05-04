@@ -1,0 +1,180 @@
+---
+title: "Multiple Inheritance and MRO"
+description: "Explore multiple inheritance in Python, understand the Method Resolution Order (MRO), and learn how Python resolves the diamond problem using C3 linearization."
+order: 1
+---
+
+# Multiple Inheritance and MRO
+
+Multiple inheritance is a feature where a class can inherit from more than one parent class. This powerful capability allows you to compose behavior from multiple sources, but it introduces complexity in method resolution. Python solves this through the **Method Resolution Order (MRO)** and the C3 linearization algorithm.
+
+## What Is Multiple Inheritance?
+
+Multiple inheritance occurs when a class inherits from two or more classes. The subclass gains access to all methods and attributes of its parent classes, effectively combining their behavior.
+
+```python
+class Flyer:
+    def fly(self):
+        return "Flying through the air"
+
+class Swimmer:
+    def swim(self):
+        return "Swimming through water"
+
+class Duck(Flyer, Swimmer):
+    pass
+
+duck = Duck()
+print(duck.fly())   # Flying through the air
+print(duck.swim())  # Swimming through water
+```
+
+In this example, the `Duck` class inherits from both `Flyer` and `Swimmer`, gaining methods from both. This is straightforward when there is no overlapping behavior between parent classes.
+
+## The Diamond Problem
+
+The **diamond problem** occurs when a class inherits from two classes that share a common ancestor. Without a clear resolution mechanism, the inherited behavior would be ambiguous.
+
+```python
+class Animal:
+    def speak(self):
+        return "Some sound"
+
+class Mammal(Animal):
+    def speak(self):
+        return "Mammal sound"
+
+class Bird(Animal):
+    def speak(self):
+        return "Bird chirp"
+
+class Bat(Mammal, Bird):
+    pass
+
+bat = Bat()
+print(bat.speak())  # Which speak() is called?
+```
+
+When `Bat` calls `speak()`, Python must decide whether to use `Mammal.speak()` or `Bird.speak()`. This is the diamond problem, and Python resolves it through the MRO.
+
+## Method Resolution Order (MRO)
+
+The MRO defines the exact order in which Python searches for a method or attribute in a class hierarchy. You can view a class's MRO using the `__mro__` attribute or the `mro()` method.
+
+```python
+print(Bat.__mro__)
+# (<class '__main__.Bat'>, <class '__main__.Mammal'>,
+#  <class '__main__.Bird'>, <class '__main__.Animal'>, <class 'object'>)
+```
+
+The MRO shows that when `Bat().speak()` is called, Python looks for `speak()` in this order: `Bat` -> `Mammal` -> `Bird` -> `Animal` -> `object`. Since `Mammal` comes before `Bird` in the MRO, `Mammal.speak()` is called.
+
+## The C3 Linearization Algorithm
+
+Python uses the C3 linearization algorithm to compute the MRO. This algorithm ensures three properties:
+
+1. **Local precedence**: A parent class listed first retains its priority over later parents.
+2. **Monotonicity**: The MRO of a subclass respects the MRO of its parents.
+3. **Consistency**: No class appears twice in the linearization.
+
+For the `Bat` class, the C3 linearization produces: `Bat, Mammal, Bird, Animal, object`. This is why `Mammal.speak()` is chosen over `Bird.speak()` — `Mammal` appears first in the inheritance declaration.
+
+You can observe how different inheritance orders affect the MRO:
+
+```python
+class Cat(Mammal, Bird):  # Different order
+    pass
+
+print(Cat.__mro__)
+# The MRO changes based on the order of parent classes
+```
+
+## Practical Examples
+
+### Mixin Pattern with Multiple Inheritance
+
+Mixins are classes designed to provide optional behavior that can be mixed into other classes. They are not meant to stand alone but augment other classes through inheritance.
+
+```python
+class JSONMixin:
+    def to_json(self):
+        import json
+        return json.dumps(self.__dict__)
+
+    @classmethod
+    def from_json(cls, json_str):
+        import json
+        data = json.loads(json_str)
+        return cls(**data)
+
+class Serializable:
+    def save(self, filename):
+        with open(filename, 'w') as f:
+            f.write(self.to_json())
+
+class User(JSONMixin, Serializable):
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+
+user = User("Alice", "alice@example.com")
+print(user.to_json())  # {"name": "Alice", "email": "alice@example.com"}
+user.save("user.json")
+```
+
+The `JSONMixin` provides `to_json()` and `from_json()` methods, while `Serializable` provides file-saving capabilities. A `User` can inherit from both to gain all these features.
+
+### Method Ambiguity Resolution
+
+When two parent classes have methods with the same name, the MRO determines which one is called:
+
+```python
+class A:
+    def identify(self):
+        return "A"
+
+class B:
+    def identify(self):
+        return "B"
+
+class C(A, B):
+    pass
+
+class D(B, A):
+    pass
+
+c = C()
+d = D()
+
+print(c.identify())  # A (A comes first in C's inheritance)
+print(d.identify())  # B (B comes first in D's inheritance)
+```
+
+## Hands-On Exercise
+
+Create a class hierarchy with multiple inheritance that models different animal abilities. Start with an `Animal` base class with a `move()` method, then create `Walker`, `Flyer`, and `Swimmer` mixin classes. Finally, create an `Amphibian` class that inherits from both `Walker` and `Swimmer`.
+
+Verify that the MRO of your `Amphibian` class includes all parent classes in the correct order. Override the `move()` method in one of your mixin classes and observe how the MRO determines which version is called.
+
+```python
+# Your implementation here
+class Animal:
+    def move(self):
+        return "Moving"
+
+class Walker(Animal):
+    def move(self):
+        return "Walking on legs"
+
+class Flyer(Animal):
+    def move(self):
+        return "Flying with wings"
+
+# Create Amphibian inheriting from Walker and Swimmer
+# (Assume Swimmer is defined similarly to Walker)
+
+# Verify the MRO
+print(Amphibian.__mro__)
+```
+
+The MRO is fundamental to understanding how Python resolves attributes and methods in complex inheritance hierarchies. Mastering it allows you to design class structures with multiple inheritance while avoiding ambiguity and unexpected behavior.

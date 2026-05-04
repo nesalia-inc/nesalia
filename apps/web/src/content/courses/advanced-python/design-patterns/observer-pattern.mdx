@@ -1,0 +1,324 @@
+---
+title: "Observer Pattern"
+description: "Learn how the Observer pattern enables one-to-many dependency relationships between objects, with Python examples for event systems, notifications, and reactive programming."
+order: 2
+---
+
+# Observer Pattern
+
+The Observer pattern establishes a **one-to-many dependency** between objects. When one object (the **subject**) changes state, all its dependents (**observers**) are automatically notified. This pattern is the foundation of event-driven programming,GUIs, and reactive systems.
+
+## What Problem the Observer Pattern Solves
+
+Imagine you are building a stock price monitoring system. When a stock price changes, you need to update multiple displays — a price chart, an alert system, a mobile notification, and a trading bot. If you wire these directly into the stock data source, you end up with tight coupling: the stock class must know about every display type, and adding a new display means modifying the stock class.
+
+The Observer pattern decouples the **publisher** (the stock price) from its **subscribers** (the displays). The stock class only knows that it has observers and can notify them. Each observer decides what to do when it receives a notification.
+
+## A Simple Implementation
+
+The Observer pattern involves two abstract roles:
+
+- **Subject** — Maintains a list of observers and notifies them of state changes
+- **Observer** — Defines an `update` method that the subject calls when notified
+
+```python
+from abc import ABC, abstractmethod
+
+class Observer(ABC):
+    @abstractmethod
+    def update(self, subject):
+        pass
+
+class Subject(ABC):
+    def __init__(self):
+        self._observers = []
+
+    def attach(self, observer: Observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+
+    def detach(self, observer: Observer):
+        self._observers.remove(observer)
+
+    def notify(self):
+        for observer in self._observers:
+            observer.update(self)
+```
+
+These abstract base classes define the interface. Concrete implementations provide the actual behavior.
+
+## A Real-World Example: News Publication
+
+Consider a news publication system where multiple channels (email, SMS, push notification) subscribe to new articles:
+
+```python
+class Article:
+    def __init__(self, title: str, content: str):
+        self.title = title
+        self.content = content
+        self.published_at = "2024-01-15"
+
+
+class NewsPublisher(Subject):
+    def __init__(self):
+        super().__init__()
+        self._articles = []
+
+    def publish_article(self, title: str, content: str):
+        article = Article(title, content)
+        self._articles.append(article)
+        print(f"NewsPublisher: New article published — '{title}'")
+        self.notify()  # Tell all subscribers
+
+    @property
+    def latest_article(self):
+        return self._articles[-1] if self._articles else None
+```
+
+Now we create concrete observers that do something useful with the notification:
+
+```python
+class EmailSubscriber(Observer):
+    def __init__(self, email: str):
+        self.email = email
+
+    def update(self, subject: NewsPublisher):
+        article = subject.latest_article
+        print(f"EmailSubscriber [{self.email}]: Sending email about '{article.title}'")
+
+
+class SMSSubscriber(Observer):
+    def __init__(self, phone: str):
+        self.phone = phone
+
+    def update(self, subject: NewsPublisher):
+        article = subject.latest_article
+        print(f"SMSSubscriber [{self.phone}]: SMS alert — '{article.title}'")
+
+
+class PushNotificationSubscriber(Observer):
+    def __init__(self, device_id: str):
+        self.device_id = device_id
+
+    def update(self, subject: NewsPublisher):
+        article = subject.latest_article
+        print(f"PushNotificationSubscriber [{self.device_id}]: Push notification for '{article.title}'")
+```
+
+Now we wire everything together:
+
+```python
+publisher = NewsPublisher()
+
+email_sub = EmailSubscriber("alice@example.com")
+sms_sub = SMSSubscriber("+1-555-0123")
+push_sub = PushNotificationSubscriber("device-abc-123")
+
+publisher.attach(email_sub)
+publisher.attach(sms_sub)
+publisher.attach(push_sub)
+
+publisher.publish_article(
+    "Python 3.12 Released",
+    "The latest Python version brings significant performance improvements."
+)
+```
+
+Output:
+
+```
+NewsPublisher: New article published — 'Python 3.12 Released'
+EmailSubscriber [alice@example.com]: Sending email about 'Python 3.12 Released'
+SMSSubscriber [+1-555-0123]: SMS alert — 'Python 3.12 Released'
+PushNotificationSubscriber [device-abc-123]: Push notification for 'Python 3.12 Released'
+```
+
+When we publish an article, all three subscribers receive the notification simultaneously. Adding a new subscriber is a single `attach` call. Removing a subscriber stops their notifications with `detach`.
+
+## Observer Pattern in GUI Frameworks
+
+The Observer pattern is the backbone of most GUI frameworks. Widgets observe model objects and re-render when the model changes:
+
+```python
+class TemperatureModel(Subject):
+    def __init__(self):
+        super().__init__()
+        self._celsius = 20.0
+
+    @property
+    def celsius(self):
+        return self._celsius
+
+    @celsius.setter
+    def celsius(self, value):
+        self._celsius = value
+        print(f"TemperatureModel: temperature changed to {value}°C")
+        self.notify()  # Notify all observers of the change
+
+
+class TemperatureDisplay(Observer):
+    def __init__(self, label: str):
+        self.label = label
+
+    def update(self, subject: TemperatureModel):
+        temp = subject.celsius
+        fahrenheit = temp * 9/5 + 32
+        print(f"{self.label}: {temp}°C = {fahrenheit:.1f}°F")
+
+
+class TemperatureAlert(Observer):
+    def __init__(self, threshold: float):
+        self.threshold = threshold
+
+    def update(self, subject: TemperatureModel):
+        if subject.celsius > self.threshold:
+            print(f"ALERT: Temperature {subject.celsius}°C exceeds threshold {self.threshold}°C")
+
+
+model = TemperatureModel()
+
+display1 = TemperatureDisplay("Kitchen")
+display2 = TemperatureDisplay("Living Room")
+alert = TemperatureAlert(threshold=30.0)
+
+model.attach(display1)
+model.attach(display2)
+model.attach(alert)
+
+print("--- Setting temperature to 25°C ---")
+model.celsius = 25
+
+print("--- Setting temperature to 35°C ---")
+model.celsius = 35
+```
+
+Output:
+
+```
+--- Setting temperature to 25°C ---
+TemperatureModel: temperature changed to 25°C
+Kitchen: 25°C = 77.0°F
+Living Room: 25°C = 77.0°F
+--- Setting temperature to 35°C ---
+TemperatureModel: temperature changed to 35°C
+Kitchen: 35°C = 95.0°F
+Living Room: 35°C = 95.0°F
+ALERT: Temperature 35.0°C exceeds threshold 30.0°C
+```
+
+The temperature model knows nothing about displays or alerts. Each observer implements its own response to a temperature change. The model simply notifies — it does not care what the observers do with the information.
+
+## Using Python's Built-in Observable Support
+
+Python does not have a built-in `Observable` class, but we can implement one concisely using a list of bound methods:
+
+```python
+class Observable:
+    def __init__(self):
+        self._observers = []
+
+    def observe(self, callback):
+        """Add a callable observer. callback receives (sender, **kwargs)."""
+        self._observers.append(callback)
+
+    def unobserve(self, callback):
+        self._observers.remove(callback)
+
+    def notify(self, **kwargs):
+        for observer in self._observers:
+            observer(self, **kwargs)
+
+
+class Document:
+    def __init__(self, title: str):
+        self.title = title
+        self.observable = Observable()
+
+    def set_title(self, title: str):
+        self.title = title
+        self.observable.notify(event="title_changed", old=self.title, new=title)
+
+
+def on_title_change(sender, **kwargs):
+    print(f"Document title changed from '{kwargs['old']}' to '{kwargs['new']}'")
+
+
+doc = Document("Draft 1")
+doc.observable.observe(on_title_change)
+
+doc.set_title("Final Draft")   # Document title changed from 'Draft 1' to 'Final Draft'
+doc.set_title("Published")    # Document title changed from 'Final Draft' to 'Published'
+```
+
+This approach uses plain callables as observers instead of classes implementing an `Observer` interface. It is more lightweight and works well for simple event systems.
+
+## When to Use the Observer Pattern
+
+The Observer pattern is the right choice when:
+
+- **Changes in one object require updating others** — And you do not know how many objects need to be updated
+- **You want to add observers at runtime** — Subscribers should be able to subscribe and unsubscribe without changing the subject
+- **You have a publish/subscribe relationship** — A subject publishes events and observers react to them
+- **You are building event-driven systems** — GUIs, real-time dashboards, trading systems, notification pipelines
+
+Watch out for memory leaks from observers that are never detached. Always call `detach` (or `unobserve`) when an observer is no longer needed, or use **weak references** to prevent the observer from keeping the subject alive.
+
+## Hands-On Exercise
+
+Build a `TaskBoard` class that acts as a Subject. It manages a list of tasks. When a task is added, completed, or removed, it notifies all observers. Create three observers:
+
+- `TaskLogger` — Logs every task event with a timestamp
+- `TaskCounter` — Tracks how many tasks have been added and completed
+- `TaskCompletor` — Automatically marks a task as complete if its name contains the word "urgent"
+
+```python
+class Task:
+    def __init__(self, title: str):
+        self.title = title
+        self.completed = False
+
+
+class TaskBoard(Subject):
+    # Maintain a list of tasks and notify observers on changes
+    pass
+
+
+class TaskLogger(Observer):
+    def update(self, subject: TaskBoard):
+        # Log the most recent event and timestamp
+        pass
+
+
+class TaskCounter(Observer):
+    # Track total tasks added and total completed
+    pass
+
+
+class TaskCompletor(Observer):
+    # Auto-complete tasks with "urgent" in the title
+    pass
+```
+
+Use your task board:
+
+```python
+board = TaskBoard()
+board.attach(TaskLogger())
+board.attach(TaskCounter())
+board.attach(TaskCompletor())
+
+board.add_task("Fix login bug")
+board.add_task("URGENT: Deploy hotfix")
+board.complete_task("Fix login bug")
+```
+
+Expected output (partial): "URGENT: Deploy hotfix" should be auto-completed when added due to the word "URGENT".
+
+## Summary
+
+- The Observer pattern creates a one-to-many dependency where a subject notifies observers when its state changes
+- Observers attach to the subject to receive updates and detach when they no longer need them
+- It is the foundation of event-driven programming and decouples the subject from its observers
+- Python's flexibility lets you implement observers as classes, functions, or bound methods
+
+For another pattern that manages state transitions, see the [Strategy and State patterns](./strategy-state.mdx) section, which handles behavior that changes based on internal conditions.

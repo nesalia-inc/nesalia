@@ -1,0 +1,243 @@
+---
+title: "AsyncIO Fundamentals"
+description: "Learn the event loop, coroutines, and cooperative multitasking model that powers asyncio in Python."
+order: 3
+---
+
+# AsyncIO Fundamentals
+
+Asyncio is Python's built-in library for writing concurrent code using a single-threaded event loop. Instead of using threads or processes, asyncio uses cooperative multitasking where tasks voluntarily yield control back to the event loop. This model is highly efficient for I/O-bound tasks because the event loop can run thousands of coroutines concurrently on one thread while threads are blocked on I/O.
+
+## The Event Loop
+
+The event loop is the core of asyncio. It runs continuously, checking for events (like I/O readiness or timers) and dispatching callbacks or coroutines. You rarely need to create your own event loop in modern Python because `asyncio.run()` manages it for you:
+
+```python
+import asyncio
+
+async def main():
+    print("Hello from asyncio")
+    await asyncio.sleep(1)
+    print("Goodbye from asyncio")
+
+asyncio.run(main())
+```
+
+`asyncio.run()` creates a new event loop, runs the `main()` coroutine, and closes the loop when the coroutine completes. The `await asyncio.sleep(1)` call is non-blocking: while the sleep is pending, the event loop can run other coroutines.
+
+## Defining Coroutines with async def
+
+A **coroutine** is a function defined with `async def`. Calling an async function returns a coroutine object, not a result. To execute a coroutine, you must `await` it (or pass it to `asyncio.create_task()`):
+
+```python
+import asyncio
+
+async def say_hello():
+    print("Hello!")
+
+async def main():
+    # Calling say_hello() does NOT execute it - it returns a coroutine object
+    coro = say_hello()
+    print(f"Coroutine object: {coro}")
+    print(f"Type: {type(coro)}")
+
+    # await executes the coroutine and returns the result
+    await coro
+    print("Done")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+Coroutine object: <coroutine object say_hello at 0x...>
+Type: <class 'coroutine'>
+Done
+Hello!
+```
+
+The coroutine does not run until it is awaited. This lazy evaluation is fundamental: you can inspect and pass around coroutine objects before they execute.
+
+## Awaiting Multiple Coroutines
+
+`asyncio.gather()` runs multiple coroutines concurrently and waits for all to complete:
+
+```python
+import asyncio
+import time
+
+async def fetch_data(name, delay):
+    print(f"{name} starting")
+    await asyncio.sleep(delay)
+    print(f"{name} done")
+    return f"{name} result"
+
+async def main():
+    start = time.time()
+    results = await asyncio.gather(
+        fetch_data("task1", 2),
+        fetch_data("task2", 1),
+        fetch_data("task3", 3),
+    )
+    elapsed = time.time() - start
+    print(f"All done in {elapsed:.2f}s: {results}")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+task1 starting
+task2 starting
+task3 starting
+task2 done
+task1 done
+task3 done
+All done in 3.02s: ['task1 result', 'task2 result', 'task3 result']
+```
+
+Tasks 1 and 2 start together. Task 2 finishes at 1 second, then task 1 at 2 seconds, then task 3 at 3 seconds. The total time is 3 seconds (the longest task), not 6 seconds. `asyncio.gather()` runs all coroutines concurrently on the same thread.
+
+## Running Tasks with asyncio.create_task
+
+`asyncio.create_task()` schedules a coroutine to run as a Task on the event loop, allowing other coroutines to run concurrently with it:
+
+```python
+import asyncio
+
+async def long_task(n):
+    print(f"Task {n} starting")
+    await asyncio.sleep(2)
+    print(f"Task {n} done")
+    return n
+
+async def main():
+    # Schedule tasks but do not await them yet
+    task1 = asyncio.create_task(long_task(1))
+    task2 = asyncio.create_task(long_task(2))
+
+    print("Tasks scheduled, doing other work...")
+
+    # Now await both
+    result1 = await task1
+    result2 = await task2
+
+    print(f"Results: {result1}, {result2}")
+
+asyncio.run(main())
+```
+
+`create_task()` returns a `Task` object immediately. The tasks start running in the background as soon as the event loop gets a chance to run them. When we `await` the task later, we get its return value. This pattern separates scheduling from result collection.
+
+## Waiting with asyncio.sleep
+
+`asyncio.sleep()` yields control back to the event loop, allowing other coroutines to run. This is the cooperative part of cooperative multitasking:
+
+```python
+import asyncio
+
+async def task_a():
+    print("A start")
+    await asyncio.sleep(0)  # Yield to event loop immediately
+    print("A middle")
+    await asyncio.sleep(0)
+    print("A end")
+
+async def task_b():
+    print("B start")
+    await asyncio.sleep(0)
+    print("B end")
+
+async def main():
+    await asyncio.gather(task_a(), task_b())
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+A start
+B start
+A middle
+A end
+B end
+```
+
+`asyncio.sleep(0)` is a yield point that runs other pending coroutines before continuing. This is the mechanism that makes cooperative multitasking work: when you await a sleep (or any other awaitable), you give the event loop a chance to run other tasks.
+
+## The asyncio.Queue for Producer-Consumer Patterns
+
+`asyncio.Queue` provides an async-compatible queue for producer-consumer patterns:
+
+```python
+import asyncio
+
+async def producer(queue, count):
+    for i in range(count):
+        await queue.put(i)
+        print(f"Produced: {i}")
+    await queue.put(None)  # Sentinel
+
+async def consumer(queue, name):
+    while True:
+        item = await queue.get()
+        if item is None:
+            break
+        print(f"{name} consumed: {item}")
+        await asyncio.sleep(0.1)
+
+async def main():
+    queue = asyncio.Queue()
+
+    await asyncio.gather(
+        producer(queue, 5),
+        consumer(queue, "worker1"),
+        consumer(queue, "worker2"),
+    )
+
+asyncio.run(main())
+```
+
+Multiple consumers can `await queue.get()` simultaneously, and producers can `await queue.put()` without blocking the event loop. This pattern scales to thousands of concurrent operations.
+
+## Blocking the Event Loop: run_in_executor
+
+You cannot use synchronous blocking code in an async function because it blocks the event loop. If you need to run blocking code (like CPU-intensive work or synchronous I/O), use `asyncio.run_in_executor()` to run it in a thread pool:
+
+```python
+import asyncio
+import time
+
+def blocking_task():
+    """A CPU-bound task that blocks."""
+    time.sleep(1)
+    return 42
+
+async def main():
+    start = time.time()
+
+    # Run blocking task in a thread pool
+    result = await asyncio.run_in_executor(None, blocking_task)
+
+    elapsed = time.time() - start
+    print(f"Result: {result}, time: {elapsed:.2f}s")
+
+asyncio.run(main())
+```
+
+`run_in_executor(None, func)` uses the default `ThreadPoolExecutor` to run `blocking_task` in a thread. The async function `main()` is not blocked while the thread runs. For true CPU parallelism, use `ProcessPoolExecutor` with `run_in_executor`.
+
+## Summary
+
+- The event loop runs continuously, driving coroutines that await I/O or yield control cooperatively
+- Coroutines are functions defined with `async def`; they return coroutine objects that must be awaited to execute
+- `asyncio.gather()` runs multiple coroutines concurrently and waits for all to complete
+- `asyncio.create_task()` schedules a coroutine to run on the event loop without blocking
+- `asyncio.sleep()` yields control, allowing other coroutines to run; `asyncio.sleep(0)` is an immediate yield point
+- `asyncio.Queue` provides a thread-safe, async-compatible queue for producer-consumer patterns
+- Use `run_in_executor()` to run blocking code (like synchronous I/O or CPU-bound work) in a thread or process pool
+- For true parallelism on CPU-bound tasks, combine asyncio with `run_in_executor(ProcessPoolExecutor)` or use `multiprocessing` directly (see [Multiprocessing](/courses/advanced-python/concurrency-and-parallelism/multiprocessing))
+- To understand `await`, `async def`, and `Task` in depth, continue to the next section: [await, async def, and Task](/courses/advanced-python/concurrency-and-parallelism/await-async-task)

@@ -1,0 +1,243 @@
+---
+title: "Dunder Methods"
+description: "Master Python's special methods (dunder methods) including __str__, __repr__, __eq__, __hash__, __len__, __iter__, and operators to make your custom classes behave like built-in types."
+order: 6
+---
+
+# Dunder Methods
+
+Dunder methods — short for "double underscore" methods — are special methods that Python calls automatically in response to certain operations. They allow your custom objects to behave like built-in types, supporting syntax such as `print()`, equality comparisons, iteration, and arithmetic operators.
+
+## What Dunder Methods Are
+
+Dunder methods have names surrounded by double underscores, such as `__init__`, `__str__`, and `__add__`. You do not call them directly by name; Python invokes them automatically when your object is used in specific contexts.
+
+```python
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Point({self.x}, {self.y})"
+
+    def __str__(self):
+        return f"({self.x}, {self.y})"
+
+p = Point(3, 4)
+print(p)              # Calls __str__: (3, 4)
+print(repr(p))        # Calls __repr__: Point(3, 4)
+```
+
+When you call `print(p)`, Python invokes `p.__str__()`. When you call `repr(p)`, Python invokes `p.__repr__()`.
+
+## __repr__ vs __str__ (Debug vs Display)
+
+Both `__repr__` and `__str__` produce string representations, but they serve different purposes:
+
+- `__repr__` is for developers — it should be unambiguous and ideally allow you to recreate the object. Called by `repr()` and in interactive sessions.
+- `__str__` is for end users — it should be readable and human-friendly. Called by `str()` and `print()`.
+
+```python
+from datetime import datetime
+
+now = datetime(2024, 1, 15, 10, 30, 0)
+
+print(str(now))    # 2024-01-15 10:30:00 (human-readable)
+print(repr(now))   # datetime.datetime(2024, 1, 15, 10, 30, 0) (unambiguous, recreatable)
+```
+
+If you define only `__repr__` and not `__str__`, Python falls back to `__repr__` for string conversion. If you define only `__repr__`, it works everywhere. Always define `__repr__` for any class you create.
+
+```python
+class Book:
+    def __init__(self, title, author, isbn):
+        self.title = title
+        self.author = author
+        self.isbn = isbn
+
+    def __repr__(self):
+        return f"Book(title={self.title!r}, author={self.author!r}, isbn={self.isbn!r})"
+
+    def __str__(self):
+        return f'"{self.title}" by {self.author}'
+
+book = Book("1984", "George Orwell", "978-0-451-52493-5")
+print(repr(book))  # Book(title='1984', author='George Orwell', isbn='978-0-451-52493-5')
+print(str(book))   # "1984" by George Orwell
+```
+
+The `!r` format specifier in f-strings calls `repr()` on the value, which is useful inside `__repr__` to properly quote strings.
+
+## __eq__ and __hash__ (Must Be Consistent)
+
+The `__eq__` method defines equality comparison (`==`), and `__hash__` defines how objects can be used as dictionary keys and set members. These two methods must be consistent: if two objects are equal, they must have the same hash value.
+
+```python
+class Color:
+    def __init__(self, r, g, b):
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def __eq__(self, other):
+        if not isinstance(other, Color):
+            return NotImplemented
+        return (self.r, self.g, self.b) == (other.r, other.g, other.b)
+
+    def __hash__(self):
+        return hash((self.r, self.g, self.b))
+
+c1 = Color(255, 0, 0)
+c2 = Color(255, 0, 0)
+c3 = Color(0, 255, 0)
+
+print(c1 == c2)  # True (same RGB values)
+print(c1 == c3)  # False
+
+# Hash consistency
+print(hash(c1) == hash(c2))  # True — equal objects have equal hashes
+
+# Usable in sets and dicts
+color_set = {c1, c2, c3}
+print(len(color_set))  # 2 (c1 and c2 are the same object)
+```
+
+If you define `__eq__` but not `__hash__`, your class becomes unhashable (it cannot be used in sets or as dictionary keys). This happens because Python assumes that if you customize equality, you might have mutable objects that should not be hashable.
+
+If you want a class to be mutable but still hashable (for use in sets), you must implement both `__eq__` and `__hash__` carefully, typically by hashing only the immutable identity of the object.
+
+## __len__ and __iter__ for Container Protocols
+
+The `__len__` method enables the built-in `len()` function, and `__iter__` enables iteration over your object. Together, they make your class behave like a container.
+
+```python
+class Stack:
+    def __init__(self):
+        self._items = []
+
+    def push(self, item):
+        self._items.append(item)
+
+    def pop(self):
+        if not self._items:
+            raise IndexError("pop from empty stack")
+        return self._items.pop()
+
+    def __len__(self):
+        return len(self._items)
+
+    def __iter__(self):
+        return iter(reversed(self._items))  # Top of stack first
+
+    def __repr__(self):
+        return f"Stack({self._items!r})"
+
+stack = Stack()
+stack.push(1)
+stack.push(2)
+stack.push(3)
+
+print(len(stack))  # 3
+
+for item in stack:
+    print(item)  # 3, 2, 1 (top to bottom)
+
+print(list(stack))  # [3, 2, 1]
+```
+
+With `__len__`, you can use `len(stack)`. With `__iter__`, you can use `stack` in `for` loops and convert it to a list with `list(stack)`.
+
+## __add__ and Other Operators
+
+Python supports a wide range of dunder methods for operator overloading. Here are the most common ones:
+
+```python
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Vector({self.x}, {self.y})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Vector):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
+
+    def __add__(self, other):
+        if not isinstance(other, Vector):
+            return NotImplemented
+        return Vector(self.x + other.x, self.y + other.y)
+
+    def __mul__(self, scalar):
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return Vector(self.x * scalar, self.y * scalar)
+
+    def __rmul__(self, scalar):
+        return self.__mul__(scalar)  # Handles 3 * vector
+
+    def __abs__(self):
+        return (self.x ** 2 + self.y ** 2) ** 0.5
+
+    def __bool__(self):
+        return bool(abs(self))  # Non-zero vector is truthy
+
+v1 = Vector(3, 4)
+v2 = Vector(1, 2)
+
+print(v1 + v2)       # Vector(4, 6) — uses __add__
+print(v1 * 3)        # Vector(9, 12) — uses __mul__
+print(3 * v2)        # Vector(3, 6) — uses __rmul__
+print(abs(v1))       # 5.0 — uses __abs__
+print(bool(v1))      # True — uses __bool__
+print(bool(Vector(0, 0)))  # False
+```
+
+Key methods:
+- `__add__` for `+`
+- `__sub__` for `-`
+- `__mul__` for `*`
+- `__rmul__` for right-hand multiplication (`3 * v`)
+- `__truediv__` for `/`
+- `__abs__` for `abs()`
+- `__bool__` for truthiness (if not defined, uses `__len__` returning non-zero)
+- `__neg__` for unary `-`
+
+Returning `NotImplemented` from comparison or arithmetic operators tells Python to try the reflected operation on the other operand.
+
+## Hands-On Exercise
+
+Create a `Fraction` class that represents a rational number as a numerator and denominator. Implement the following dunder methods:
+
+1. `__repr__` — returns something like `Fraction(1, 2)`
+2. `__str__` — returns something like `1/2`
+3. `__eq__` — compares fractions by cross-multiplying (a/b == c/d iff a*d == b*c)
+4. `__add__` — adds two fractions: a/b + c/d = (a*d + b*c) / (b*d)
+5. `__mul__` — multiplies two fractions: (a/b) * (c/d) = (a*c) / (b*d)
+6. `__abs__` — returns the absolute value of the fraction
+
+Ensure fractions are always stored in lowest terms (gcd of numerator and denominator is 1). The denominator should always be positive.
+
+```python
+import math
+
+class Fraction:
+    def __init__(self, numerator, denominator=1):
+        if denominator == 0:
+            raise ValueError("Denominator cannot be zero")
+        # Normalize sign: store negative numerator if denominator is negative
+        if denominator < 0:
+            numerator = -numerator
+            denominator = -denominator
+        # Reduce to lowest terms
+        g = math.gcd(abs(numerator), denominator)
+        self.numerator = numerator // g
+        self.denominator = denominator // g
+
+    # Implement dunder methods here
+```
+
+Dunder methods are the key to making your custom classes feel like native Python objects. By implementing the right special methods, you give your objects the same syntactic sugar that built-in types enjoy.

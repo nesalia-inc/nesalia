@@ -1,0 +1,243 @@
+---
+title: "TypedDict"
+description: "Define structured dictionaries with specific key and value types using TypedDict. Learn how to require specific keys, set optional keys, and use total versus partial typing."
+order: 4
+---
+
+# TypedDict
+
+`TypedDict` lets you annotate dictionaries where each key has a known type. Instead of using a generic `Dict[str, Any]`, you declare the exact structure of expected keys and their value types, enabling type checkers to verify dictionary access.
+
+## Why TypedDict
+
+A regular `Dict[str, Any]` accepts any key and any value, providing no type safety:
+
+```python
+def process_user(user: dict[str, Any]) -> None:
+    name = user["name"].upper()  # Risky — no guarantee "name" exists or is a string
+
+# Type checker cannot catch misuse:
+process_user({"name": "Alice", "age": 30})  # Works
+process_user({"users": [], "count": "abc"})  # No error, but wrong structure
+```
+
+`TypedDict` makes the expected shape explicit:
+
+```python
+from typing import TypedDict
+
+class User(TypedDict):
+    name: str
+    age: int
+    email: str
+
+def process_user(user: User) -> None:
+    # Type checker now knows:
+    # - user["name"] is str
+    # - user["age"] is int
+    # - user["email"] is str
+    print(f"{user['name']} ({user['age']}) at {user['email']}")
+
+alice: User = {"name": "Alice", "age": 30, "email": "alice@example.com"}
+process_user(alice)
+```
+
+A type checker verifies that `alice` has all the required keys with the correct types.
+
+## Required and Optional Keys
+
+By default, all keys in a `TypedDict` are required. You can mark keys as optional by inheriting from `TypedDict` and using `NotRequired`:
+
+```python
+from typing import TypedDict, NotRequired
+
+class Config(TypedDict):
+    host: str
+    port: int
+    debug: NotRequired[bool]      # Optional — can be omitted
+    timeout: NotRequired[int]     # Optional — can be omitted
+    max_retries: NotRequired[int] # Optional — can be omitted
+
+def connect(config: Config) -> None:
+    host = config["host"]
+    port = config["port"]
+    debug = config.get("debug", False)  # Safe access with default
+    print(f"Connecting to {host}:{port} (debug={debug})")
+
+# All required keys must be present:
+valid_config: Config = {"host": "localhost", "port": 5432}
+valid_config_with_optional = {"host": "db.example.com", "port": 5432, "debug": True, "timeout": 30}
+```
+
+If you pass a `Config` missing the required `host` or `port` keys, the type checker reports an error.
+
+## Making All Keys Optional with Total
+
+`TypedDict` accepts a `total` parameter. When `total=False`, all keys become optional:
+
+```python
+from typing import TypedDict
+
+class PartialUser(TypedDict, total=False):
+    name: str
+    age: int
+    email: str
+
+# All keys are optional — any combination is valid
+a: PartialUser = {}
+b: PartialUser = {"name": "Bob"}
+c: PartialUser = {"name": "Carol", "email": "carol@example.com"}
+```
+
+Mixing required and optional keys requires `NotRequired` for optional fields and the default (required) behavior for required fields.
+
+## TypedDict with Literal Values
+
+TypedDict pairs well with `Literal` to restrict string values to specific options:
+
+```python
+from typing import TypedDict, Literal
+
+class Payment(TypedDict):
+    method: Literal["credit_card", "debit_card", "paypal", "bank_transfer"]
+    amount: float
+    currency: str
+
+def process_payment(payment: Payment) -> None:
+    print(f"Processing {payment['amount']} {payment['currency']} via {payment['method']}")
+
+payment: Payment = {
+    "method": "paypal",
+    "amount": 49.99,
+    "currency": "USD",
+}
+process_payment(payment)
+```
+
+Passing an invalid `method` like `"cash"` would produce a type error, since only the four listed literals are accepted.
+
+## TypedDict Inheritance
+
+TypedDict supports inheritance. Subclasses can add new keys or override existing ones:
+
+```python
+from typing import TypedDict
+
+class BasePerson(TypedDict):
+    name: str
+    age: int
+
+class Employee(BasePerson):
+    department: str
+    salary: float
+
+# Employee has name, age, department, and salary
+emp: Employee = {
+    "name": "Dave",
+    "age": 35,
+    "department": "Engineering",
+    "salary": 95000.0,
+}
+```
+
+A subclass can also make inherited keys optional by redeclaring them with `NotRequired`:
+
+```python
+from typing import TypedDict, NotRequired
+
+class Person(TypedDict):
+    name: str
+    age: int
+
+class OptionalPerson(Person):
+    nickname: NotRequired[str]  # Added key, optional
+
+# name and age are still required; nickname is optional
+a: OptionalPerson = {"name": "Eve", "age": 28}
+b: OptionalPerson = {"name": "Frank", "age": 40, "nickname": "Frankie"}
+```
+
+## Class-Based Syntax
+
+There is also a class-based syntax that some developers find more readable:
+
+```python
+from typing import TypedDict
+
+class Address(TypedDict):
+    street: str
+    city: str
+    zip_code: str
+    country: str = "USA"  # Default value syntax is NOT supported in TypedDict
+
+# This is equivalent to the functional approach:
+AddressFunctional: TypedDict = TypedDict("AddressFunctional", {
+    "street": str,
+    "city": str,
+    "zip_code": str,
+})
+```
+
+Note that default values are not supported in `TypedDict` class syntax. Use `NotRequired` for optional keys instead.
+
+## Real-World Example
+
+A REST API response structure is a common use case:
+
+```python
+from typing import TypedDict, NotRequired, List
+
+class Address(TypedDict):
+    street: str
+    city: str
+    country: str
+
+class OrderLineItem(TypedDict):
+    product_id: str
+    quantity: int
+    unit_price: float
+
+class Order(TypedDict):
+    order_id: str
+    customer_name: str
+    shipping_address: Address
+    items: List[OrderLineItem]
+    notes: NotRequired[str]
+    discount_code: NotRequired[str]
+
+def print_order(order: Order) -> None:
+    total = sum(item["quantity"] * item["unit_price"] for item in order["items"])
+    print(f"Order {order['order_id']} for {order['customer_name']}")
+    print(f"Shipping to: {order['shipping_address']['city']}, {order['shipping_address']['country']}")
+    print(f"Total: ${total:.2f}")
+    if "notes" in order:
+        print(f"Notes: {order['notes']}")
+```
+
+TypedDict definitions become living documentation for the expected shape of complex data. They are frequently paired with `NewType` for strong typing on field values, as covered in the [Type Aliases and NewType](/courses/advanced-python/type-aliases-newtype) chapter.
+
+## Hands-On Exercise
+
+Define a `Movie` TypedDict with these fields:
+
+- `title: str` (required)
+- `year: int` (required)
+- `director: str` (required)
+- `rating: float` (required)
+- `genres: list[str]` (required)
+- `sequel_id: str | None` (optional — the ID of the next movie, if any)
+- `budget: int` (optional — budget in USD)
+
+Then write a function `summarize_movie` that accepts a `Movie` and prints a formatted summary line like: "Inception (2010) directed by Christopher Nolan — Rating: 8.8/10"
+
+```python
+from typing import TypedDict, NotRequired, List
+
+class Movie(TypedDict):
+    # Define your fields here
+    pass
+
+def summarize_movie(movie: Movie) -> None:
+    # Your implementation here
+    pass
+```

@@ -1,0 +1,204 @@
+---
+title: "Concurrent.futures"
+description: "Simplify concurrency with ThreadPoolExecutor and ProcessPoolExecutor from the concurrent.futures module."
+order: 5
+---
+
+# Concurrent.futures
+
+`concurrent.futures` provides a high-level interface for running concurrent tasks. It wraps `threading` and `multiprocessing` behind a simple `Executor` API, making it easy to parallelize work without managing threads or processes directly.
+
+## ThreadPoolExecutor for I/O-Bound Tasks
+
+`ThreadPoolExecutor` manages a pool of threads and distributes work across them. Since threads release the GIL during I/O, this is effective for I/O-bound tasks:
+
+```python
+import concurrent.futures
+import requests
+
+def fetch_url(url):
+    """Fetch a URL and return its length."""
+    response = requests.get(url, timeout=5)
+    return f"{url}: {len(response.text)} chars"
+
+urls = [
+    "http://example.com",
+    "http://httpbin.org/get",
+    "http://httpbin.org/ip",
+]
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+    # map() returns results in order as they complete
+    for result in executor.map(fetch_url, urls):
+        print(result)
+```
+
+`executor.map()` submits each URL to the thread pool and yields results as they complete. The max_workers argument limits concurrent threads. In this example, 3 threads each fetch a URL concurrently, so the total time is roughly the time of the slowest fetch, not the sum of all fetch times.
+
+## ProcessPoolExecutor for CPU-Bound Tasks
+
+`ProcessPoolExecutor` manages a pool of processes, each with its own Python interpreter and GIL. This provides true parallelism for CPU-bound tasks:
+
+```python
+import concurrent.futures
+import math
+
+def is_prime(n):
+    """Check if n is prime."""
+    if n < 2:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def count_primes_in_range(start, end):
+    """Count primes in a range."""
+    return sum(1 for n in range(start, end) if is_prime(n))
+
+if __name__ == "__main__":
+    ranges = [(0, 100000), (100000, 200000), (200000, 300000), (300000, 400000)]
+
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        results = executor.map(count_primes_in_range, ranges)
+
+    total = sum(results)
+    print(f"Total primes: {total}")
+```
+
+Each range is processed by a separate process. Since the function `count_primes_in_range` is CPU-bound and runs in separate processes, they all compute simultaneously on multiple CPU cores.
+
+## submit() for Individual Task Submission
+
+`executor.submit()` submits a single callable and returns a `Future` object. Use `submit()` when tasks have different arguments or you need to handle results individually:
+
+```python
+import concurrent.futures
+import time
+
+def cpu_intensive(n):
+    total = sum(i ** 2 for i in range(10_000_000))
+    return f"Task {n} done"
+
+with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    futures = {executor.submit(cpu_intensive, i): i for i in range(4)}
+
+    for future in concurrent.futures.as_completed(futures):
+        task_id = futures[future]
+        try:
+            result = future.result()
+            print(f"Task {task_id}: {result}")
+        except Exception as e:
+            print(f"Task {task_id} failed: {e}")
+```
+
+`as_completed()` yields futures as they finish, which is more efficient than waiting for all to complete when order does not matter. The `submit()` pattern is useful when tasks have different sizes or when you want to process results as soon as they are ready.
+
+## Mixing Threads and Processes
+
+For applications that have both I/O-bound and CPU-bound components, you can use both `ThreadPoolExecutor` and `ProcessPoolExecutor`:
+
+```python
+import concurrent.futures
+import time
+
+def io_bound_work(n):
+    time.sleep(0.5)
+    return f"I/O task {n}"
+
+def cpu_bound_work(n):
+    return sum(i ** 2 for i in range(5_000_000))
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=4) as thread_executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=2) as process_executor:
+        # Submit I/O work to thread pool
+        io_future = thread_executor.submit(io_bound_work, 1)
+
+        # Submit CPU work to process pool
+        cpu_future = process_executor.submit(cpu_bound_work, 1)
+
+        print(f"I/O result: {io_future.result()}")
+        print(f"CPU result: {cpu_future.result()}")
+```
+
+I/O-bound work runs in threads (which release the GIL during sleep), and CPU-bound work runs in separate processes (which bypass the GIL entirely). This hybrid approach matches the right concurrency model to each type of work.
+
+## ThreadPoolExecutor with Async
+
+`concurrent.futures` integrates well with `asyncio`. Use `run_in_executor()` to bridge the async world with thread pools:
+
+```python
+import asyncio
+import concurrent.futures
+import time
+
+def blocking_task(n):
+    """A blocking function that we want to run in a thread pool."""
+    time.sleep(0.5)
+    return n * 2
+
+async def main():
+    loop = asyncio.get_event_loop()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
+        tasks = [
+            loop.run_in_executor(pool, blocking_task, i)
+            for i in range(4)
+        ]
+        results = await asyncio.gather(*tasks)
+        print(f"Results: {results}")
+
+asyncio.run(main())
+```
+
+`run_in_executor()` wraps the blocking function in a Future and submits it to the thread pool. Since it returns an awaitable, we can `await asyncio.gather()` to wait for all results. This bridge lets you combine async code with existing synchronous libraries.
+
+## Futures: The Underlying Abstraction
+
+A `Future` represents the result of an asynchronous operation. Both `ThreadPoolExecutor` and `ProcessPoolExecutor` return Futures. Key Future methods:
+
+```python
+future = executor.submit(work, arg)
+# result() - blocks until complete, then returns the result
+result = future.result()
+
+# done() - returns True if the future has completed (successfully or with an error)
+if future.done():
+    print(f"Result: {future.result()}")
+
+# cancelled() - returns True if the future was cancelled before completing
+if future.cancelled():
+    print("Task was cancelled")
+```
+
+You rarely need to interact with Futures directly when using `executor.map()` or `asyncio.gather()`, but understanding that all parallel work returns Futures helps when debugging or writing lower-level code.
+
+## Error Handling with Futures
+
+When a callable submitted to an Executor raises an exception, the exception is stored in the Future and re-raised by `future.result()`:
+
+```python
+import concurrent.futures
+
+def failing_task():
+    raise ValueError("Task failed")
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    future = executor.submit(failing_task)
+
+    try:
+        future.result()
+    except ValueError as e:
+        print(f"Caught exception: {e}")
+```
+
+The exception from the worker thread is captured and re-raised in the main thread when `result()` is called. This works the same way for `ProcessPoolExecutor`, where the exception is serialized across the process boundary.
+
+## Summary
+
+- `ThreadPoolExecutor` manages a pool of threads for I/O-bound tasks; threads release the GIL during I/O waits
+- `ProcessPoolExecutor` manages a pool of processes for CPU-bound tasks; processes bypass the GIL for true parallelism
+- `executor.map()` is the simplest way to distribute work and collect results in order
+- `executor.submit()` returns a `Future` for individual task submission, and `as_completed()` yields futures as they finish
+- `run_in_executor()` bridges synchronous blocking code into the async world
+- A `Future` represents an asynchronous result; calling `result()` blocks until the task completes and then returns the result or raises the captured exception
+- See [Exception Groups and TaskGroup](/courses/advanced-python/concurrency-and-parallelism/exception-groups-taskgroup) for Python 3.11+ exception handling in async contexts

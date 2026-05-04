@@ -1,0 +1,199 @@
+---
+title: "Understanding __init__, __new__, __call__"
+description: "Learn how Python controls instance creation with __new__, initialization with __init__, and how to make objects callable using __call__."
+order: 1
+---
+
+# Understanding __init__, __new__, __call__
+
+When you create an object in Python, a series of methods are invoked behind the scenes to bring that object into existence. Most developers are familiar with `__init__`, which sets up the object's initial state. But Python also provides `__new__` for controlling instance creation and `__call__` to make objects behave like functions. These three special methods give you complete control over the object lifecycle.
+
+## The Object Creation Pipeline
+
+Understanding how objects are created helps you know when to reach for each method. When you write `MyClass(arg)`, Python performs these steps:
+
+1. Python calls `__new__` to create a fresh instance
+2. Python calls `__init__` to initialize that instance with the arguments
+
+The `__new__` method creates and returns the instance. The `__init__` method then receives that instance and sets up its attributes. This two-step process is why `__init__` is not technically a constructor — it is an initializer.
+
+## Controlling Instance Creation with `__new__`
+
+The `__new__` method is called before an object is created. Its job is to create and return a new instance of the class. While `__init__` initializes an instance, `__new__` actually creates it.
+
+The `__new__` method receives the class itself as its first argument (conventionally named `cls`), along with any other arguments passed to the constructor. It must return the new instance:
+
+```python
+class Vector:
+    def __new__(cls, x, y):
+        instance = super().__new__(cls)
+        return instance
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+v = Vector(3, 4)
+print(f"Vector: ({v.x}, {v.y})")
+```
+
+Output:
+
+```
+Vector: (3, 4)
+```
+
+In this example, `__new__` creates a new instance using `super().__new__(cls)`, which delegates to the parent class's `__new__` method. The `__init__` method then receives the x and y values to store them as attributes. Most of the time, you do not need to override `__new__` because the default implementation works correctly for nearly all cases.
+
+## Initializing Instances with `__init__`
+
+The `__init__` method is the most common special method in Python. It is called after an instance is created and is responsible for initializing the instance with its starting values. When people say "constructor," they usually mean `__init__`, even though technically `__new__` is the constructor.
+
+The `__init__` method receives the instance (self) and any arguments passed when creating the object:
+
+```python
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+        print(f"Creating Person: {self.name}, age {self.age}")
+
+
+person = Person("Alice", 30)
+print(f"Person's name: {person.name}")
+```
+
+Output:
+
+```
+Creating Person: Alice, age 30
+Person's name: Alice
+```
+
+When `Person("Alice", 30)` is called, Python first calls `__new__` to create the instance, then calls `__init__` with the remaining arguments. The `__init__` method then sets up the instance attributes. Note that `__init__` should not return anything (except `None`); returning a non-None value will raise a TypeError.
+
+## Making Objects Callable with `__call__`
+
+The `__call__` method lets you treat an instance like a function. When you call an instance by using parentheses after it, Python invokes the `__call__` method. This is useful when you want an object to behave like a function while also storing state.
+
+Imagine you need a function that multiplies a number by a fixed factor. Instead of using a global variable, you can create a callable object that stores the factor:
+
+```python
+class Multiplier:
+    def __init__(self, factor):
+        self.factor = factor
+
+    def __call__(self, value):
+        return value * self.factor
+
+
+double = Multiplier(2)
+triple = Multiplier(3)
+
+print(f"Double 5: {double(5)}")
+print(f"Triple 5: {triple(5)}")
+print(f"Double 10: {double(10)}")
+```
+
+Output:
+
+```
+Double 5: 10
+Triple 5: 15
+Double 10: 20
+```
+
+The `double` object is an instance of `Multiplier` with a factor of 2. When we write `double(5)`, Python calls `double.__call__(5)`, which returns `5 * 2 = 10`. The instance remembers its factor (2 or 3), which is state that a regular function would need to store elsewhere. Callable objects are useful for creating function-like objects with persistent state, callback handlers, and scenarios where you need to configure behavior before passing it to another function.
+
+## The Difference Between `__new__` and `__init__`
+
+The key difference is that `__new__` creates and returns the instance, while `__init__` initializes the instance that `__new__` already created. `__new__` is called first, then `__init__`.
+
+Here is a practical example showing when you might use `__new__` to return a different object:
+
+```python
+class Singleton:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, value):
+        if not hasattr(self, 'value'):
+            self.value = value
+
+
+obj1 = Singleton(42)
+obj2 = Singleton(99)
+
+print(f"obj1.value: {obj1.value}")
+print(f"obj2.value: {obj2.value}")
+print(f"obj1 is obj2: {obj1 is obj2}")
+```
+
+Output:
+
+```
+obj1.value: 42
+obj2.value: 42
+obj1 is obj2: True
+```
+
+Even though we tried to create two `Singleton` objects with different values (42 and 99), we only get one object. The second call to `Singleton(99)` returns the same instance as the first call, and `__init__` does not overwrite the original value because the instance already has the `value` attribute.
+
+## Practical Example: The Singleton Pattern
+
+A singleton is a design pattern where a class has only one instance throughout the program. This is useful for things like database connections or configuration objects where you want exactly one shared instance.
+
+Here is a more complete singleton implementation using `__new__`:
+
+```python
+class DatabaseConnection:
+    _instance = None
+    _connection_string = None
+
+    def __new__(cls, connection_string=None):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        if connection_string is not None:
+            cls._connection_string = connection_string
+        return cls._instance
+
+    def __init__(self, connection_string=None):
+        pass
+
+    def connect(self):
+        return f"Connected to {self._connection_string}"
+
+    def query(self, sql):
+        return f"Executing: {sql}"
+
+
+db1 = DatabaseConnection("postgresql://localhost/mydb")
+db2 = DatabaseConnection("mysql://localhost/otherdb")
+
+print(f"db1 connection: {db1.connect()}")
+print(f"db2 connection: {db2.connect()}")
+print(f"Same instance: {db1 is db2}")
+```
+
+Output:
+
+```
+db1 connection: Connected to postgresql://localhost/mydb
+db2 connection: Connected to postgresql://localhost/mydb
+Same instance: True
+```
+
+The `DatabaseConnection` class uses `__new__` to ensure only one instance exists. The first call with "postgresql://localhost/mydb" creates the instance. The second call tries to pass "mysql://localhost/otherdb", but since an instance already exists, `__new__` simply returns it without updating the connection string. Both `db1` and `db2` refer to the same object, and the second connection string is ignored.
+
+## This Connects To
+
+- `__slots__` (covered in the next section) works alongside these creation methods to control memory usage
+- Metaclasses extend the `__new__` and `__init__` concept to the class level, not just the instance level
+- Decorators use similar wrapping patterns to `__call__` but operate on functions rather than objects
+
+These special methods form the lifecycle of a Python object: creation via `__new__`, initialization via `__init__`, and invocation via `__call__`. Mastering them gives you complete control over how objects behave.

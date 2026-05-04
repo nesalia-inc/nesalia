@@ -1,0 +1,204 @@
+---
+title: "Super() and Cooperative Multiple Inheritance"
+description: "Learn how super() works in Python 3, understand cooperative multiple inheritance patterns, and discover the contract that makes mixins and plugin systems work correctly."
+order: 2
+---
+
+# Super() and Cooperative Multiple Inheritance
+
+The `super()` function is one of Python's most misunderstood features. In Python 3, it does far more than simply call a method on a parent class — it is the mechanism that enables **cooperative multiple inheritance**, allowing classes to build on each other's behavior in a predictable, composable way.
+
+## How super() Actually Works in Python 3
+
+Many programmers believe `super()` means "call the method of my parent class." This mental model breaks down in multiple inheritance scenarios. In reality, `super()` returns a proxy object that follows the **Method Resolution Order (MRO)** to find the next class in the chain.
+
+```python
+class Parent:
+    def greet(self):
+        print("Hello from Parent")
+
+class Child(Parent):
+    def greet(self):
+        super().greet()  # Calls the next class in MRO, not just Parent
+        print("Hello from Child")
+
+child = Child()
+child.greet()
+# Output:
+# Hello from Parent
+# Hello from Child
+```
+
+When `super().greet()` is called in `Child`, it does not directly call `Parent.greet()`. Instead, it looks up the next class after `Child` in the MRO and calls that class's `greet()` method. In a single-inheritance case, that next class is `Parent`.
+
+## The Cooperative Contract
+
+For `super()` to work correctly in multiple inheritance hierarchies, every method must follow the **cooperative contract**: each method that overrides another must call `super()` so the chain can continue. This is not optional — if any class in the hierarchy fails to call `super()`, the chain breaks and classes higher up in the hierarchy will not have their methods called.
+
+```python
+class Base:
+    def process(self):
+        print("Base processing")
+
+class MiddleA(Base):
+    def process(self):
+        super().process()  # Must call super() to continue the chain
+        print("MiddleA processing")
+
+class MiddleB(Base):
+    def process(self):
+        super().process()  # Must call super() to continue the chain
+        print("MiddleB processing")
+
+class Final(MiddleA, MiddleB):
+    def process(self):
+        super().process()  # Continues the chain
+        print("Final processing")
+
+# Observe the MRO
+print(Final.__mro__)
+# (<class 'Final'>, <class 'MiddleA'>, <class 'MiddleB'>,
+#  <class 'Base'>, <class 'object'>)
+
+Final().process()
+# Base processing
+# MiddleB processing
+# MiddleA processing
+# Final processing
+```
+
+The output order is `Base` -> `MiddleB` -> `MiddleA` -> `Final` because the MRO determines that `MiddleB` comes after `Base`, but `MiddleA` comes before `MiddleB`. Each class calls `super().process()`, which invokes the next class in the MRO chain.
+
+## Mixins and the Cooperative Contract
+
+A **mixin** is a class that provides optional behavior to other classes through inheritance. For mixins to work correctly in cooperative multiple inheritance, they must call `super()` in their methods, even if they do not need to do anything else.
+
+```python
+class TimestampMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # Passes control to next class in MRO
+        import datetime
+        self.created_at = datetime.datetime.now()
+
+class ValidateMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # Must call super()!
+        self._validate()
+
+    def _validate(self):
+        if hasattr(self, 'name') and not self.name:
+            raise ValueError("name cannot be empty")
+        if hasattr(self, 'email') and '@' not in self.email:
+            raise ValueError("Invalid email format")
+
+class User(TimestampMixin, ValidateMixin):
+    def __init__(self, name, email):
+        super().__init__(name=name, email=email)  # Cooperative call
+        self.name = name
+        self.email = email
+
+# Both mixins get initialized properly
+user = User("Alice", "alice@example.com")
+print(user.created_at)
+```
+
+If `TimestampMixin.__init__` did not call `super().__init__()`, then `ValidateMixin.__init__` (and any class further in the MRO) would never be called, and `User` would not be properly initialized.
+
+## Real-World Plugin System Example
+
+Cooperative multiple inheritance is ideal for plugin architectures where plugins can augment core functionality without the core class needing to know about every plugin.
+
+```python
+class PluginMount:
+    """Base class for plugins that must be registered."""
+    plugins = []
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        PluginMount.plugins.append(cls)
+        print(f"Registered plugin: {cls.__name__}")
+
+    @classmethod
+    def process_all(cls, data):
+        results = []
+        for plugin in cls.plugins:
+            instance = plugin()
+            result = instance.execute(data)
+            results.append(result)
+        return results
+
+class UppercasePlugin(PluginMount):
+    def execute(self, data):
+        return data.upper()
+
+class ReversePlugin(PluginMount):
+    def execute(self, data):
+        return data[::-1]
+
+class SplitPlugin(PluginMount):
+    def execute(self, data):
+        return data.split()
+
+# Plugins are automatically registered when subclassed
+results = PluginMount.process_all("hello world")
+print(results)
+# ['HELLO WORLD', 'dlrow olleh', ['hello', 'world']]
+```
+
+Each plugin class automatically registers itself by being a subclass of `PluginMount`. The registration happens in `__init_subclass__`, which calls `super()` to ensure proper cooperative initialization.
+
+## Common Pitfalls
+
+### Forgetting to Call super()
+
+The most common mistake is overriding a method without calling `super()`:
+
+```python
+class BrokenMixin:
+    def process(self):
+        # Missing super().process()!
+        print("BrokenMixin processing")
+
+class MyClass(BrokenMixin, Base):
+    def process(self):
+        # If this also doesn't call super(),
+        # Base.process() is never called
+        print("MyClass processing")
+```
+
+### Using super() with Explicit Parent Calls
+
+Another anti-pattern is mixing `super()` with direct parent calls:
+
+```python
+class Confused(ParentA, ParentB):
+    def process(self):
+        ParentA.process(self)  # Bypasses MRO — anti-pattern!
+        super().process()      # Unpredictable behavior
+```
+
+Direct parent calls bypass the MRO entirely, which can cause methods to be called multiple times or not at all, depending on the inheritance hierarchy.
+
+## Hands-On Exercise
+
+Create a plugin system for text processing using cooperative multiple inheritance. Implement a `TextProcessor` base class with an `__init__` method that sets text content. Create three mixins:
+
+1. `TrimmerMixin` — strips whitespace from the text
+2. `UpperCaserMixin` — converts text to uppercase
+3. `PunctuationRemoverMixin` — removes punctuation
+
+Each mixin should call `super()` in its `__init__` so that all transformations are applied in order. Verify that when you create a `FullyProcessedText(TrimmerMixin, UpperCaserMixin, PunctuationRemoverMixin)`, all three transformations are applied to the text.
+
+```python
+# Your implementation here
+class TextProcessor:
+    def __init__(self, text):
+        self.text = text
+
+class TrimmerMixin:
+    def __init__(self, text):
+        super().__init__(text)
+        self.text = self.text.strip()
+```
+
+Understanding `super()` and the cooperative contract is essential for building robust class hierarchies with multiple inheritance. When all classes cooperate by calling `super()`, Python's MRO ensures that every class gets a turn in a predictable, consistent order.

@@ -1,0 +1,262 @@
+---
+title: "Exception Groups and TaskGroup"
+description: "Handle multiple errors gracefully with ExceptionGroup, TaskGroup, and the except* syntax introduced in Python 3.11."
+order: 6
+---
+
+# Exception Groups and TaskGroup
+
+Python 3.11 introduced `ExceptionGroup` and `TaskGroup` (from `asyncio`) to solve a specific problem: when multiple concurrent tasks fail simultaneously, how do you collect and handle all the errors? Before 3.11, the first exception would abort the entire operation, losing information about the other failures.
+
+## ExceptionGroup: Collecting Multiple Exceptions
+
+An `ExceptionGroup` is a container that holds multiple exceptions. It extends `BaseException`, not `Exception`, which means it is not caught by a bare `except Exception` clause:
+
+```python
+try:
+    raise ExceptionGroup("group1", [
+        ValueError("first error"),
+        TypeError("second error"),
+        RuntimeError("third error"),
+    ])
+except ExceptionGroup as eg:
+    print(f"Caught ExceptionGroup with {len(eg.exceptions)} errors")
+    for i, exc in enumerate(eg.exceptions):
+        print(f"  {i}: {type(exc).__name__}: {exc}")
+```
+
+Output:
+
+```
+Caught ExceptionGroup with 3 errors
+  0: ValueError: first error
+  1: TypeError: second error
+  2: RuntimeError: third error
+```
+
+`ExceptionGroup` preserves the full context of all failures. This is valuable in concurrent scenarios where multiple operations can fail independently and you need to know about all of them.
+
+## The except* Syntax for Partial Exception Matching
+
+Python 3.11 introduced the `except*` syntax to handle ExceptionGroups with more flexibility. `except*` can match a subset of exceptions from an ExceptionGroup:
+
+```python
+try:
+    raise ExceptionGroup("operations", [
+        ValueError("invalid input"),
+        TypeError("wrong type"),
+        RuntimeError("operation failed"),
+    ])
+except* ValueError as eg:
+    print(f"ValueErrors: {eg}")
+except* TypeError as eg:
+    print(f"TypeErrors: {eg}")
+```
+
+Output:
+
+```
+ValueErrors: ExceptionGroup('operations', (ValueError('invalid input'),))
+TypeErrors: ExceptionGroup('operations', (TypeError('wrong type'),))
+```
+
+Each `except*` clause matches and extracts exceptions of the specified type from the ExceptionGroup. Exceptions that are not matched are re-raised automatically after all `except*` clauses run. If a bare `except*` (with no type) is used, it matches all remaining exceptions.
+
+## asyncio.TaskGroup: Scoped Task Management
+
+`TaskGroup` is asyncio's structured concurrency primitive. It manages a set of tasks as a unit; when the `with` block exits (normally or with an exception), all tasks in the group are cancelled:
+
+```python
+import asyncio
+
+async def task_that_succeeds(n):
+    await asyncio.sleep(n * 0.1)
+    return f"task {n} done"
+
+async def main():
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(task_that_succeeds(1))
+        tg.create_task(task_that_succeeds(2))
+        tg.create_task(task_that_succeeds(3))
+    print("All tasks completed")
+
+asyncio.run(main())
+```
+
+`async with asyncio.TaskGroup()` creates a context where tasks are tracked. When the `with` block exits normally, all tasks have completed. If any task raises an exception, all other tasks are cancelled and the exception is propagated.
+
+## TaskGroup and Exception Propagation
+
+When a TaskGroup task raises an exception, all other tasks are cancelled and the exception is wrapped in an ExceptionGroup:
+
+```python
+import asyncio
+
+async def failing_task():
+    await asyncio.sleep(0.2)
+    raise ValueError("task failed")
+
+async def other_task():
+    await asyncio.sleep(0.5)
+    return "other task done"
+
+async def main():
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(failing_task())
+            tg.create_task(other_task())
+    except* ValueError as eg:
+        print(f"Caught {len(eg.exceptions)} ValueErrors")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+Caught 1 ValueErrors
+```
+
+The `failing_task` raises a `ValueError`. The `other_task` is cancelled immediately when the failure occurs. Both the original error and the cancellation are collected into an ExceptionGroup and re-raised.
+
+## TaskGroup vs create_task Directly
+
+Using `TaskGroup` with `create_task()` is preferred over managing tasks manually because `TaskGroup` guarantees cancellation when the scope exits:
+
+```python
+import asyncio
+
+async def subtask(n):
+    await asyncio.sleep(n * 0.2)
+    return n
+
+async def main():
+    # Manual task management - tasks run independently
+    task1 = asyncio.create_task(subtask(1))
+    task2 = asyncio.create_task(subtask(2))
+
+    # If an exception occurs here, we must cancel tasks manually
+    try:
+        await task1
+        await task2
+    except Exception:
+        task1.cancel()
+        task2.cancel()
+        raise
+
+    # vs TaskGroup - cancellation is automatic
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(subtask(1))
+        tg.create_task(subtask(2))
+    # Tasks are cancelled automatically on scope exit
+```
+
+`TaskGroup` solves the problem of leaking tasks: if you forget to cancel tasks when an error occurs, they keep running and consume resources. With `TaskGroup`, cancellation is automatic and the scope is well-defined.
+
+## Handling Timeouts with TaskGroup
+
+`TaskGroup` does not have a built-in timeout mechanism, but you can combine it with `asyncio.wait()` or use a shield for critical tasks:
+
+```python
+import asyncio
+
+async def long_task(n):
+    await asyncio.sleep(n)
+    return f"task {n} done"
+
+async def with_timeout():
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(long_task(5))  # Will be cancelled
+        tg.create_task(long_task(1))
+
+    # This block completes when ALL tasks finish (5 seconds total),
+    # not when the first task finishes. To enforce a timeout,
+    # wrap the TaskGroup in asyncio.wait() with a timeout.
+
+async def main():
+    try:
+        async with asyncio.timeout(2):
+            await with_timeout()
+    except asyncio.TimeoutError:
+        print("TaskGroup timed out after 2 seconds")
+
+asyncio.run(main())
+```
+
+`asyncio.timeout()` (Python 3.11+) wraps a block with a timeout. If the block does not complete within the specified time, `asyncio.TimeoutError` is raised and all tasks in the TaskGroup are cancelled.
+
+## Real-World Pattern: Fan-Out with Error Aggregation
+
+A common pattern is launching many tasks, waiting for all to complete, and collecting any errors that occurred:
+
+```python
+import asyncio
+
+async def fetch_data(url_id):
+    if url_id % 3 == 0:
+        raise ValueError(f"Failed to fetch URL {url_id}")
+    await asyncio.sleep(0.1)
+    return f"data from URL {url_id}"
+
+async def main():
+    async with asyncio.TaskGroup() as tg:
+        tasks = [
+            tg.create_task(fetch_data(i))
+            for i in range(10)
+        ]
+
+    # If we reach here, no exceptions were raised.
+    # If any task raised, TaskGroup propagates an ExceptionGroup.
+    results = [task.result() for task in tasks]
+    print(f"Results: {results}")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+Traceback (most recent call last):
+  ...
+ExceptionGroup: 3 exceptions were raised in the task group
+ +-- ExceptionGroup ...
+     |-- ValueError: Failed to fetch URL 0
+     |-- ValueError: Failed to fetch URL 3
+     |-- ValueError: Failed to fetch URL 6
+```
+
+The `ExceptionGroup` clearly shows all three URLs that failed. Without this, you would only see the first failure.
+
+## BaseExceptionGroup: When Something Worse Happens
+
+`ExceptionGroup` inherits from `BaseException`, not `Exception`. This ensures that ExceptionGroups are not silently swallowed by bare `except Exception` clauses:
+
+```python
+try:
+    raise ExceptionGroup("group", [ValueError("e")])
+except Exception:
+    print("This will NOT catch the ExceptionGroup")
+```
+
+To catch an ExceptionGroup, you must explicitly except it:
+
+```python
+try:
+    raise ExceptionGroup("group", [ValueError("e")])
+except ExceptionGroup:
+    print("Caught the ExceptionGroup")
+```
+
+This distinction is intentional: a broad `except Exception` should not accidentally swallow a group of concurrent failures. You must explicitly choose to handle the group.
+
+## Summary
+
+- `ExceptionGroup` wraps multiple exceptions raised concurrently, preserving all error context
+- The `except*` syntax matches and extracts specific exception types from an ExceptionGroup, leaving unmatched exceptions for subsequent handlers or re-raising
+- `TaskGroup` manages a set of async tasks as a unit; when the scope exits (normally or with an exception), all tasks are cancelled
+- `TaskGroup` propagates exceptions as an ExceptionGroup containing the failing task's exception and any cancellation exceptions
+- `asyncio.timeout()` (Python 3.11+) provides timeout support for TaskGroup blocks
+- ExceptionGroup inherits from `BaseException` so that bare `except Exception` clauses do not accidentally swallow concurrent failures
+- This pattern is the modern replacement for manually managing tasks with `create_task()` and explicit cancellation
+
+For background on the event loop and async fundamentals, see [AsyncIO Fundamentals](/courses/advanced-python/concurrency-and-parallelism/asyncio-fundamentals) and [await, async def, and Task](/courses/advanced-python/concurrency-and-parallelism/await-async-task). For a higher-level view of executors, see [Concurrent.futures](/courses/advanced-python/concurrency-and-parallelism/concurrent-futures).

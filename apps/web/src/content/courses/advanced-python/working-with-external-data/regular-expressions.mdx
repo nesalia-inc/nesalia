@@ -1,0 +1,595 @@
+---
+title: "Regular Expressions"
+description: "Master the re module for pattern matching, text extraction, and string transformation using regular expressions."
+order: 3
+---
+
+# Regular Expressions
+
+A **regular expression** (often abbreviated **regex**) is a sequence of characters that defines a search pattern. We use regular expressions when we need to find specific text within larger strings, validate that strings match a particular format (like email addresses or phone numbers), extract portions of text, or replace text with other content. The `re` module is part of Python's standard library and provides full support for regular expression pattern matching.
+
+## Why Use Regular Expressions?
+
+Imagine you need to extract all phone numbers from a document, validate that user input is a valid email address, or replace all occurrences of a date format with a standardized version. Without regular expressions, you would need to write complex string parsing logic for each case. Regular expressions provide a concise, powerful language for describing the patterns we want to find or replace.
+
+The `re` module compiles patterns into efficient matcher objects that can be reused across many strings. This is important because compiling a pattern once and using it many times is significantly faster than recompiling for each string.
+
+## Basic Pattern Matching
+
+The simplest regular expression is a literal string that we want to find exactly. The `re.search()` function finds the first match of a pattern in a string and returns a match object (or `None` if no match is found):
+
+```python
+import re
+
+text = "The quick brown fox jumps over the lazy dog"
+
+match = re.search(r"fox", text)
+if match:
+    print(f"Found '{match.group()}' at positions {match.start()}-{match.end()}")
+```
+
+Output:
+
+```
+Found 'fox' at positions 16-19
+```
+
+The `r"fox"` is a raw string (the `r` prefix before the quotes). Raw strings are essential for regular expressions because they prevent Python from interpreting backslash escape sequences. Without the raw string, `r"\n"` would be a newline character instead of a literal backslash followed by `n`.
+
+### Searching vs Matching
+
+The `re.search()` function finds the first match anywhere in the string, while `re.match()` finds a match only at the beginning of the string:
+
+```python
+import re
+
+text = "Python 3.11 was released in 2022"
+
+search_match = re.search(r"\d", text)
+match_match = re.match(r"\d", text)
+
+print(f"search() found: '{search_match.group()}' at position {search_match.start()}")
+print(f"match() found: '{match_match.group()}' at position {match_match.start()}")  # None because string starts with 'P'
+```
+
+Output:
+
+```
+search() found: '3' at position 7
+match() found: 'None' because string starts with 'P'
+```
+
+`re.match()` is useful when we know the pattern should be at the start of the string, such as validating that a string begins with a specific prefix. `re.search()` is more general and finds patterns anywhere in the string.
+
+### Finding All Matches
+
+The `re.findall()` function returns all non-overlapping matches as a list of strings:
+
+```python
+import re
+
+text = "The prices are $45.99, $30.00, and $12.50"
+
+prices = re.findall(r"\$\d+\.\d{2}", text)
+print(f"Found prices: {prices}")
+```
+
+Output:
+
+```
+Found prices: ['$45.99', '$30.00', '$12.50']
+```
+
+The pattern `\$\d+\.\d{2}` matches a dollar sign followed by one or more digits, a decimal point, and exactly two more digits. `re.findall()` is useful when we need all occurrences, not just the first.
+
+### Replacing Text
+
+The `re.sub()` function replaces all matches with replacement text:
+
+```python
+import re
+
+text = "User john@example.com submitted the form. Contact john@example.com for follow-up."
+
+redacted = re.sub(r"[a-z]+@[a-z]+\.[a-z]+", "[EMAIL REDACTED]", text)
+print(redacted)
+```
+
+Output:
+
+```
+User [EMAIL REDACTED] submitted the form. Contact [EMAIL REDACTED] for follow-up.
+```
+
+The `re.sub()` function takes three required arguments: the pattern to find, the replacement text, and the string to search. All non-overlapping matches are replaced.
+
+## Regular Expression Patterns
+
+### Character Classes
+
+A character class is a set of characters enclosed in brackets. The pattern `[abc]` matches any single character that is `a`, `b`, or `c`. We use character classes when we want to match any one of a set of characters.
+
+```python
+import re
+
+text = "The car, the bus, and the bicycle."
+
+transport = re.findall(r"b[a-z]+", text)
+print(f"Words starting with 'b': {transport}")
+```
+
+Output:
+
+```
+Words starting with 'b': ['bus', 'bicycle']
+```
+
+The pattern `b[a-z]+` matches a `b` followed by one or more lowercase letters. The `+` quantifier means "one or more."
+
+### Negated Character Classes
+
+A negated character class matches any character not in the set. The pattern `[^abc]` matches any character that is not `a`, `b`, or `c`:
+
+```python
+import re
+
+text = "Order #12345 for $99.99 was placed on 2024-01-15"
+
+order_number = re.search(r"Order #([^ ]+)", text)
+if order_number:
+    print(f"Order: {order_number.group(1)}")
+```
+
+Output:
+
+```
+Order: 12345
+```
+
+The `[^ ]` matches any character that is not a space, and `+` means one or more. The parentheses around `[^ ]+` create a capturing group, and `match.group(1)` returns the text matched by that group.
+
+### Common Character Classes
+
+Python provides shorthand notations for frequently used character classes:
+
+| Shorthand | Meaning |
+|-----------|---------|
+| `\d` | Any digit (0-9) |
+| `\D` | Any non-digit |
+| `\w` | Any word character (a-z, A-Z, 0-9, _) |
+| `\W` | Any non-word character |
+| `\s` | Any whitespace (space, tab, newline) |
+| `\S` | Any non-whitespace |
+| `.` | Any character except newline |
+
+```python
+import re
+
+text = "Phone: 555-123-4567 | Date: 2024-03-15 | ID: A1B2C3"
+
+phone = re.search(r"\d{3}-\d{3}-\d{4}", text)
+date = re.search(r"\d{4}-\d{2}-\d{2}", text)
+id_code = re.search(r"[A-Z0-9]{6}", text)
+
+print(f"Phone: {phone.group()}")
+print(f"Date: {date.group()}")
+print(f"ID: {id_code.group()}")
+```
+
+Output:
+
+```
+Phone: 555-123-4567
+Date: 2024-03-15
+ID: A1B2C3
+```
+
+The pattern `\d{3}` matches exactly three digits. This is more precise than `\d+` when we know the exact number of digits we expect.
+
+### Quantifiers
+
+Quantifiers specify how many times a pattern should match:
+
+| Quantifier | Meaning |
+|-----------|---------|
+| `*` | Zero or more |
+| `+` | One or more |
+| `?` | Zero or one |
+| `{n}` | Exactly n |
+| `{n,}` | n or more |
+| `{n,m}` | Between n and m |
+
+```python
+import re
+
+text = "Files: test.txt, data.csv, report.pdf, image.png"
+
+txt_files = re.findall(r"\w+\.txt", text)
+csv_files = re.findall(r"\w+\.csv", text)
+
+print(f"TXT files: {txt_files}")
+print(f"CSV files: {csv_files}")
+```
+
+Output:
+
+```
+TXT files: ['test.txt']
+CSV files: ['data.csv']
+```
+
+The pattern `\w+\.txt` matches one or more word characters followed by `.txt`. The escaped dot `\.` matches a literal dot character.
+
+### Greedy vs Non-Greedy Matching
+
+By default, quantifiers are greedy, meaning they match as much text as possible. Adding `?` after a quantifier makes it non-greedy (as few characters as possible):
+
+```python
+import re
+
+html = "<div class='header'><span class='title'>Welcome</span></div>"
+
+greedy = re.search(r"<.+>", html)
+non_greedy = re.search(r"<.+?>", html)
+
+print(f"Greedy: {greedy.group()}")
+print(f"Non-greedy: {non_greedy.group()}")
+```
+
+Output:
+
+```
+Greedy: <div class='header'><span class='title'>Welcome</span></div>
+Non-greedy: <div class='header'>
+```
+
+The greedy match consumes everything from the first `<` to the last `>`. The non-greedy match stops at the first `>` it encounters. Non-greedy matching is essential when extracting content from HTML tags.
+
+### Anchors
+
+Anchors match positions rather than characters:
+
+| Anchor | Meaning |
+|--------|---------|
+| `^` | Start of string (or line with `re.MULTILINE`) |
+| `$` | End of string (or line with `re.MULTILINE`) |
+| `\b` | Word boundary |
+| `\B` | Non-word boundary |
+
+```python
+import re
+
+text = "The cat sat on the mat. The cat ran away."
+
+first_cat = re.search(r"^The cat", text)
+last_cat = re.search(r"The cat", text)
+
+print(f"First 'The cat': '{first_cat.group()}'")
+print(f"Last 'The cat': '{last_cat.group()}'")  # Same match because no MULTILINE flag
+```
+
+To match at the start of each line, we use the `re.MULTILINE` flag:
+
+```python
+import re
+
+text = "The cat sat on the mat.\nThe cat ran away.\nThe cat meowed."
+
+matches = re.findall(r"^The cat", text, re.MULTILINE)
+print(f"Matches at line starts: {matches}")
+```
+
+Output:
+
+```
+Matches at line starts: ['The cat', 'The cat', 'The cat']
+```
+
+With `re.MULTILINE`, the `^` anchor matches at the start of each line, not just the start of the string. This is useful for processing multi-line text like log files.
+
+### Word Boundaries
+
+The `\b` anchor matches at word boundaries (the transition between word characters and non-word characters):
+
+```python
+import re
+
+text = "I saw a bear. The bear is large. Bear market."
+
+word_boundary = re.findall(r"\b[Bb]ear\b", text)
+print(f"Standalone 'bear': {word_boundary}")
+```
+
+Output:
+
+```
+Standalone 'bear': ['bear', 'bear']
+```
+
+The pattern `\b[Bb]ear\b` matches "bear" or "Bear" only when it appears as a complete word, not as part of another word. The first "bear" in "saw a bear" matches, "bear" in "The bear is" matches, but "Bear" in "Bear market" does not because "market" immediately follows without a word boundary.
+
+## Compiling Regular Expressions
+
+The `re.compile()` function compiles a pattern into a pattern object that we can reuse. This is more efficient when using the same pattern multiple times:
+
+```python
+import re
+
+email_pattern = re.compile(r"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})")
+
+emails = [
+    "Contact alice@example.com for details",
+    "Bob is at bob@company.org",
+    "This is not an email: invalid",
+    "Try admin@mail.server.co.uk"
+]
+
+for email in emails:
+    match = email_pattern.search(email)
+    if match:
+        print(f"Found: {match.group(1)}")
+    else:
+        print("No email found")
+```
+
+Output:
+
+```
+Found: alice@example.com
+Found: bob@company.org
+No email found
+Found: admin@mail.server.co.uk
+```
+
+Compiling the pattern once and reusing it is cleaner and faster than calling `re.search()` with the pattern string each time. Pattern objects also have methods like `search()`, `match()`, `findall()`, and `sub()` directly on them.
+
+### Using Flags
+
+Flags modify how the pattern matcher works. Common flags include:
+
+- `re.IGNORECASE` or `re.I` — Case-insensitive matching
+- `re.MULTILINE` — `^` and `$` match at line boundaries
+- `re.DOTALL` — `.` matches newlines as well
+- `re.VERBOSE` — Allows comments and whitespace in the pattern
+
+```python
+import re
+
+text = "PYTHON\npython\nPython"
+
+case_insensitive = re.findall(r"python", text, re.IGNORECASE)
+print(f"Case-insensitive matches: {case_insensitive}")
+```
+
+Output:
+
+```
+Case-insensitive matches: ['PYTHON', 'python', 'Python']
+```
+
+### Verbose Mode for Complex Patterns
+
+Complex regular expressions can become difficult to read. The `re.VERBOSE` flag allows whitespace and comments within the pattern to make it more readable:
+
+```python
+import re
+
+phone_pattern = re.compile(r"""
+    \(?\d{3}\)?      # Area code with optional parentheses
+    [-.\s]?          # Optional separator
+    \d{3}            # First three digits
+    [-.\s]?          # Optional separator
+    \d{4}            # Last four digits
+""", re.VERBOSE)
+
+phone_numbers = [
+    "555-123-4567",
+    "(555) 123-4567",
+    "555.123.4567",
+    "5551234567"
+]
+
+for phone in phone_numbers:
+    match = phone_pattern.search(phone)
+    if match:
+        print(f"Valid phone: {match.group().strip()}")
+```
+
+Output:
+
+```
+Valid phone: 555-123-4567
+Valid phone: (555) 123-4567
+Valid phone: 555.123.4567
+Valid phone: 5551234567
+```
+
+The `re.VERBOSE` flag ignores whitespace in the pattern (except when escaped or inside character classes), allowing us to format the pattern across multiple lines with comments explaining each part.
+
+## Groups and Capturing
+
+Parentheses in a regular expression create capturing groups. Groups capture the text they match and make it available via `match.group()`:
+
+```python
+import re
+
+timestamp = "2024-06-15 14:30:45"
+
+pattern = re.compile(r"(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})")
+match = pattern.match(timestamp)
+
+if match:
+    print(f"Full match: {match.group()}")
+    print(f"Year: {match.group(1)}")
+    print(f"Month: {match.group(2)}")
+    print(f"Day: {match.group(3)}")
+    print(f"Hour: {match.group(4)}")
+    print(f"Minute: {match.group(5)}")
+    print(f"Second: {match.group(6)}")
+```
+
+Output:
+
+```
+Full match: 2024-06-15 14:30:45
+Year: 2024
+Month: 06
+Day: 15
+Hour: 14
+Minute: 30
+Second: 45
+```
+
+The groups are numbered starting at 1, and `group(0)` or `group()` returns the entire match. Named groups (`(?P<name>...)`) are often clearer when patterns get complex:
+
+```python
+import re
+
+timestamp = "2024-06-15 14:30:45"
+
+pattern = re.compile(r"(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})")
+match = pattern.match(timestamp)
+
+if match:
+    print(f"Year: {match.group('year')}")
+    print(f"Month: {match.group('month')}")
+    print(f"Day: {match.group('day')}")
+    print(f"Groups dict: {match.groupdict()}")
+```
+
+Output:
+
+```
+Year: 2024
+Month: 06
+Day: 15
+Groups dict: {'year': '2024', 'month': '06', 'day': '15'}
+```
+
+Named groups make the code more readable and are especially helpful when the pattern has many groups.
+
+## Practical Examples
+
+### Extracting Structured Data from Log Files
+
+```python
+import re
+from datetime import datetime
+
+log_lines = [
+    "[2024-01-15 10:23:45] INFO: User alice logged in from 192.168.1.100",
+    "[2024-01-15 10:24:12] WARNING: Failed login attempt for user admin from 10.0.0.55",
+    "[2024-01-15 10:25:01] INFO: User bob uploaded file report.csv (2.3 MB)",
+    "[2024-01-15 10:26:33] ERROR: Database connection timeout from db-primary.example.com"
+]
+
+log_pattern = re.compile(
+    r"\[(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] "
+    r"(?P<level>INFO|WARNING|ERROR): "
+    r"(?P<message>.*)"
+)
+
+for line in log_lines:
+    match = log_pattern.match(line)
+    if match:
+        data = match.groupdict()
+        print(f"[{data['level']}] {data['message']}")
+```
+
+Output:
+
+```
+[INFO] User alice logged in from 192.168.1.100
+[WARNING] Failed login attempt for user admin from 10.0.0.55
+[INFO] User bob uploaded file report.csv (2.3 MB)
+[ERROR] Database connection timeout from db-primary.example.com
+```
+
+This pattern extracts the timestamp, log level, and message from each log line using named groups. We can easily process each component separately for filtering, aggregation, or transformation.
+
+### Validating Input Formats
+
+```python
+import re
+
+def validate_email(email):
+    pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    return bool(pattern.match(email))
+
+def validate_ip(ip):
+    pattern = re.compile(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
+    return bool(pattern.match(ip))
+
+test_cases = [
+    ("alice@example.com", validate_email),
+    ("invalid-email", validate_email),
+    ("user@company.co.uk", validate_email),
+    ("192.168.1.1", validate_ip),
+    ("256.256.256.256", validate_ip),
+    ("10.0.0.1", validate_ip),
+]
+
+for value, validator in test_cases:
+    result = "Valid" if validator(value) else "Invalid"
+    print(f"{value}: {result}")
+```
+
+Output:
+
+```
+alice@example.com: Valid
+invalid-email: Invalid
+user@company.co.uk: Valid
+192.168.1.1: Valid
+256.256.256.256: Invalid
+10.0.0.1: Valid
+```
+
+The email pattern validates the standard format of user@domain.tld. The IP pattern validates that each octet is between 0 and 255. The `^` and `$` anchors ensure the entire string matches, not just a portion.
+
+### Find and Replace with Backreferences
+
+The `re.sub()` function can reference captured groups in the replacement string using `\1`, `\2`, etc.:
+
+```python
+import re
+
+text = "The date 2024-06-15 was the start of the quarter."
+
+reformatted = re.sub(r"(\d{4})-(\d{2})-(\d{2})", r"\2/\3/\1", text)
+print(reformatted)
+```
+
+Output:
+
+```
+The date 06/15/2024 was the start of the quarter.
+```
+
+The pattern captures year, month, and day in three groups, and the replacement `\2/\3/\1` rearranges them to month/day/year format.
+
+## Common Regex Patterns
+
+| Pattern | Description |
+|--------|-------------|
+| `^\w+` | First word of a string |
+| `\w+$` | Last word of a string |
+| `^\d+$` | Entire string is digits only |
+| `^\w+@\w+\.\w+$` | Simple email format |
+| `<.*?>` | HTML tags (non-greedy) |
+| `^\s+$` | Whitespace-only string |
+| `\b\w{3}\b` | Three-letter words |
+
+## Summary
+
+- A **regular expression** (regex) is a pattern-matching language for finding and replacing text
+- The `re` module provides `search()`, `match()`, `findall()`, and `sub()` for common operations
+- Character classes (`\d`, `\w`, `\s`) match digits, word characters, and whitespace
+- Quantifiers (`+`, `*`, `?`, `{n,m}`) control how many times patterns match
+- Anchors (`^`, `$`, `\b`) match positions rather than characters
+- Parentheses create capturing groups, accessed via `match.group(n)` or named groups via `(?P<name>...)`
+- `re.compile()` creates reusable pattern objects for efficiency
+- Flags like `re.IGNORECASE`, `re.MULTILINE`, and `re.VERBOSE` modify pattern behavior
+- `re.sub()` with backreferences can rearrange captured text during replacement
+
+For more text processing patterns, see the [JSON and Pickle Serialization](./json-pickle.mdx) section for handling structured text formats. For tabular data processing, see the [CSV and Pandas Basics](./csv-pandas.mdx) section.

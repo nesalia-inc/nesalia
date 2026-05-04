@@ -1,0 +1,294 @@
+---
+title: "Custom Metaclasses"
+description: "Learn how to create custom metaclasses to control class creation, enable declarative APIs, and build frameworks like ORMs."
+order: 3
+---
+
+# Custom Metaclasses
+
+In Python, everything is an object. Classes themselves are objects too, and they are instances of something called a metaclass. By default, classes are instances of the built-in `type` metaclass. Custom metaclasses allow you to intercept and control the process of class creation, enabling powerful patterns like declarative APIs, automatic registration, and validation.
+
+## What Metaclasses Are: Classes Are Instances of Metaclasses
+
+To understand metaclasses, you first need to understand that classes are objects just like strings, numbers, and lists are objects. When you define a class, Python creates an object that represents that class. The type of this class object is called its metaclass.
+
+A metaclass is a class whose instances are classes. Think of it this way: a regular object is created from a class, and a class is created from a metaclass. The relationship is the same, just one level up.
+
+Here is how this works in practice:
+
+```python
+class MyClass:
+    pass
+
+
+print(f"MyClass is an instance of type: {isinstance(MyClass, type)}")
+print(f"MyClass's metaclass: {type(MyClass)}")
+```
+
+Output:
+
+```
+MyClass is an instance of type: True
+MyClass's metaclass: <class 'type'>
+```
+
+The `MyClass` class is itself an object. Its type (metaclass) is `type`. This is why `isinstance(MyClass, type)` returns True. When you define a class without specifying a metaclass, Python uses `type` as the default metaclass.
+
+## `type` as the Default Metaclass
+
+The `type` function is familiar as a way to check an object's type, but `type` is also a class. When you use `type` as a metaclass, it creates classes. When you call `type()` with three arguments, you are using it as a metaclass to create a class dynamically:
+
+```python
+DynamicClass = type('DynamicClass', (), {'x': 10, 'greet': lambda self: f"Hello, x={self.x}"})
+obj = DynamicClass()
+print(f"Class name: {DynamicClass.__name__}")
+print(f"Attribute x: {obj.x}")
+print(f"Method call: {obj.greet()}")
+```
+
+Output:
+
+```
+Class name: DynamicClass
+Attribute x: 10
+Method call: Hello, x=10
+```
+
+The `type('DynamicClass', (), {...})` call creates a new class named 'DynamicClass' with a base classes tuple of empty `()` and a dictionary of class attributes. The first argument is the class name, the second is the tuple of base classes, and the third is the dictionary of class attributes and methods. This is what Python does internally when it processes a `class` statement.
+
+## Creating a Custom Metaclass
+
+You create a custom metaclass by defining a class that inherits from `type`. The metaclass's `__new__` method is called when a class is being created, and `__init__` is called after the class is created. This gives you control over the class's definition before it is fully formed.
+
+Here is a simple metaclass that adds a `created_at` attribute to every class it creates:
+
+```python
+import datetime
+
+
+class TimestampMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        namespace['created_at'] = datetime.datetime.now()
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class MyClass(metaclass=TimestampMeta):
+    pass
+
+
+print(f"Class created at: {MyClass.created_at}")
+print(f"Is instance of TimestampMeta: {isinstance(MyClass, TimestampMeta)}")
+```
+
+Output:
+
+```
+Class created at: 2024-01-15 10:30:45.123456
+Is instance of TimestampMeta: True
+```
+
+The `metaclass=TimestampMeta` argument in the class definition tells Python to use `TimestampMeta` instead of the default `type` when creating `MyClass`. When `MyClass` is defined, Python calls `TimestampMeta.__new__`, which adds the `created_at` timestamp to the class namespace before creating the class.
+
+## `__new__` and `__init__` in Metaclass
+
+The `__new__` method in a metaclass receives the metaclass itself (conventionally named `mcs`), the name of the class being created, a tuple of base classes, and a dictionary of the class body (the namespace). It must return the class object.
+
+The `__init__` method receives the metaclass, the newly created class object, the tuple of base classes, and the namespace. It is called after the class is created and is useful for modifying the class further.
+
+Here is a metaclass that validates that all methods in the class have docstrings:
+
+```python
+class RequireDocsMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        for attr_name, attr_value in namespace.items():
+            if callable(attr_value) and not attr_value.__doc__:
+                raise TypeError(f"Method {attr_name} must have a docstring")
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class GoodClass(metaclass=RequireDocsMeta):
+    """A properly documented class."""
+
+    def method_one(self):
+        """This method is documented."""
+        pass
+
+    def method_two(self):
+        """Another documented method."""
+        pass
+
+
+print("GoodClass created successfully")
+
+
+class BadClass(metaclass=RequireDocsMeta):
+    """A class with missing documentation."""
+
+    def method_one(self):
+        """This method is documented."""
+        pass
+
+    def undocumented_method(self):
+        pass
+
+
+print("BadClass created successfully")
+```
+
+Output:
+
+```
+GoodClass created successfully
+TypeError: Method undocumented_method must have a docstring
+```
+
+The `RequireDocsMeta` metaclass iterates through all items in the namespace and checks if they are callable (functions or methods). If a callable does not have a docstring (`__doc__` is None or empty), it raises a TypeError. When we try to create `BadClass`, the metaclass catches the undocumented method and prevents the class from being created.
+
+## Practical Use Case: ORM-Style Declarative API
+
+An ORM (Object-Relational Mapping) is a technique that lets you work with database tables using Python classes instead of writing SQL queries. A declarative ORM allows you to define database tables using class definitions, with each class representing a table and each attribute representing a column.
+
+Here is a simplified ORM example using a metaclass to automatically register table schemas:
+
+```python
+class Column:
+    def __init__(self, column_type):
+        self.column_type = column_type
+
+
+class ORMMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        columns = {}
+        for attr_name, attr_value in namespace.items():
+            if isinstance(attr_value, Column):
+                columns[attr_name] = attr_value
+        namespace['_columns'] = columns
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class User(metaclass=ORMMeta):
+    id = Column("INTEGER PRIMARY KEY")
+    name = Column("VARCHAR(100)")
+    email = Column("VARCHAR(255)")
+
+
+print(f"Table: User")
+print(f"Columns: {list(User._columns.keys())}")
+for col_name, col_def in User._columns.items():
+    print(f"  {col_name}: {col_def.column_type}")
+```
+
+Output:
+
+```
+Table: User
+Columns: ['id', 'name', 'email']
+  id: INTEGER PRIMARY KEY
+  name: VARCHAR(100)
+  email: VARCHAR(255)
+```
+
+The `ORMMeta` metaclass scans the namespace for any attributes that are `Column` instances. When it finds them, it collects them into a `_columns` dictionary. The `User` class defines its columns as class attributes. When Python creates the `User` class, `ORMMeta.__new__` gathers all the columns and stores them in `User._columns`. This pattern allows you to define database schemas declaratively using class attributes.
+
+## Practical Use Case: Plugin System with Automatic Registration
+
+A plugin system allows you to extend an application's functionality without modifying its core code. A common pattern is to have plugins register themselves automatically when they are defined, using a metaclass to track all registered classes.
+
+```python
+class PluginRegistry(type):
+    _plugins = {}
+
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        if hasattr(cls, 'plugin_name'):
+            mcs._plugins[cls.plugin_name] = cls
+        return cls
+
+    @classmethod
+    def get_plugin(mcs, name):
+        return mcs._plugins.get(name)
+
+
+class BasePlugin(metaclass=PluginRegistry):
+    pass
+
+
+class TextPlugin(BasePlugin):
+    plugin_name = "text"
+    plugin_type = "processor"
+
+    def process(self, data):
+        return data.upper()
+
+
+class NumberPlugin(BasePlugin):
+    plugin_name = "number"
+    plugin_type = "processor"
+
+    def process(self, data):
+        return float(data) * 2
+
+
+print(f"Registered plugins: {list(PluginRegistry._plugins.keys())}")
+text = PluginRegistry.get_plugin("text")
+print(f"Text plugin: {text.__name__}, type: {text.plugin_type}")
+
+number = PluginRegistry.get_plugin("number")
+print(f"Number plugin: {number.__name__}, type: {number.plugin_type}")
+```
+
+Output:
+
+```
+Registered plugins: ['text', 'number']
+Text plugin: TextPlugin, type: processor
+Number plugin: NumberPlugin, type: processor
+```
+
+The `PluginRegistry` metaclass maintains a `_plugins` dictionary that maps plugin names to their classes. When a class with `metaclass=PluginRegistry` is defined, `__new__` checks if the class has a `plugin_name` attribute and adds it to the registry. This allows plugins to register themselves just by being defined, without needing explicit registration calls.
+
+## Combining Metaclasses with Class Decorators
+
+Metaclasses and class decorators can work together. A decorator receives a class and returns a modified class, while a metaclass controls how the class is created in the first place. You can use both on the same class, but the metaclass runs first because it controls the class creation itself, before decorators are applied.
+
+```python
+class TagMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        if 'tags' not in namespace:
+            namespace['tags'] = []
+        cls = super().__new__(mcs, name, bases, namespace)
+        return cls
+
+
+def add_tag(tag):
+    def decorator(cls):
+        if hasattr(cls, 'tags'):
+            cls.tags.append(tag)
+        return cls
+    return decorator
+
+
+@add_tag("important")
+@add_tag("demo")
+class MyClass(metaclass=TagMeta):
+    pass
+
+
+print(f"Tags on MyClass: {MyClass.tags}")
+```
+
+Output:
+
+```
+Tags on MyClass: ['important', 'demo']
+```
+
+The `TagMeta` metaclass ensures every class gets a `tags` list. The `add_tag` decorator appends tags to that list. The decorator is applied after the metaclass creates the class, so when `@add_tag("important")` runs, the class already has an empty `tags` list from `TagMeta`.
+
+## This Connects To
+
+- `__init__` and `__new__` (covered earlier) at the instance level are mirrored by metaclass `__new__` and `__init__` at the class level
+- Class decorators (covered in the next section) often combine with metaclasses, with metaclasses running first
+- The `__init_subclass__` method provides a simpler alternative to metaclasses for many subclass registration scenarios
+
+Metaclasses are one of Python's most powerful features, enabling framework-level patterns that would otherwise require code generation or complex conventions.

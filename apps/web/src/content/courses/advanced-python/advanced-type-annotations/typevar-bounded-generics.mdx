@@ -1,0 +1,225 @@
+---
+title: "TypeVar and Bounded Generics"
+description: "Constrain TypeVars to specific types using bounds. Learn how to enforce that generic types implement protocols, understand the difference between covariant and contravariant type parameters."
+order: 6
+---
+
+# TypeVar and Bounded Generics
+
+`TypeVar` lets you define type placeholders, but without constraints they accept any type. **Bounded generics** restrict what types a `TypeVar` can be, ensuring that generic code only works with types that provide required functionality. This bridges the gap between flexible generic code and the specific operations you need within that code.
+
+## The Problem with Unbounded TypeVars
+
+Consider a generic function that calls methods on its type parameter:
+
+```python
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
+
+def first_and_length(items: list[T]) -> tuple[T, int]:
+    return items[0], len(items)
+
+result = first_and_length([10, 20, 30])
+print(result[0] + result[1])  # Error? T could be str, not just int
+```
+
+The type checker cannot determine whether `T` supports addition with `int`. Without bounds, `T` is completely unconstrained.
+
+## Bounding a TypeVar
+
+You can restrict `T` to types that are subclasses of a specific base using the `bound` argument:
+
+```python
+from typing import TypeVar, Generic
+
+# T is bound to str and its subclasses
+T = TypeVar("T", bound=str)
+
+def print_and_return(value: T) -> T:
+    print(f"Value: {value}")
+    return value
+
+s = print_and_return("hello")  # OK — str is within bound
+# print_and_return(42)  # Error — int is not a subclass of str
+```
+
+Now the type checker knows that `T` is always a kind of `str`, so string methods are safe to call on values of type `T`.
+
+## Bounding to Protocols
+
+The real power of bounds comes from bounding to Protocols, which ensures that `T` implements the methods your generic code needs:
+
+```python
+from typing import TypeVar, Protocol
+
+class HasArea(Protocol):
+    @property
+    def area(self) -> float: ...
+
+T = TypeVar("T", bound=HasArea)
+
+def total_area(shapes: list[T]) -> float:
+    # The type checker knows every item has an .area property
+    return sum(shape.area for shape in shapes)
+
+class Circle:
+    def __init__(self, radius: float):
+        self.radius = radius
+
+    @property
+    def area(self) -> float:
+        return 3.14159 * self.radius ** 2
+
+class Square:
+    def __init__(self, side: float):
+        self.side = side
+
+    @property
+    def area(self) -> float:
+        return self.side ** 2
+
+shapes: list[HasArea] = [Circle(5), Square(4)]
+print(total_area(shapes))  # Circle area: 78.54, Square area: 16, Total: 94.54
+```
+
+By bounding `T` to `HasArea`, the type checker verifies that every item in `shapes` has an `area` property. If a class without `area` were passed, it would be rejected at type-checking time, not runtime.
+
+## Multiple Bounds
+
+You can bound a `TypeVar` to multiple constraints using an intersect-like pattern. A type must satisfy ALL bounds simultaneously:
+
+```python
+from typing import TypeVar, Protocol
+
+class Serializable(Protocol):
+    def to_dict(self) -> dict: ...
+
+class Printable(Protocol):
+    def print(self) -> None: ...
+
+# T must satisfy both Protocols
+T = TypeVar("T", bound=Serializable & Printable)
+
+def serialize_and_print(item: T) -> dict:
+    item.print()
+    return item.to_dict()
+
+# A class implementing both protocols works:
+class Report:
+    def __init__(self, title: str):
+        self.title = title
+
+    def to_dict(self) -> dict:
+        return {"title": self.title}
+
+    def print(self) -> None:
+        print(f"Report: {self.title}")
+
+serialize_and_print(Report("Quarterly Results"))
+```
+
+A class must implement both `to_dict` and `print` to be used with this function.
+
+## Bounded Generics vs Protocol Inheritance
+
+Both of these patterns achieve similar goals, but with different trade-offs:
+
+```python
+from typing import TypeVar, Protocol, Generic
+
+# Approach 1: Bound TypeVar to Protocol
+class HasName(Protocol):
+    @property
+    def name(self) -> str: ...
+
+T = TypeVar("T", bound=HasName)
+
+def greet_all_through_bound(items: list[T]) -> None:
+    for item in items:
+        print(item.name)
+
+# Approach 2: Generic over the Protocol directly
+def greet_all_direct(items: list[HasName]) -> None:
+    for item in items:
+        print(item.name)
+```
+
+Approach 1 (bounded TypeVar) is useful when you want the return type to reflect the specific subtype, not just the Protocol. Approach 2 (Protocol directly) is simpler when the Protocol is sufficient.
+
+## TypeVar with Bounded Keys in Dictionaries
+
+Bounded generics are particularly useful for dictionary operations where you need both key and value types to support specific operations:
+
+```python
+from typing import TypeVar, Dict, Protocol
+
+class Comparable(Protocol):
+    def __lt__(self, other) -> bool: ...
+
+K = TypeVar("K", bound=Comparable)
+V = TypeVar("V")
+
+def sorted_keys(items: Dict[K, V]) -> list[K]:
+    return sorted(items.keys())
+
+scores: Dict[str, int] = {"Alice": 95, "Bob": 87, "Carol": 92}
+print(sorted_keys(scores))  # ['Alice', 'Bob', 'Carol'] — strings are sortable
+```
+
+Because `str` implements `__lt__` (less-than comparison), `sorted_keys` accepts `Dict[str, int]`. If you tried `Dict[list, int]`, it would fail because lists do not implement `__lt__`.
+
+## Bounded TypeVars and Class Hierarchies
+
+When a bounded TypeVar is used in a class hierarchy, the bound propagates through inheritance:
+
+```python
+from typing import TypeVar, Generic
+
+T = TypeVar("T", bound=float)
+
+class Measurement(Generic[T]):
+    def __init__(self, value: T):
+        self.value = value
+
+    def scale(self, factor: float) -> T:
+        result = self.value * factor
+        return T(result)  # This works because T is bound to float
+
+# class Temperature(Measurement[float]):
+#     pass
+```
+
+Here `T` is constrained to `float` or its subclass, which is consistent with how `Measurement` is parameterized.
+
+Understanding bounded generics unlocks the ability to write truly reusable generic code that is also type-safe. Combined with Protocol definitions from the [Protocols and Structural Typing](/courses/advanced-python/protocols-structural-typing) chapter, bounded generics enable APIs that accept any type meeting certain structural requirements, while still catching type errors at static analysis time rather than runtime.
+
+## Hands-On Exercise
+
+Create a generic class `Stack` that is bounded to types implementing `__repr__` (so you can print stack contents). The stack should support `push`, `pop`, `peek`, and `is_empty` operations. Add a method `print_stack` that prints each element using `repr`.
+
+```python
+from typing import TypeVar, Generic
+
+T = TypeVar("T", bound=...)  # Bound to types with __repr__
+
+class Stack(Generic[T]):
+    def __init__(self):
+        self._items: list[T] = []
+
+    def push(self, item: T) -> None:
+        ...
+
+    def pop(self) -> T:
+        ...
+
+    def peek(self) -> T:
+        ...
+
+    def is_empty(self) -> bool:
+        ...
+
+    def print_stack(self) -> None:
+        for item in self._items:
+            print(repr(item))
+```

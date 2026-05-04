@@ -1,0 +1,198 @@
+---
+title: "Threading and the GIL"
+description: "Understand the Global Interpreter Lock (GIL), how threading works in Python, and why it matters for I/O-bound tasks."
+order: 1
+---
+
+# Threading and the GIL
+
+Python's threading model is shaped by a fundamental constraint called the Global Interpreter Lock (GIL). To write efficient concurrent programs, you need to understand what the GIL is, why it exists, and how it affects your choice of concurrency strategies.
+
+## What Is the GIL?
+
+The Global Interpreter Lock is a mutex that protects access to Python objects. At any moment, only one thread can hold the GIL and execute Python bytecode. This means that even on a multi-core machine, a single Python process cannot execute multiple threads in parallel for CPU-bound work.
+
+The GIL exists because CPython's memory management is not thread-safe. Objects are reference-counted, and without the GIL, two threads could simultaneously increment or decrement a reference count, corrupting memory. The GIL ensures that reference counting operations are atomic, eliminating a large class of concurrency bugs at the cost of parallelism.
+
+```python
+import threading
+
+# Demonstrating that multiple threads exist and run, but the GIL
+# means only one runs Python code at a time.
+def worker(n):
+    result = 0
+    for i in range(1_000_000):
+        result += i
+    print(f"Worker {n} finished with result {result}")
+
+threads = [threading.Thread(target=worker, args=(i,)) for i in range(4)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+print("All workers done")
+```
+
+The output shows all four workers running and completing, but they run sequentially due to the GIL. This is fine for I/O-bound tasks where threads spend most of their time waiting, but it is a bottleneck for CPU-bound computation.
+
+## CPU-Bound vs I/O-Bound Tasks
+
+A **CPU-bound** task spends most of its time performing computation. Examples include sorting, image processing, cryptographic operations, and mathematical simulations. For CPU-bound tasks, Python threads cannot achieve true parallelism because of the GIL.
+
+An **I/O-bound** task spends most of its time waiting for external resources like disk reads, network requests, or database queries. While waiting, the GIL is released, allowing other threads to run. This makes threading useful for I/O-bound concurrency.
+
+```python
+import threading
+import time
+
+def cpu_task(n):
+    """CPU-bound: compute prime numbers."""
+    count = 0
+    num = 2
+    while count < 50000:
+        is_prime = all(num % i != 0 for i in range(2, int(num ** 0.5) + 1))
+        if is_prime:
+            count += 1
+        num += 1
+    return n
+
+def io_task(n):
+    """I/O-bound: simulate waiting for a network response."""
+    time.sleep(0.1)
+    return n
+
+# CPU-bound with threads - no speedup due to GIL
+start = time.time()
+threads = [threading.Thread(target=cpu_task, args=(i,)) for i in range(4)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+print(f"CPU-bound (4 threads): {time.time() - start:.2f}s")
+
+# I/O-bound with threads - significant speedup since threads
+# release GIL while sleeping
+start = time.time()
+threads = [threading.Thread(target=io_task, args=(i,)) for i in range(4)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+print(f"I/O-bound (4 threads): {time.time() - start:.2f}s")
+```
+
+The CPU-bound case with 4 threads takes nearly 4 times as long as a single thread because they run sequentially. The I/O-bound case with 4 threads takes about the same time as 1 thread because the sleep calls release the GIL, allowing all threads to run concurrently while waiting.
+
+## Releasing the GIL
+
+The GIL is released at well-defined points: when a thread performs I/O operations, calls certain C library functions, or runs extension modules written in C. The `time.sleep()` function releases the GIL, which is why the I/O-bound example above benefits from threading. However, pure Python computation inside a `while` loop never releases the GIL.
+
+Extensions like NumPy release the GIL during long C operations, which is why NumPy operations can parallelize despite the GIL. Similarly, the `multiprocessing` module bypasses the GIL entirely by using separate processes.
+
+## Using threading.Semaphore to Coordinate Threads
+
+A `Semaphore` manages a counter that threads can increment or decrement. It is useful for limiting concurrent access to a resource, such as a connection pool:
+
+```python
+import threading
+import time
+
+# A semaphore limiting to 3 concurrent connections
+connection_pool = threading.Semaphore(3)
+
+def fetch_data(worker_id):
+    """Simulates using a shared connection pool."""
+    connection_pool.acquire()
+    try:
+        print(f"Worker {worker_id} acquired connection")
+        time.sleep(0.5)  # Simulate network I/O
+        print(f"Worker {worker_id} released connection")
+    finally:
+        connection_pool.release()
+
+threads = [threading.Thread(target=fetch_data, args=(i,)) for i in range(6)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+```
+
+Only 3 workers hold the semaphore at any time, so the output shows the first 3 acquiring, then waiting, then the next 3 acquiring as the first 3 release. Without the semaphore, all 6 workers would contend for connections simultaneously.
+
+## Daemon Threads
+
+Daemon threads are terminated automatically when the main program exits. They are useful for background tasks like a logger or a cache cleaner that should not prevent the program from exiting:
+
+```python
+import threading
+import time
+
+def background_task():
+    print("Background task started")
+    while True:
+        time.sleep(1)
+        print("Background task running")
+
+# Set daemon=True so this thread does not block exit
+daemon_thread = threading.Thread(target=background_task, daemon=True)
+daemon_thread.start()
+
+# Main thread continues
+time.sleep(0.5)
+print("Main thread done")
+# Python exits here, killing the daemon thread automatically
+```
+
+Without `daemon=True`, Python would wait for `background_task` to finish, but that never happens because of the infinite loop. With `daemon=True`, Python terminates the thread when the main program exits.
+
+## The Event Object for Thread Signaling
+
+A `threading.Event` allows one thread to signal another thread to wake up. This is useful for coordination patterns like a shutdown flag:
+
+```python
+import threading
+import time
+
+shutdown_event = threading.Event()
+
+def long_running_task():
+    print("Task starting")
+    while not shutdown_event.is_set():
+        # Do work in small increments so we can check the shutdown flag
+        time.sleep(0.1)
+        print("Task working...")
+    print("Task shutting down gracefully")
+
+worker = threading.Thread(target=long_running_task)
+worker.start()
+
+time.sleep(0.5)
+print("Requesting shutdown")
+shutdown_event.set()
+worker.join()
+print("Worker stopped cleanly")
+```
+
+The task periodically checks `shutdown_event.is_set()`. When the main thread calls `shutdown_event.set()`, the worker's next iteration sees the flag and exits cleanly. This pattern avoids the need to forcibly terminate a thread, which is not safe in Python.
+
+## When to Use Threading
+
+Use threading when your program needs to:
+
+- Handle multiple I/O operations concurrently (network requests, file reads)
+- Run background tasks that should not block the main thread
+- Manage a limited pool of connections or resources with a semaphore
+
+Do not use threading for CPU-bound tasks that require true parallelism. For CPU-bound work, consider `multiprocessing` (see the [Multiprocessing](/courses/advanced-python/concurrency-and-parallelism/multiprocessing) section) or the `concurrent.futures.ProcessPoolExecutor`.
+
+For I/O-bound tasks with many concurrent operations, `asyncio` often outperforms threading by running everything on a single thread with cooperative multitasking (see the [AsyncIO Fundamentals](/courses/advanced-python/concurrency-and-parallelism/asyncio-fundamentals) section).
+
+## Summary
+
+- The Global Interpreter Lock (GIL) allows only one thread to execute Python bytecode at a time within a single process
+- CPU-bound tasks do not benefit from threading due to the GIL, but I/O-bound tasks do because the GIL is released during I/O waits
+- The GIL protects reference counting in CPython's memory management, ensuring thread safety for atomic operations
+- `Semaphore` limits concurrent access to shared resources
+- Daemon threads run in the background and are terminated when the main program exits
+- `threading.Event` enables signaling between threads for coordination
+- For CPU-bound parallelism, use `multiprocessing` or `ProcessPoolExecutor` instead of threading

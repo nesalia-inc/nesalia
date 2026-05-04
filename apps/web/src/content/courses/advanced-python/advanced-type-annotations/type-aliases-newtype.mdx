@@ -1,0 +1,192 @@
+---
+title: "Type Aliases and NewType"
+description: "Learn to define reusable names for complex types with type aliases, and create distinct types that are distinct from their underlying type using NewType."
+order: 3
+---
+
+# Type Aliases and NewType
+
+When type annotations become complex, you can give them names. **Type aliases** let you define a name for a type expression, making signatures readable. **NewType** creates a distinct type that is semantically different from its base type, even if the runtime representation is identical.
+
+## Type Aliases
+
+A type alias is simply a variable holding a type. By convention, aliases are written in `CapitalCase`. They are especially useful for compound types that are used repeatedly.
+
+```python
+from typing import Dict, List, Union
+
+# Complex type used in multiple places
+UserId = int
+ProductId = int
+OrderId = str
+
+Price = float
+Discount = float
+
+# A more complex type
+Address = Dict[str, str]
+UserProfile = Dict[str, Union[str, int, bool]]
+PurchaseHistory = List[Dict[str, Union[int, str, float]]]
+
+def get_user_name(user_id: UserId) -> str:
+    return f"User_{user_id}"
+
+def calculate_total(prices: List[Price], discounts: List[Discount]) -> Price:
+    return sum(prices) - sum(discounts)
+```
+
+Aliases make the code self-documenting. `UserId` is semantically different from `ProductId` even though both are `int` at the type level. You would not pass a `ProductId` to `get_user_name`, even though a type checker using the alias above would allow it. For that kind of distinction, use `NewType`.
+
+Alias names ending with `Id` or `Price` communicate intent. If the intent is not captured by the alias, the type system will not enforce it, which is why `NewType` exists.
+
+## When to Use Type Aliases
+
+Type aliases shine for:
+
+- Nested container types that appear in many function signatures
+- Union types that represent a category of things
+- Callable signatures assigned to a name
+- Reducing repetition in complex generic types
+
+```python
+from typing import Callable, List, Tuple
+
+# A callable type with a long signature
+Transform = Callable[[int, List[str]], Tuple[str, int]]
+
+def apply_transform(fn: Transform, value: int, items: List[str]) -> str:
+    result_tuple = fn(value, items)
+    return result_tuple[0]
+```
+
+The `Transform` alias captures a complex signature in a single readable name. Without it, every occurrence of the callable signature would be verbose.
+
+## NewType for Distinct Types
+
+`NewType` creates a distinct nominal type that is different from its underlying type, even though the runtime value is identical. This enforces stricter type checking for semantically different values that share a representation.
+
+```python
+from typing import NewType
+
+UserId = NewType("UserId", int)
+ProductId = NewType("ProductId", int)
+
+def get_user_name(user_id: UserId) -> str:
+    return f"User_{user_id}"
+
+uid = UserId(42)
+pid = ProductId(42)
+
+print(get_user_name(uid))  # User_42 — works fine
+
+# This would be a type error:
+# print(get_user_name(pid))  # Error: ProductId is not UserId
+# get_user_name(UserId(42))  # Correct
+```
+
+At runtime, `UserId(42)` returns `42`. The `UserId` wrapper is erased, but the type checker tracks the distinction. You cannot pass a plain `int` or a `ProductId` where a `UserId` is expected.
+
+## NewType for Validation at Construction Time
+
+`NewType` can also be used to enforce validation at the point of construction, creating a "validated once, trusted forever" pattern:
+
+```python
+from typing import NewType
+
+# Create distinct types for validated data
+PositiveInt = NewType("PositiveInt", int)
+EmailAddress = NewType("EmailAddress", str)
+Username = NewType("Username", str)
+
+def create_positive_int(value: int) -> PositiveInt:
+    if value <= 0:
+        raise ValueError("Must be positive")
+    return PositiveInt(value)
+
+def create_email(value: str) -> EmailAddress:
+    if "@" not in value or "." not in value:
+        raise ValueError("Invalid email format")
+    return EmailAddress(value)
+
+# These types flow through the system as validated
+def send_email(to: EmailAddress, subject: str) -> None:
+    print(f"Sending email to {to} with subject: {subject}")
+
+email = create_email("user@example.com")
+send_email(email, "Hello")  # OK
+
+# This would fail type check:
+# send_email("not-an-email", "Hello")  # Error
+```
+
+Once a value is wrapped in a `NewType`, the type checker treats it as verified. Functions that accept `EmailAddress` do not need to re-validate, because the only way to obtain an `EmailAddress` is through `create_email`.
+
+## Type Alias vs NewType
+
+The key difference is nominal versus structural typing:
+
+| Aspect | Type Alias | NewType |
+|---|---|---|
+| Type checking | Structural — same underlying type means compatible | Nominal — distinct wrapper means incompatible |
+| Runtime representation | Identical to base type | Identical to base type (erased) |
+| Use when | Naming complex types for readability | Distinguishing semantically different values |
+| Cross-type safety | None — `UserId` and `ProductId` are interchangeable | Strong — `UserId` cannot substitute `ProductId` |
+
+```python
+from typing import NewType, Dict
+
+UserId = NewType("UserId", int)
+ProductId = NewType("ProductId", int)
+
+# Type alias — interchangeable at type-check time
+type UserIdAlias = int
+type ProductIdAlias = int
+
+# With aliases, this would NOT be caught:
+# def get_user_name(user_id: UserIdAlias) -> str: ...
+# get_user_name(ProductIdAlias(42))  # No error — same type
+
+# With NewType, this IS caught:
+# def get_user_name(user_id: UserId) -> str: ...
+# get_user_name(ProductId(42))  # Error: ProductId is not UserId
+```
+
+## Callable NewTypes
+
+`NewType` can also wrap callable types:
+
+```python
+from typing import NewType, List
+
+# A function that processes items and returns a list of results
+Processor = NewType("Processor", lambda items: [f"processed_{i}" for i in items])
+
+items = ["a", "b", "c"]
+result = Processor(items)
+print(result)  # ['processed_a', 'processed_b', 'processed_c']
+```
+
+However, the primary use of `NewType` is for simple distinct types like IDs, tokens, and validated strings.
+
+Type aliases and NewType work well together. Use type aliases for complex types that benefit from naming, and use `NewType` for primitive values that need to be distinguished. These patterns appear throughout the rest of the course, especially in [TypedDict](/courses/advanced-python/typeddict) for structured data and [Protocols and Structural Typing](/courses/advanced-python/protocols-structural-typing) for interface definitions.
+
+## Hands-On Exercise
+
+A logistics system uses `ParcelId`, `WarehouseCode`, and `TrackingNumber`, all represented as strings. Use `NewType` to create these distinct types. Then create a function `create_tracking_info` that accepts a `ParcelId`, `WarehouseCode`, and `TrackingNumber`, and returns a tuple of the three.
+
+```python
+from typing import NewType
+
+# Define your distinct types here
+ParcelId = NewType("ParcelId", str)
+WarehouseCode = NewType("WarehouseCode", str)
+TrackingNumber = NewType("TrackingNumber", str)
+
+def create_tracking_info(
+    parcel_id: ParcelId,
+    warehouse: WarehouseCode,
+    tracking: TrackingNumber,
+) -> tuple[ParcelId, WarehouseCode, TrackingNumber]:
+    # Your implementation here
+    pass
+```

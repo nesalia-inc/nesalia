@@ -1,0 +1,409 @@
+---
+title: "Unit Testing with unittest and pytest"
+description: "Learn how to write and run unit tests using Python's built-in unittest framework and the popular pytest library."
+order: 1
+---
+
+# Unit Testing with unittest and pytest
+
+Unit testing is the practice of writing small, isolated tests that verify individual pieces of code behave correctly. A unit test exercises a single function or method with specific inputs and checks that the outputs match expectations. When we test our code thoroughly, we catch bugs early, document expected behavior, and refactor with confidence.
+
+## Why Unit Testing Matters
+
+Consider a function that calculates sales tax. We might call it with `calculate_tax(100, 0.08)` and expect `8.0` back. Without tests, we manually check this every time we change the code. With tests, we automate that check and run it every time we make modifications. This practice catches regressions (bugs introduced by changes) before they reach production.
+
+## The unittest Framework
+
+Python's standard library includes `unittest`, a framework for writing and running tests. `unittest` follows the xUnit pattern common across many programming languages.
+
+### Writing Your First Test
+
+We create a test by subclassing `unittest.TestCase` and writing methods that start with `test_`. Each such method is a individual test case:
+
+```python
+import unittest
+
+def calculate_tax(subtotal, tax_rate):
+    """Calculate the sales tax on a subtotal."""
+    return subtotal * tax_rate
+
+class TestCalculateTax(unittest.TestCase):
+
+    def test_basic_tax_calculation(self):
+        result = calculate_tax(100, 0.08)
+        self.assertEqual(result, 8.0)
+
+    def test_zero_tax_rate(self):
+        result = calculate_tax(100, 0.0)
+        self.assertEqual(result, 0.0)
+
+    def test_zero_subtotal(self):
+        result = calculate_tax(0, 0.08)
+        self.assertEqual(result, 0.0)
+```
+
+We use `self.assertEqual` to verify that the actual result matches the expected value. When the assertion passes, the test succeeds silently. When it fails, `unittest` reports exactly which test failed and why.
+
+Running this test produces output indicating whether each test passed or failed:
+
+```
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK
+```
+
+### Understanding Test Assertions
+
+An assertion is a check that verifies a condition is true. When an assertion fails, it raises an exception that signals the test failed. `unittest.TestCase` provides many assertion methods:
+
+- `assertEqual(a, b)` — checks that `a == b`
+- `assertNotEqual(a, b)` — checks that `a != b`
+- `assertTrue(x)` — checks that `x` is truthy
+- `assertFalse(x)` — checks that `x` is falsy
+- `assertRaises(Exception)` — checks that a specific exception is raised
+- `assertIsNone(x)` — checks that `x` is None
+- `assertIsInstance(a, type)` — checks that `a` is an instance of type
+
+Choosing the right assertion makes tests more readable and provides better error messages when they fail.
+
+### Setting Up and Tearing Down
+
+Sometimes tests need shared setup code that runs before each test. We use `setUp` to prepare resources and `tearDown` to clean them up:
+
+```python
+class TestFileProcessor(unittest.TestCase):
+
+    def setUp(self):
+        # Create a temporary file before each test
+        self.test_file = open("test_data.txt", "w")
+        self.test_file.write("hello world")
+        self.test_file.close()
+
+    def tearDown(self):
+        # Clean up after each test
+        import os
+        if os.path.exists("test_data.txt"):
+            os.remove("test_data.txt")
+
+    def test_read_file(self):
+        with open("test_data.txt", "r") as f:
+            content = f.read()
+        self.assertEqual(content, "hello world")
+
+    def test_file_exists(self):
+        import os
+        self.assertTrue(os.path.exists("test_data.txt"))
+```
+
+`setUp` runs before every individual test method, and `tearDown` runs after every test, regardless of whether the test passed or failed. This ensures tests remain independent and do not affect each other.
+
+### Organizing Tests with Test Suites
+
+As our test suite grows, we group related tests into logical collections. We can create a test suite that combines tests from multiple classes:
+
+```python
+def build_suite():
+    suite = unittest.TestSuite()
+    suite.addTests([
+        TestCalculateTax("test_basic_tax_calculation"),
+        TestCalculateTax("test_zero_tax_rate"),
+        TestFileProcessor("test_read_file"),
+    ])
+    return suite
+
+if __name__ == "__main__":
+    runner = unittest.TextTestRunner(verbosity=2)
+    runner.run(build_suite())
+```
+
+This approach becomes less common once we adopt pytest, which discovers tests automatically without explicit suites.
+
+## The pytest Framework
+
+pytest is a third-party testing library that has become the de facto standard in the Python community. It is more concise than `unittest` and provides powerful features like parameterized tests, fixtures, and detailed error reporting.
+
+### Why pytest Over unittest
+
+pytest tests are plain functions rather than methods of a test class. This makes them easier to write and read. pytest also provides better output, automatic discovery of test files, and a rich plugin ecosystem.
+
+### Writing pytest Tests
+
+With pytest, we simply write test functions that start with `test_`:
+
+```python
+def calculate_tax(subtotal, tax_rate):
+    return subtotal * tax_rate
+
+def test_basic_tax_calculation():
+    result = calculate_tax(100, 0.08)
+    assert result == 8.0
+
+def test_zero_tax_rate():
+    result = calculate_tax(100, 0.0)
+    assert result == 0.0
+
+def test_zero_subtotal():
+    result = calculate_tax(0, 0.08)
+    assert result == 0.0
+```
+
+We use plain `assert` statements instead of special methods. pytest captures assertion failures and shows exactly what went wrong, including the values of variables at the moment of failure.
+
+Running `pytest` in a directory discovers all `test_*.py` or `*_test.py` files automatically:
+
+```
+$ pytest
+====== test session starts ======
+collected 3 items
+
+test_example.py::test_basic_tax_calculation PASSED
+test_example.py::test_zero_tax_rate PASSED
+test_example.py::test_zero_subtotal PASSED
+
+====== 3 passed in 0.05s ======
+```
+
+### pytest Assertions and Error Reporting
+
+pytest rewrites assertion statements to provide detailed output when they fail. Consider this test that fails:
+
+```python
+def test_string_operations():
+    assert "hello".upper() == "HELLO"
+    assert "hello".replace("l", "x") == "hexlo"  # intentionally wrong
+```
+
+pytest output shows exactly which assertion failed and why:
+
+```
+FAILED test_example.py::test_string_operations
+AssertionError: assert 'hexlo' == 'hexlo'
+```
+
+The error message shows the actual value `'hexlo'` and the expected value, making it immediately clear what went wrong.
+
+### Test Discovery
+
+pytest automatically finds tests by following these conventions:
+
+- Files named `test_*.py` or `*_test.py`
+- Test functions prefixed with `test_`
+- Test classes prefixed with `Test` (without an underscore)
+
+This means we do not need to register tests explicitly. pytest scans the directory tree and runs everything it finds.
+
+### The assert Keyword
+
+With pytest, plain `assert` statements work for most checks:
+
+```python
+def test_list_operations():
+    numbers = [1, 2, 3]
+    assert len(numbers) == 3
+    assert sum(numbers) == 6
+    assert max(numbers) == 3
+
+def test_dict_operations():
+    person = {"name": "Alice", "age": 30}
+    assert person["name"] == "Alice"
+    assert "email" not in person
+    person["email"] = "alice@example.com"
+    assert "email" in person
+```
+
+pytest intercepts assertion failures and provides introspection into the values involved.
+
+### Testing Exceptions with pytest.raises
+
+When a function must raise an exception, we use `pytest.raises`:
+
+```python
+import pytest
+
+def divide(a, b):
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
+
+def test_divide_by_zero():
+    with pytest.raises(ValueError) as exc_info:
+        divide(10, 0)
+    assert "Cannot divide by zero" in str(exc_info.value)
+```
+
+The `pytest.raises` context manager asserts that the code inside raises the specified exception type. If the code does not raise an exception, or raises a different one, the test fails. The `exc_info` object captures the exception for further inspection.
+
+### Parametrized Tests
+
+When we want to test the same function with multiple inputs, we use `@pytest.mark.parametrize`:
+
+```python
+import pytest
+
+def calculate_tax(subtotal, tax_rate):
+    return subtotal * tax_rate
+
+@pytest.mark.parametrize("subtotal,rate,expected", [
+    (100, 0.08, 8.0),
+    (50, 0.08, 4.0),
+    (200, 0.05, 10.0),
+    (0, 0.08, 0.0),
+    (100, 0.0, 0.0),
+])
+def test_calculate_tax(subtotal, rate, expected):
+    assert calculate_tax(subtotal, rate) == expected
+```
+
+Running this produces:
+
+```
+test_calculate_tax[100-0.08-8.0] PASSED
+test_calculate_tax[50-0.08-4.0] PASSED
+test_calculate_tax[200-0.05-10.0] PASSED
+test_calculate_tax[0-0.08-0.0] PASSED
+test_calculate_tax[100-0.0-0.0] PASSED
+```
+
+Each tuple in the parametrized list generates a separate test case. This keeps our test code DRY (Do Not Repeat Yourself) and makes adding new cases trivial.
+
+## Running Tests Effectively
+
+Effective test runners support several modes of operation that help us develop and maintain test suites:
+
+### Running Specific Tests
+
+We can run specific test files, classes, or functions by specifying their path:
+
+```bash
+pytest tests/test_math.py                  # run one file
+pytest tests/test_math.py::TestAddition    # run one class
+pytest tests/test_math.py::test_addition   # run one function
+```
+
+This granularity helps when we want to run just the failing test during debugging.
+
+### Verbose Output
+
+The `-v` flag shows each test name and its result:
+
+```bash
+pytest -v
+```
+
+Output:
+
+```
+tests/test_math.py::test_addition PASSED                  [ 16%]
+tests/test_math.py::test_subtraction PASSED               [ 33%]
+tests/test_math.py::test_multiplication PASSED            [ 50%]
+tests/test_math.py::test_division PASSED                  [ 66%]
+```
+
+### Stopping on First Failure
+
+The `-x` flag stops the test run at the first failure, which is useful during development when we want to fix tests in order:
+
+```bash
+pytest -x
+```
+
+### Running Only Failed Tests
+
+After a full run, we can re-run only the tests that failed in the last run:
+
+```bash
+pytest --lf
+```
+
+This is especially helpful when working through a large test suite with many failures.
+
+## Best Practices for Unit Tests
+
+Good unit tests share several characteristics that make them maintainable and trustworthy:
+
+### Test One Thing Per Test
+
+Each test should verify a single behavior or concept. When a test fails, we immediately know which specific requirement is not met:
+
+```python
+# Good: one concept per test
+def test_tax_calculation_with_eight_percent_rate():
+    assert calculate_tax(100, 0.08) == 8.0
+
+def test_tax_calculation_with_zero_rate_returns_zero():
+    assert calculate_tax(100, 0.0) == 0.0
+
+# Avoid cramming multiple checks into one test
+def test_tax_calculation_many_cases():  # too broad
+    assert calculate_tax(100, 0.08) == 8.0
+    assert calculate_tax(50, 0.08) == 4.0
+    # ...
+```
+
+### Name Tests Descriptively
+
+Test names should describe what they verify. A clear name acts as documentation:
+
+```python
+# Descriptive: explains the expected behavior
+def test_division_by_zero_raises_valueerror_with_message():
+    pass
+
+# Vague: does not convey intent
+def test_div_zero():
+    pass
+```
+
+### Keep Tests Independent
+
+Tests must not depend on each other or share mutable state. Each test should set up its own data and clean up after itself:
+
+```python
+# Each test creates its own data file
+def test_read_empty_file_returns_empty_string(tmp_path):
+    file_path = tmp_path / "empty.txt"
+    file_path.write_text("")
+    assert read_file(str(file_path)) == ""
+
+def test_read_file_with_content(tmp_path):
+    file_path = tmp_path / "data.txt"
+    file_path.write_text("hello")
+    assert read_file(str(file_path)) == "hello"
+```
+
+pytest's `tmp_path` fixture (discussed in the next section) provides a clean temporary directory for each test automatically.
+
+### Test Edge Cases
+
+Beyond happy-path tests, we should test edge cases like empty values, boundary conditions, and error scenarios:
+
+```python
+def test_append_to_empty_list():
+    lst = []
+    lst.append(10)
+    assert lst == [10]
+
+def test_append_to_full_list():
+    lst = [1, 2, 3]
+    lst.append(4)
+    assert lst == [1, 2, 3, 4]
+
+def test_pop_from_empty_list_raises_indexerror():
+    lst = []
+    with pytest.raises(IndexError):
+        lst.pop()
+```
+
+## Summary
+
+- Unit tests verify that individual pieces of code behave correctly by checking outputs against expected values
+- An assertion is a check that verifies a condition, raising an error when the condition is false
+- `unittest.TestCase` provides assertion methods and lifecycle methods (`setUp`, `tearDown`) for organizing tests
+- pytest provides a more concise syntax with plain `assert` statements and powerful features like parametrization
+- Test functions prefixed with `test_` are automatically discovered by pytest
+- `pytest.raises` checks that code raises expected exceptions
+- Parametrized tests run the same test function multiple times with different inputs, reducing code duplication
+
+For testing infrastructure like fixtures and temporary resources, see [Fixtures and Mocking](./fixtures-mocking.mdx). For measuring how much of your code is tested, see [Coverage Analysis](./coverage-analysis.mdx). For fixing bugs interactively, see [Debugging with pdb](./debugging-pdb.mdx).

@@ -1,0 +1,302 @@
+---
+title: "Structural Pattern Matching"
+description: "Master Python's match/case statement introduced in Python 3.10, explore literal, sequence, mapping, and class patterns, use case guards, wildcards, and understand when to use match/case vs if/elif."
+order: 9
+---
+
+# Structural Pattern Matching
+
+Structural pattern matching, introduced in Python 3.10 as `match`/`case`, is a mechanism for comparing a value against a series of patterns. Unlike simple equality checks in `if`/`elif` chains, pattern matching can destructure data, bind variables, and match against the structure of complex objects.
+
+## What match/case Does
+
+A `match` statement takes an expression and compares it against several `case` blocks. Each case block contains a pattern that the expression is matched against. When a match is found, the corresponding block executes.
+
+```python
+def http_status(status):
+    match status:
+        case 200:
+            return "OK"
+        case 404:
+            return "Not Found"
+        case 500:
+            return "Server Error"
+        case _:
+            return "Unknown status"
+
+print(http_status(200))  # OK
+print(http_status(404))  # Not Found
+```
+
+The `_` is a wildcard pattern that matches anything. It serves as the default case when no other pattern matches, similar to `default:` in a switch statement.
+
+## Pattern Types
+
+### Literal Patterns
+
+Literal patterns match exact values, including strings, numbers, booleans, and `None`:
+
+```python
+def describe_number(n):
+    match n:
+        case 0:
+            return "Zero"
+        case 1:
+            return "One"
+        case -1:
+            return "Negative one"
+        case _ if n > 0:
+            return "Positive"
+        case _ if n < 0:
+            return "Negative"
+
+print(describe_number(0))   # Zero
+print(describe_number(5))   # Positive
+```
+
+Literal patterns can be combined with guards (the `if` clause) to add additional conditions.
+
+### Sequence Patterns
+
+Sequence patterns match against sequences like lists or tuples and can capture elements:
+
+```python
+def process_command(command):
+    match command:
+        case ["quit"]:
+            return "Exiting..."
+        case ["echo", msg]:
+            return f"Echo: {msg}"
+        case ["echo", *args]:
+            return f"Echo with args: {args}"
+        case ["set", key, value]:
+            return f"Setting {key} = {value}"
+        case _:
+            return f"Unknown command: {command}"
+
+print(process_command(["quit"]))              # Exiting...
+print(process_command(["echo", "hello"]))     # Echo: hello
+print(process_command(["echo", "a", "b"]))    # Echo with args: ('a', 'b')
+print(process_command(["set", "x", "42"]))   # Setting x = 42
+```
+
+Sequence patterns can capture individual elements with variable names (`msg`) or capture remaining elements with star patterns (`*args`).
+
+### Mapping Patterns
+
+Mapping patterns match against dictionaries and can capture values associated with specific keys:
+
+```python
+def parse_config(config):
+    match config:
+        case {"host": host, "port": port}:
+            return f"Server at {host}:{port}"
+        case {"timeout": t, "retries": r}:
+            return f"Timeout {t}s, {r} retries"
+        case {"version": v, **rest}:
+            return f"Version {v}, other settings: {list(rest.keys())}"
+        case {}:
+            return "Empty config"
+
+print(parse_config({"host": "localhost", "port": 8080}))
+# Server at localhost:8080
+
+print(parse_config({"timeout": 30, "retries": 3}))
+# Timeout 30s, 3 retries
+
+print(parse_config({"version": "1.0", "debug": True, "log": "file.txt"}))
+# Version 1.0, other settings: ['debug', 'log']
+```
+
+The double-star pattern (`**rest`) captures any remaining key-value pairs not explicitly matched.
+
+### Class Patterns
+
+Class patterns match against instances and can extract arguments from the constructor:
+
+```python
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+class Circle:
+    def __init__(self, center, radius):
+        self.center = center
+        self.radius = radius
+
+def describe_shape(shape):
+    match shape:
+        case Point(x=0, y=0):
+            return "Origin point"
+        case Point(x=x, y=y):
+            return f"Point at ({x}, {y})"
+        case Circle(center=Point(x=0, y=0), radius=r):
+            return f"Circle centered at origin with radius {r}"
+        case Circle(center=center, radius=r):
+            return f"Circle at {center} with radius {r}"
+        case _:
+            return "Unknown shape"
+
+print(describe_shape(Point(0, 0)))              # Origin point
+print(describe_shape(Point(3, 4)))              # Point at (3, 4)
+print(describe_shape(Circle(Point(0, 0), 5))) # Circle centered at origin with radius 5
+```
+
+Class patterns work with both positional and keyword arguments, depending on how the class is defined. Classes that define `__match_args__` can use positional patterns:
+
+```python
+class Point:
+    __match_args__ = ('x', 'y')
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+def describe_point(point):
+    match point:
+        case Point(0, 0):
+            return "Origin"
+        case Point(x, y):
+            return f"Point({x}, {y})"
+
+print(describe_point(Point(3, 4)))  # Point(3, 4)
+```
+
+## Case Guards with if
+
+Guards add extra conditions to patterns using the `if` keyword. Guards are evaluated after the pattern matches, and they can reference variables bound by the pattern:
+
+```python
+def classify_number(n):
+    match n:
+        case n if n < 0:
+            return "Negative number"
+        case 0:
+            return "Zero"
+        case n if n % 2 == 0:
+            return f"Even number: {n}"
+        case n if n % 2 == 1:
+            return f"Odd number: {n}"
+
+def handle_request(request):
+    match request:
+        case {"method": "GET", "path": path} if path.startswith("/public"):
+            return f"Public resource: {path}"
+        case {"method": "GET", "path": path}:
+            return f"Protected GET: {path}"
+        case {"method": "POST", "data": data} if len(data) > 1000:
+            return "Large POST, consider batching"
+        case {"method": "POST", "data": data}:
+            return f"Processing POST with {len(data)} bytes"
+        case _:
+            return "Unknown request"
+
+print(handle_request({"method": "GET", "path": "/public/logo.png"}))
+# Public resource: /public/logo.png
+```
+
+Guards are powerful because they can perform arbitrary computations after the pattern structure has been matched.
+
+## Wildcard and Rest Patterns
+
+The underscore `_` is a wildcard that matches but does not bind. It discards the matched value:
+
+```python
+def handle_response(response):
+    match response:
+        case {"status": 200, "data": _, "timestamp": _}:
+            return "OK with data and timestamp"
+        case {"status": _, "error": error_msg}:
+            return f"Error: {error_msg}"
+```
+
+For capturing remaining elements in sequence patterns, use the star pattern `*_` to capture but discard:
+
+```python
+def first_two(items):
+    match items:
+        case [a, b, *_]:
+            return f"First two: {a}, {b}"
+        case [a]:
+            return f"Only one: {a}"
+        case []:
+            return "Empty"
+
+print(first_two([1, 2, 3, 4, 5]))  # First two: 1, 2
+```
+
+## When to Use match/case vs if/elif
+
+`match`/`case` is ideal when:
+
+1. **You are matching against structure**: When you need to destructure data (lists, dictionaries, class instances) and capture parts of that structure.
+2. **You have multiple distinct cases**: When you have more than two or three cases that are fundamentally different, `match` is clearer than a chain of `if`/`elif`.
+3. **You want to bind variables from matched data**: The ability to capture matched values into variables in a single case block is powerful.
+4. **You are implementing state machines or command parsing**: Pattern matching excels at routing based on patterns.
+
+Use `if`/`elif` when:
+
+1. **You are doing simple equality comparisons**: For a few cases with simple conditions, `if`/`elif` is often clearer.
+2. **You do not need destructuring**: When you only care about a value itself, not its internal structure.
+3. **You have complex conditions that span multiple values**: When conditions involve multiple variables in complex ways, `if` statements provide more flexibility.
+
+```python
+# Prefer if/elif for simple cases:
+if status == 200:
+    return "OK"
+elif status == 404:
+    return "Not Found"
+else:
+    return "Unknown"
+
+# Prefer match for structural matching or many cases:
+match shape:
+    case Point(0, 0):
+        return "Origin"
+    case Point(x, y) if x == y:
+        return "Diagonal point"
+    case Point(x, y):
+        return f"Point at ({x}, {y})"
+    case Circle(center=Point(x, y), radius=r):
+        return f"Circle at ({x}, {y}) with radius {r}"
+```
+
+## Hands-On Exercise
+
+Create a function `parse_token(token)` that handles different types of tokens using structural pattern matching:
+
+1. String literals starting with `"` or `'` — return `("LITERAL", content_without_quotes)`
+2. Integers — return `("INTEGER", int_value)`
+3. floats — return `("FLOAT", float_value)`
+4. Identifiers — return `("IDENTIFIER", name)` for names like `foo`, `_bar`
+5. Lists like `[1, 2, 3]` — return `("LIST", [parsed_elements])`
+6. Dictionaries like `{"key": "value"}` — return `("DICT", {key: value})`
+
+For identifiers, also handle the special case where the identifier is a Python keyword (`if`, `for`, `while`, etc.) and return `("KEYWORD", name)` instead.
+
+```python
+import re
+
+KEYWORDS = {"if", "for", "while", "def", "class", "return", "import", "from"}
+
+def parse_token(token):
+    match token:
+        # Handle string literals
+        case str() as s if s.startswith('"') or s.startswith("'"):
+            pass
+
+        # Handle integers and floats
+        case _ if token.isdigit():
+            pass
+
+        # Handle identifiers and keywords
+        case str() as name if name.isidentifier():
+            pass
+
+        # Add more patterns for lists, dicts, etc.
+        case _:
+            return ("UNKNOWN", token)
+```
+
+Pattern matching is one of Python's most powerful modern features, enabling you to write cleaner, more expressive code when dealing with structured data and multiple cases.

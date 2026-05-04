@@ -1,0 +1,238 @@
+---
+title: "__slots__ for Memory Optimization"
+description: "Learn how to use __slots__ to reduce memory usage and improve attribute access speed in Python classes."
+order: 2
+---
+
+# `__slots__` for Memory Optimization
+
+By default, Python objects have a dictionary called `__dict__` that stores all their attributes. This flexible structure allows you to add any attribute to an object at any time, but it also uses a significant amount of memory. The `__slots__` special attribute offers an alternative: instead of a dictionary, each attribute gets a fixed slot in memory. This can dramatically reduce memory usage when you have many instances of a class.
+
+## What `__slots__` Does and Why
+
+When you define `__slots__` in a class, Python does not create a `__dict__` dictionary for instances of that class. Instead, Python allocates a fixed amount of space for each declared attribute directly in the object's memory structure. This saves memory because Python does not need to maintain a dynamic dictionary for each instance.
+
+Here is how you use `__slots__`:
+
+```python
+class Point:
+    __slots__ = ['x', 'y']
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+p = Point(1, 2)
+print(f"Point: ({p.x}, {p.y})")
+print(f"Has __dict__: {hasattr(p, '__dict__')}")
+print(f"Has __slots__: {hasattr(p, '__slots__')}")
+```
+
+Output:
+
+```
+Point: (1, 2)
+Has __dict__: False
+Has __slots__: True
+```
+
+The `Point` class has `__slots__` with two attribute names: 'x' and 'y'. Notice that `hasattr(p, '__dict__')` returns False. Without a `__dict__`, you cannot add attributes to an instance that are not listed in `__slots__`. This trade-off is the fundamental limitation of using `__slots__`.
+
+The memory savings come from the fact that a dictionary in Python uses significantly more memory than a simple fixed-size structure. A dictionary in CPython typically uses about 56 bytes overhead plus additional memory for each entry, while a slot uses just the space for the actual data (which is the same as the data itself).
+
+## Memory Comparison in Practice
+
+Let us see a concrete example of the memory savings. We will compare a regular class with one using `__slots__`:
+
+```python
+import sys
+
+
+class RegularPoint:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+class SlottedPoint:
+    __slots__ = ['x', 'y']
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+regular = RegularPoint(1, 2)
+slotted = SlottedPoint(1, 2)
+
+print(f"RegularPoint instance size: {sys.getsizeof(regular)} bytes")
+print(f"SlottedPoint instance size: {sys.getsizeof(slotted)} bytes")
+print(f"Regular has __dict__: {hasattr(regular, '__dict__')}")
+print(f"Slotted has __dict__: {hasattr(slotted, '__dict__')}")
+```
+
+Output (may vary by Python version and platform):
+
+```
+RegularPoint instance size: 56 bytes
+SlottedPoint instance size: 56 bytes
+Regular has __dict__: True
+Slotted has __dict__: False
+```
+
+The `sys.getsizeof()` function does not always show the full memory difference because it only measures the object itself, not the dictionary it references. In practice, the memory savings from `__slots__` are substantial when creating thousands or millions of instances. The actual memory savings come from not having to allocate a dictionary for each instance.
+
+## Using `__slots__` with Inheritance
+
+When you inherit from a class that uses `__slots__`, the child class will also benefit from `__slots__` if it also defines `__slots__`. However, there are some important rules.
+
+If the parent class has `__slots__` but the child class does not, the child will still get a `__dict__`. To maintain `__slots__` benefits in a child class, you must also define `__slots__` in the child:
+
+```python
+class Animal:
+    __slots__ = ['name', 'species']
+
+    def __init__(self, name, species):
+        self.name = name
+        self.species = species
+
+
+class Dog(Animal):
+    __slots__ = ['breed']
+
+    def __init__(self, name, breed):
+        super().__init__(name, "Canine")
+        self.breed = breed
+
+
+dog = Dog("Buddy", "Golden Retriever")
+print(f"Dog: {dog.name}, {dog.species}, {dog.breed}")
+print(f"Has __dict__: {hasattr(dog, '__dict__')}")
+```
+
+Output:
+
+```
+Dog: Buddy, Canine, Golden Retriever
+Has __dict__: False
+```
+
+The `Dog` class has its own `__slots__` list containing 'breed', plus it inherits the slots from `Animal`. When we access `dog.name`, Python looks in the slots inherited from `Animal`. When we access `dog.breed`, Python looks in `Dog`'s own slots. Since `Dog` also defines `__slots__`, it does not get a `__dict__`.
+
+## The Trade-Off: Cannot Add Attributes Dynamically
+
+The most significant limitation of `__slots__` is that you cannot add attributes that are not defined in `__slots__`. This is a fundamental restriction, not just a memory optimization. If you try to set an attribute that is not in `__slots__`, Python raises an AttributeError:
+
+```python
+class Point:
+    __slots__ = ['x', 'y']
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+p = Point(1, 2)
+p.z = 3
+```
+
+Output:
+
+```
+AttributeError: 'Point' object has no attribute 'z'
+```
+
+This is intentional. The inability to add arbitrary attributes is the flip side of the memory optimization. You lose the flexibility of dynamic attribute assignment but gain the memory savings. This trade-off is worth it when you know exactly what attributes your objects will have and you are creating many instances.
+
+## When to Use `__slots__`
+
+The `__slots__` optimization is most valuable in these situations:
+
+- When you create thousands or millions of instances of a class
+- When memory is constrained (embedded systems, data processing pipelines)
+- When you know the exact set of attributes and do not need dynamic attributes
+- When building classes that will be used as data containers (similar to C structs)
+
+Here is an example where `__slots__` makes sense for a game with many particles:
+
+```python
+class Particle:
+    __slots__ = ['x', 'y', 'vx', 'vy', 'life']
+
+    def __init__(self, x, y, vx, vy, life):
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.life = life
+
+    def update(self, dt):
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+        self.life -= dt
+
+
+particles = [Particle(i, i, 1, 1, 100) for i in range(10000)]
+print(f"Created {len(particles)} particles")
+```
+
+In this scenario, creating 10,000 particle instances with exactly five attributes each benefits from `__slots__` because we know precisely what attributes each particle needs and we are creating many of them.
+
+## `__slots__` with `__dict__` and `__weakref__`
+
+Sometimes you need some slots but also want to allow additional dynamic attributes or support weak references. Python provides special slot names for these cases.
+
+The `'__dict__'` string in `__slots__` tells Python to still create a `__dict__` for instances, allowing dynamic attribute assignment alongside the fixed slots. The `'__weakref__'` string allows the object to be used in weak references (useful for caching and avoiding circular references):
+
+```python
+class FlexiblePoint:
+    __slots__ = ['x', 'y', '__dict__']
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+p = FlexiblePoint(1, 2)
+p.z = 3
+print(f"Point: ({p.x}, {p.y}, {p.z})")
+print(f"Has __dict__: {hasattr(p, '__dict__')}")
+```
+
+Output:
+
+```
+Point: (1, 2, 3)
+Has __dict__: True
+```
+
+By including `'__dict__'` in the `__slots__` list, we can still add arbitrary attributes (like `z`) while enjoying the memory benefits of slots for the fixed attributes (x and y). However, this defeats the purpose of `__slots__` for the attributes in `__slots__` if the primary goal was memory reduction, because you still have a dictionary.
+
+The `__weakref__` slot is less commonly needed but important for certain caching patterns:
+
+```python
+import weakref
+
+
+class CachedResult:
+    __slots__ = ['value', '__weakref__']
+
+    def __init__(self, value):
+        self.value = value
+
+
+obj = CachedResult(42)
+weak_ref = weakref.ref(obj)
+print(f"Value via weakref: {weak_ref().value}")
+```
+
+The `__weakref__` slot allows instances to be referenced weakly, which means the garbage collector can clean them up if only weak references point to them. This is useful for caches that should not prevent their items from being garbage collected.
+
+## This Connects To
+
+- The `__init__` and `__new__` methods (from the previous section) are part of the object lifecycle that `__slots__` optimizes
+- Descriptors also interact with `__slots__` because slots are the underlying mechanism for attribute access
+- Data classes (covered elsewhere in this course) can be combined with `__slots__` for maximum efficiency
+
+The `__slots__` mechanism is a powerful optimization tool when used appropriately. It represents a classic trade-off in computer science between flexibility (dynamic attributes) and efficiency (fixed, known attributes).

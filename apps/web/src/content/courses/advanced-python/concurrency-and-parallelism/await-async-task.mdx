@@ -1,0 +1,258 @@
+---
+title: "await, async def, and Task"
+description: "Master the building blocks of async Python: awaiting coroutines, defining async functions, and managing Tasks."
+order: 4
+---
+
+# await, async def, and Task
+
+These three concepts are the atoms of async Python. Understanding how they interact is essential for writing correct and efficient async code.
+
+## The await Expression
+
+`await` pauses the current coroutine until the awaited expression completes, then returns its result. Only an `async def` function can use `await`. Any object that implements `__await__` is an **awaitable**: coroutines, Tasks, and Futures are all awaitables.
+
+```python
+import asyncio
+
+async def nested():
+    return 42
+
+async def main():
+    result = await nested()
+    print(f"Result: {result}")
+
+asyncio.run(main())
+```
+
+`await nested()` calls the coroutine returned by `nested()` and waits for it to complete. The `await` expression can only appear inside an `async def` function. Using `await` outside an async function is a syntax error.
+
+## async def: Defining Coroutines and Async Functions
+
+Any function defined with `async def` is an async function. Calling an async function returns a coroutine object but does not execute it:
+
+```python
+import asyncio
+
+async def fetch(url):
+    """An async function that simulates fetching a URL."""
+    print(f"Fetching {url}")
+    await asyncio.sleep(0.5)
+    return f"data from {url}"
+
+async def main():
+    # fetch(url) returns a coroutine object immediately
+    future = fetch("http://example.com")
+    print(f"Future: {future}")
+
+    # await executes the coroutine
+    data = await future
+    print(f"Data: {data}")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+Fetching http://example.com
+Data: data from http://example.com
+```
+
+An `async def` function always returns a coroutine object, even if it does not contain any `await` expressions:
+
+```python
+async def no_await():
+    return "immediate"
+
+async def main():
+    result = await no_await()
+    print(result)
+
+asyncio.run(main())
+```
+
+`no_await()` returns a coroutine that resolves immediately. You still need `await` to retrieve the result.
+
+## Task: Scheduled Coroutines
+
+A `Task` is an awaitable that wraps a coroutine and schedules it on the event loop. Once created, a Task runs on the event loop independently of who created it. You can await a Task to get its result:
+
+```python
+import asyncio
+
+async def step1():
+    await asyncio.sleep(0.5)
+    return "step1 done"
+
+async def step2():
+    await asyncio.sleep(0.3)
+    return "step2 done"
+
+async def main():
+    # Create tasks - they start running on the event loop immediately
+    task1 = asyncio.create_task(step1())
+    task2 = asyncio.create_task(step2())
+
+    # Do other work while tasks run
+    await asyncio.sleep(0.1)
+    print("Doing other work")
+
+    # Wait for both tasks
+    result1 = await task1
+    result2 = await task2
+
+    print(f"Results: {result1}, {result2}")
+
+asyncio.run(main())
+```
+
+`create_task()` returns a `Task` that is already scheduled to run. The event loop begins executing `step1()` and `step2()` as soon as it has a chance, which happens when the current coroutine (or the `sleep(0.1)`) yields.
+
+## Cancelling a Task
+
+A Task can be cancelled with `task.cancel()`. The event loop will raise `asyncio.CancelledError` inside the awaited coroutine:
+
+```python
+import asyncio
+
+async def long_running():
+    print("Long running task starting")
+    try:
+        await asyncio.sleep(10)
+        print("Long running task done")
+        return "completed"
+    except asyncio.CancelledError:
+        print("Task was cancelled!")
+        raise
+
+async def main():
+    task = asyncio.create_task(long_running())
+
+    await asyncio.sleep(0.5)
+    print("Cancelling the task")
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        print("Caught CancelledError")
+
+asyncio.run(main())
+```
+
+Output:
+
+```
+Long running task starting
+Cancelling the task
+Task was cancelled!
+Caught CancelledError
+```
+
+`cancel()` requests cancellation; it does not forcibly terminate. The `CancelledError` is raised at the next await point inside the coroutine. If the coroutine is not awaiting anything, cancellation may be delayed.
+
+## Waiting for Multiple Tasks
+
+`asyncio.wait()` waits for a set of Tasks to complete, with an optional timeout:
+
+```python
+import asyncio
+
+async def task_with_name(name, duration):
+    print(f"{name} starting")
+    await asyncio.sleep(duration)
+    print(f"{name} done")
+    return name
+
+async def main():
+    tasks = [
+        asyncio.create_task(task_with_name("fast", 1)),
+        asyncio.create_task(task_with_name("slow", 3)),
+        asyncio.create_task(task_with_name("medium", 2)),
+    ]
+
+    # Wait for all to complete
+    done, pending = await asyncio.wait(tasks)
+
+    for t in done:
+        result = t.result()
+        print(f"Task {result} completed")
+
+asyncio.run(main())
+```
+
+`asyncio.wait()` returns a tuple of `(done, pending)` sets. All tasks complete before the function returns because we did not set a timeout. With a timeout, `asyncio.wait()` returns after the timeout expires, leaving pending tasks still running.
+
+## asyncio.gather vs asyncio.wait
+
+`asyncio.gather()` is used when you have multiple coroutines or Tasks and want all results collected in order:
+
+```python
+results = await asyncio.gather(task1, task2, task3)
+# results = [result1, result2, result3] in the order submitted
+```
+
+`asyncio.wait()` is used when you need more control, such as handling tasks as they complete or setting a timeout:
+
+```python
+done, pending = await asyncio.wait(tasks, timeout=5)
+# done contains tasks that finished within 5 seconds
+```
+
+For most use cases, `asyncio.gather()` is simpler and is the recommended choice when you need all results.
+
+## Task vs Future
+
+A `Future` is a low-level awaitable that represents a value that will be available in the future. `Task` is a subclass of `Future` designed specifically for scheduling coroutines:
+
+```python
+import asyncio
+
+async def main():
+    # You rarely create Futures directly; asyncio functions return them
+    loop = asyncio.get_event_loop()
+    future = loop.create_future()
+    future.set_result("the result")
+
+    result = await future
+    print(result)
+
+asyncio.run(main())
+```
+
+In practice, you work with Tasks and let asyncio handle the underlying Futures. Understanding that a Task IS a Future helps when you see `await some_task` in code or when you need to pass an awaitable to functions that accept Futures.
+
+## Exception Propagation in Tasks
+
+If a Task raises an exception, it is stored in the Task and re-raised when you await the Task:
+
+```python
+import asyncio
+
+async def faulty():
+    await asyncio.sleep(0.1)
+    raise ValueError("Something went wrong")
+
+async def main():
+    task = asyncio.create_task(faulty())
+
+    try:
+        await task
+    except ValueError as e:
+        print(f"Caught exception from task: {e}")
+
+asyncio.run(main())
+```
+
+The exception is propagated from the Task to the awaiting coroutine, just like synchronous exception propagation. This makes error handling in async code feel familiar.
+
+## Summary
+
+- `await` pauses a coroutine until the awaited expression completes; it can only be used inside an `async def` function
+- `async def` defines an async function that returns a coroutine object when called
+- `asyncio.create_task()` wraps a coroutine in a Task and schedules it on the event loop
+- `Task.cancel()` requests cancellation; the coroutine receives `asyncio.CancelledError` at its next await point
+- `asyncio.wait()` returns `(done, pending)` sets and supports timeouts; `asyncio.gather()` collects results in order
+- A Task is a Future, so Tasks can be awaited and exceptions propagate through them
+- See [Concurrent.futures](/courses/advanced-python/concurrency-and-parallelism/concurrent-futures) for a higher-level API using ThreadPoolExecutor and ProcessPoolExecutor

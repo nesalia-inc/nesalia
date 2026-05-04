@@ -1,0 +1,224 @@
+---
+title: "Self Types and Conditional Types"
+description: "Learn about the Self type for returning the same class type from methods, and conditional types for type-level computation. Understand how these enable precise type annotations in inheritance hierarchies."
+order: 7
+---
+
+# Self Types and Conditional Types
+
+Python's `Self` type refers to the class being used in a method call, enabling precise return types in inheritance hierarchies. **Conditional types** (implemented via `TypeAlias`) allow type-level logic that chooses between types based on conditions. These features help you write APIs that maintain type safety through class hierarchies and polymorphic calls.
+
+## The Problem: Returning the Wrong Type
+
+Consider a method that returns `self` in a class hierarchy:
+
+```python
+class Base:
+    def clone(self) -> "Base":
+        return Base()
+
+class Derived(Base):
+    def clone(self) -> "Derived":
+        return Derived()
+```
+
+If you annotate `clone` as returning `Base`, calling `derived.clone()` gives you a `Base`, not a `Derived`. You lose type information. Python 3.11 introduced `Self` to solve exactly this problem.
+
+## Self Type
+
+`Self` represents the type of the class on which the method is called. When you call `derived.clone()`, the return type is `Derived`. When you call `base.clone()`, the return type is `Base`.
+
+```python
+from typing import Self
+
+class Base:
+    def clone(self) -> Self:
+        # Returns the same type as the instance
+        return self.__class__()
+
+class Derived(Base):
+    def clone(self) -> Self:
+        return Derived()
+
+    def specialized_method(self) -> str:
+        return "derived-specific"
+
+d = Derived()
+c = d.clone()
+print(c.specialized_method())  # OK — c is Derived type
+
+b = Base()
+b_clone = b.clone()
+# b_clone.specialized_method()  # Error — Base has no specialized_method
+```
+
+The type checker understands that `d.clone()` returns `Derived` and `b.clone()` returns `Base`, preserving type information through inheritance.
+
+## Self in __init__ Return Types
+
+`Self` is also useful for factory methods and `__init__` patterns where you want to return the constructed instance type:
+
+```python
+from typing import Self
+
+class Builder:
+    def __init__(self):
+        self._value = ""
+
+    def add_prefix(self, prefix: str) -> Self:
+        self._value = prefix + self._value
+        return self
+
+    def add_suffix(self, suffix: str) -> Self:
+        self._value = self._value + suffix
+        return self
+
+    def build(self) -> str:
+        return self._value
+
+# Method chaining works with correct type inference
+result = Builder().add_prefix("Hello ").add_suffix("!").build()
+print(result)  # Hello !
+```
+
+Because each method returns `Self`, the type checker knows that `add_suffix` is available after `add_prefix`. Without `Self`, the return type would need to be `Builder`, breaking the subclass pattern:
+
+```python
+class CustomBuilder(Builder):
+    def uppercase(self) -> Self:
+        # Ensures chaining continues with CustomBuilder
+        ...
+
+chained = CustomBuilder().add_prefix("Test").uppercase()
+# Without Self, add_prefix would return Builder, not CustomBuilder
+```
+
+## Self in Class Methods
+
+`Self` also works with `@classmethod` when the class method needs to return an instance of the correct subclass:
+
+```python
+from typing import Self
+
+class Animal:
+    species: str = "Animal"
+
+    @classmethod
+    def create(cls) -> Self:
+        return cls()
+
+class Dog(Animal):
+    species = "Dog"
+
+class Cat(Animal):
+    species = "Cat"
+
+d = Dog.create()
+print(d.species)  # Dog
+
+c = Cat.create()
+print(c.species)   # Cat
+```
+
+Without `Self`, `Dog.create()` would return `Animal`, losing the subclass type.
+
+## Conditional Types via TypeAlias
+
+Python does not have true conditional types like TypeScript's `T extends U ? A : B`. However, you can simulate conditional type logic using `TypeAlias` and overload patterns. The key insight is that conditional type logic is primarily useful for library authors and complex generic manipulation.
+
+A practical pattern uses `TypeGuard` for narrowing:
+
+```python
+from typing import TypeGuard
+
+def is_string_list(value: list[object]) -> TypeGuard[list[str]]:
+    return all(isinstance(item, str) for item in value)
+
+def process(values: list[object]) -> None:
+    if is_string_list(values):
+        # Type checker narrows values to list[str] here
+        print("Uppercased:", [s.upper() for s in values])
+    else:
+        print("Non-string list")
+```
+
+`TypeGuard` tells the type checker that if the function returns `True`, the argument should be treated as `list[str]` rather than `list[object]`.
+
+## Self in Type Aliases (Advanced)
+
+A more advanced pattern combines `Self` with generic aliases to express type-level relationships:
+
+```python
+from typing import Self
+
+# A type alias that refers to the same class in a class method context
+class Cloneable:
+    def clone(self) -> Self:
+        return self.__class__()
+
+# Type aliases cannot use Self directly outside class context,
+# but class methods can:
+class Machine:
+    def duplicate(self) -> Self:
+        return self.__class__()
+
+class Robot(Machine):
+    def greet(self) -> str:
+        return "I am a robot"
+
+r = Robot()
+r2 = r.duplicate()
+print(r2.greet())  # Works — r2 is Robot type, not just Machine
+```
+
+The `Self` type is essential for method chaining APIs, factory methods, and any situation where subclasses should preserve their type through inherited methods. It works seamlessly with `TypeVar` in generic classes, though `Self` is preferred when the return type should match the specific class being used at call time.
+
+For type-level logic beyond what `TypeGuard` provides, Python type checkers support **template generic literal types** and **recursive type aliases** that approximate conditional types:
+
+```python
+from typing import TypeAlias
+
+# Recursive type alias for tree-like structures
+Tree: TypeAlias = dict[str, "Tree | str"]
+```
+
+This creates a type where a value is either a string or a dictionary mapping strings to the same recursive type, which is useful for representing JSON-like data with type safety.
+
+Self types work particularly well with the `@override` decorator covered in the [@override](/courses/advanced-python/override) chapter, ensuring that overridden methods maintain the correct return type for the subclass. They also pair with `@final` ([@final](/courses/advanced-python/final)) when you want to prevent a class from being further subclassed.
+
+## Hands-On Exercise
+
+Create a class hierarchy with a base `Builder` class and a `ValidatedBuilder` subclass. Both should support method chaining. Use `Self` to ensure that methods return the correct subclass type.
+
+```python
+from typing import Self
+
+class Builder:
+    def __init__(self):
+        self._parts: list[str] = []
+
+    def add(self, part: str) -> Self:
+        self._parts.append(part)
+        return self
+
+    def build(self) -> str:
+        return " ".join(self._parts)
+
+class ValidatedBuilder(Builder):
+    def add(self, part: str) -> Self:
+        if not part:
+            raise ValueError("Part cannot be empty")
+        return super().add(part)
+
+    def add_quiet(self, part: str) -> Self:
+        # Only add non-empty parts silently
+        if part:
+            self._parts.append(part)
+        return self
+
+# Demonstrate that chaining returns correct types
+b1 = Builder().add("A").add("B").build()
+b2 = ValidatedBuilder().add("X").add("Y").add_quiet("").build()
+print(b1)  # A B
+print(b2)  # X Y
+```

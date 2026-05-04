@@ -1,0 +1,485 @@
+---
+title: "Sorting with Custom Keys"
+description: "Master sorting in Python using sorted() and sort() with custom key functions for complex sorting scenarios."
+order: 4
+---
+
+# Sorting with Custom Keys
+
+Python provides two ways to sort collections. The `sorted()` function returns a new sorted list from any iterable. The `list.sort()` method sorts a list in place, modifying the original. Both accept a `key` parameter that controls how elements compare, enabling complex sorting logic without modifying the original data.
+
+## The sorted() Function
+
+The `sorted()` function accepts any iterable and returns a new list with elements in ascending order by default. The original iterable remains unchanged.
+
+### Basic sorted() Usage
+
+```python
+# Sort a list of numbers
+numbers = [5, 2, 8, 1, 9]
+sorted_numbers = sorted(numbers)
+
+print(sorted_numbers)   # [1, 2, 5, 8, 9]
+print(numbers)          # [5, 2, 8, 1, 9] - original unchanged
+```
+
+The `sorted()` function creates and returns a new list, leaving the original untouched. This immutability makes `sorted()` predictable and safe for use with any iterable.
+
+### Sorting Different Types
+
+```python
+# Sort strings alphabetically
+words = ["banana", "apple", "cherry", "date"]
+print(sorted(words))
+# ['apple', 'banana', 'cherry', 'date']
+
+# Sort tuples by first element
+points = [(3, 4), (1, 2), (5, 1)]
+print(sorted(points))
+# [(1, 2), (3, 4), (5, 1)]
+
+# Sort a dictionary (sorts keys)
+scores = {"Alice": 85, "Bob": 92, "Carol": 78}
+print(sorted(scores))
+# ['Alice', 'Bob', 'Carol']
+```
+
+The `sorted()` function works with strings, tuples, dictionaries, and any iterable. Strings sort alphabetically, tuples sort element-by-element from left to right.
+
+## The sort() Method
+
+The `list.sort()` method sorts a list in place, modifying the original list directly. It returns `None` to emphasize this mutation.
+
+### Basic sort() Usage
+
+```python
+# Sort in place
+numbers = [5, 2, 8, 1, 9]
+result = numbers.sort()
+
+print(numbers)  # [1, 2, 5, 8, 9]
+print(result)   # None - sort() returns None
+```
+
+Because `sort()` modifies the original list, we do not assign its return value. The variable `numbers` now holds the sorted list.
+
+### Choosing Between sorted() and sort()
+
+We prefer `sorted()` when we need to preserve the original collection or when working with immutable types like tuples. We use `sort()` when we explicitly want to modify the original list and do not need the original order.
+
+```python
+# sorted() for immutable data
+original_tuple = (5, 2, 8, 1, 9)
+sorted_list = sorted(original_tuple)
+print(sorted_list)   # [1, 2, 5, 8, 9]
+print(original_tuple)  # (5, 2, 8, 1, 9) - unchanged
+
+# sort() when modification is acceptable
+mutable_list = [5, 2, 8, 1, 9]
+mutable_list.sort()
+print(mutable_list)  # [1, 2, 5, 8, 9]
+```
+
+## The key Parameter
+
+The `key` parameter accepts a function that transforms each element before comparison. The function receives one argument (the element) and returns a value to use for sorting.
+
+### Sorting by Length
+
+```python
+# Sort strings by length
+words = ["banana", "pie", "a", "apple", "cat"]
+sorted_by_length = sorted(words, key=len)
+
+print(sorted_by_length)
+# ['a', 'pie', 'cat', 'apple', 'banana']
+```
+
+The `len` function computes the length of each string. The sorting algorithm uses these lengths rather than the strings themselves for comparison.
+
+### Sorting by Absolute Value
+
+```python
+# Sort numbers by absolute value
+numbers = [-5, 2, -8, 1, -9]
+sorted_by_abs = sorted(numbers, key=abs)
+
+print(sorted_by_abs)
+# [1, 2, -5, -8, -9]
+```
+
+By using `abs` as the key function, we sort by magnitude rather than by algebraic value. Negative numbers sort based on their distance from zero.
+
+### Sorting with String Methods
+
+```python
+# Case-insensitive sorting
+words = ["Banana", "apple", "Cherry", "date"]
+sorted_lower = sorted(words, key=str.lower)
+
+print(sorted_lower)
+# ['apple', 'Banana', 'Cherry', 'date']
+```
+
+The key function `str.lower` converts each string to lowercase for comparison, making the sort case-insensitive. The original case is preserved in the output.
+
+### Sorting by Object Attributes
+
+```python
+# Sort objects by a specific attribute
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def __repr__(self):
+        return f"Person({self.name}, {self.age})"
+
+people = [
+    Person("Alice", 30),
+    Person("Bob", 25),
+    Person("Carol", 35)
+]
+
+sorted_by_age = sorted(people, key=lambda p: p.age)
+print(sorted_by_age)
+# [Person(Bob, 25), Person(Alice, 30), Person(Carol, 35)]
+```
+
+A lambda function extracts the attribute we want to sort by. Here, `lambda p: p.age` returns each person's age, and sorting uses those values.
+
+## Sorting with Lambda Functions
+
+Lambda functions provide inline key functions for sorting. We write a lambda when the transformation is simple enough to express in one expression.
+
+### Lambda for Tuple Elements
+
+```python
+# Sort tuples by second element
+pairs = [(1, 5), (3, 2), (2, 8), (4, 1)]
+sorted_by_second = sorted(pairs, key=lambda p: p[1])
+
+print(sorted_by_second)
+# [(4, 1), (3, 2), (1, 5), (2, 8)]
+```
+
+The lambda `lambda p: p[1]` extracts the second element from each tuple. The sorting uses these values for comparison.
+
+### Lambda for Dictionary Values
+
+```python
+# Sort dictionary items by value
+word_lengths = {"banana": 6, "apple": 5, "cherry": 6, "date": 4}
+sorted_by_value = sorted(word_lengths.items(), key=lambda item: item[1])
+
+print(sorted_by_value)
+# [('date', 4), ('apple', 5), ('banana', 6), ('cherry', 6)]
+```
+
+When sorting dictionary items, `item` is a tuple of `(key, value)`. The lambda extracts the value at index 1 for sorting.
+
+### Lambda for Multiple Attributes
+
+```python
+# Sort by last name, then first name
+names = [
+    ("John", "Smith"),
+    ("Jane", "Doe"),
+    ("Bob", "Smith"),
+    ("Alice", "Doe")
+]
+
+sorted_names = sorted(names, key=lambda n: (n[1], n[0]))
+print(sorted_names)
+# [('Alice', 'Doe'), ('Jane', 'Doe'), ('Bob', 'Smith'), ('John', 'Smith')]
+```
+
+A tuple as the key implements multi-level sorting. Python compares tuple elements in order, so sorting uses last name first, then first name for ties.
+
+## Multiple Sort Keys
+
+When a single sort criterion is insufficient, we use tuples to sort by multiple keys. Python compares tuples element by element, moving to the next element only when the previous elements are equal.
+
+### Primary and Secondary Sort Keys
+
+```python
+# Sort employees by department, then by salary
+employees = [
+    {"name": "Alice", "dept": "Engineering", "salary": 95000},
+    {"name": "Bob", "dept": "Sales", "salary": 75000},
+    {"name": "Carol", "dept": "Engineering", "salary": 98000},
+    {"name": "David", "dept": "Sales", "salary": 80000},
+    {"name": "Eve", "dept": "Engineering", "salary": 90000}
+]
+
+sorted_employees = sorted(employees, key=lambda e: (e["dept"], e["salary"]))
+
+for emp in sorted_employees:
+    print(f"{emp['dept']}: {emp['name']} - ${emp['salary']}")
+```
+
+The key function returns a tuple `(department, salary)`. Python first sorts by department, and within each department, sorts by salary. This gives us employees grouped by department and ordered by salary within each group.
+
+### Controlling Sort Order Per Key
+
+```python
+# Sort by department ascending, salary descending
+sorted_employees = sorted(employees, key=lambda e: (e["dept"], -e["salary"]))
+
+for emp in sorted_employees:
+    print(f"{emp['dept']}: {emp['name']} - ${emp['salary']}")
+```
+
+By negating the salary value in the tuple, we reverse the sort order for that key while keeping the department order ascending. Python compares -salary values, which reverses the effective order.
+
+### Using itemgetter for Cleaner Syntax
+
+```python
+from operator import itemgetter, attrgetter
+
+# Sort tuples with itemgetter
+pairs = [(1, 5), (3, 2), (2, 8), (4, 1)]
+sorted_by_second = sorted(pairs, key=itemgetter(1))
+print(sorted_by_second)
+# [(4, 1), (3, 2), (1, 5), (2, 8)]
+
+# Sort dictionaries by multiple keys
+word_lengths = {"banana": 6, "apple": 5, "cherry": 6, "date": 4}
+sorted_items = sorted(word_lengths.items(), key=itemgetter(1, 0))
+print(sorted_items)
+# [('date', 4), ('apple', 5), ('banana', 6), ('cherry', 6)]
+```
+
+The `itemgetter` function from the `operator` module creates key functions more readably than lambda. For dictionaries, `itemgetter(1, 0)` sorts by value first, then by key for ties.
+
+```python
+# Sort objects by attribute with attrgetter
+class Person:
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+people = [Person("Alice", 30), Person("Bob", 25), Person("Carol", 25)]
+sorted_people = sorted(people, key=attrgetter("age", "name"))
+print([(p.name, p.age) for p in sorted_people])
+# [('Bob', 25), ('Carol', 25), ('Alice', 30)]
+```
+
+The `attrgetter` function extracts object attributes for sorting. Here we sort by age first, then by name within the same age group.
+
+## Reverse Sorting
+
+The `reverse` parameter controls sort direction. Setting `reverse=True` sorts in descending order instead of ascending.
+
+### Basic Reverse Sorting
+
+```python
+# Sort in descending order
+numbers = [5, 2, 8, 1, 9]
+sorted_desc = sorted(numbers, reverse=True)
+
+print(sorted_desc)  # [9, 8, 5, 2, 1]
+```
+
+The `reverse=True` parameter flips the sort order after the key-based comparison.
+
+### Reverse with Custom Keys
+
+```python
+# Sort by length, longest first
+words = ["banana", "pie", "a", "apple", "cat"]
+sorted_by_length_desc = sorted(words, key=len, reverse=True)
+
+print(sorted_by_length_desc)
+# ['banana', 'apple', 'cherry', 'pie', 'a']
+```
+
+The key function still operates as normal (computes lengths), but the final ordering is reversed. The longest words appear first.
+
+### Combining Reverse with Multiple Keys
+
+```python
+# Sort by department ascending, salary descending
+employees = [
+    {"name": "Alice", "dept": "Engineering", "salary": 95000},
+    {"name": "Bob", "dept": "Sales", "salary": 75000},
+    {"name": "Carol", "dept": "Engineering", "salary": 98000},
+    {"name": "David", "dept": "Sales", "salary": 80000}
+]
+
+sorted_emp = sorted(employees, key=lambda e: (e["dept"], -e["salary"]))
+
+for emp in sorted_emp:
+    print(f"{emp['dept']}: {emp['name']} - ${emp['salary']}")
+# Engineering: Carol - $98000 (highest salary first within department)
+# Engineering: Alice - $95000
+# Sales: David - $80000 (highest salary first within department)
+# Sales: Bob - $75000
+```
+
+By negating the salary value in the key tuple, salary becomes the secondary sort key in descending order. The first sort key (department) remains in ascending order.
+
+## Stable Sorting
+
+Python's sorting algorithm is stable, meaning that when two elements have equal sort keys, their original order is preserved. This property enables multi-pass sorting to achieve complex ordering.
+
+### What Stable Means
+
+```python
+# Sort by length, then alphabetically
+words = ["cat", "dog", "apple", "banana", "pear"]
+
+# First sort by length (shorter first)
+by_length = sorted(words, key=len)
+print(by_length)
+# ['cat', 'dog', 'pear', 'apple', 'banana']
+
+# Now stable sort by alphabetical order (in place)
+by_length.sort(key=lambda w: w[0])  # sort by first letter only
+print(by_length)
+# ['apple', 'banana', 'cat', 'dog', 'pear']
+```
+
+The second sort preserves the order from the first sort for items with equal keys. Words with the same first letter maintain their relative order from the length-based sort.
+
+### Multi-Pass Sorting for Complex Criteria
+
+```python
+# Sort by department (ascending), then by name (descending)
+employees = [
+    {"name": "Alice", "dept": "Engineering"},
+    {"name": "Bob", "dept": "Sales"},
+    {"name": "Carol", "dept": "Engineering"},
+    {"name": "David", "dept": "Sales"}
+]
+
+# Pass 1: Sort by name in descending order
+employees_sorted = sorted(employees, key=lambda e: e["name"], reverse=True)
+
+# Pass 2: Stable sort by department (ascending)
+employees_sorted.sort(key=lambda e: e["dept"])
+
+for emp in employees_sorted:
+    print(f"{emp['dept']}: {emp['name']}")
+# Engineering: Carol
+# Engineering: Alice
+# Sales: David
+# Sales: Bob
+```
+
+Multi-pass sorting achieves the result when we cannot express all criteria in a single key function. The second pass is stable, so employees within each department retain their name-based ordering from the first pass.
+
+### Why Stability Matters
+
+```python
+# Goal: Sort by type (all cats before dogs), then by name alphabetically
+pets = [
+    {"name": "Whiskers", "type": "cat"},
+    {"name": "Buddy", "type": "dog"},
+    {"name": "Max", "type": "dog"},
+    {"name": "Luna", "type": "cat"}
+]
+
+# We cannot express "all cats before all dogs" in a single key easily,
+# but stability lets us do two passes
+
+# Pass 1: sort by name alphabetically
+pets_sorted = sorted(pets, key=lambda p: p["name"])
+
+# Pass 2: stable sort by type (cats and dogs intermix by name)
+pets_sorted.sort(key=lambda p: p["type"])
+
+for pet in pets_sorted:
+    print(f"{pet['type']}: {pet['name']}")
+# cat: Luna
+# cat: Whiskers
+# dog: Buddy
+# dog: Max
+```
+
+The second pass puts all cats before all dogs while preserving the alphabetical order within each type established by the first pass.
+
+## Practical Examples
+
+### Example 1: Sorting User Records
+
+```python
+# Sort user records by last name, then first name
+users = [
+    {"first": "John", "last": "Doe", "age": 30},
+    {"first": "Jane", "last": "Doe", "age": 25},
+    {"first": "Bob", "last": "Smith", "age": 35},
+    {"first": "Alice", "last": "Smith", "age": 28}
+]
+
+sorted_users = sorted(users, key=lambda u: (u["last"], u["first"]))
+
+for user in sorted_users:
+    print(f"{user['last']}, {user['first']}")
+# Doe, Jane
+# Doe, John
+# Smith, Alice
+# Smith, Bob
+```
+
+This pattern appears frequently when sorting contacts or directories where last name is primary and first name breaks ties.
+
+### Example 2: Natural Sorting (Numbers in Strings)
+
+```python
+# Sort filenames naturally (file1, file2, file10 instead of file1, file10, file2)
+import re
+
+filenames = ["file1.txt", "file10.txt", "file2.txt", "file21.txt", "file3.txt"]
+
+def natural_key(s):
+    """Extract numbers from string for natural sorting."""
+    return [int(c) if c.isdigit() else c.lower() for c in re.split(r'(\d+)', s)]
+
+sorted_files = sorted(filenames, key=natural_key)
+print(sorted_files)
+# ['file1.txt', 'file2.txt', 'file3.txt', 'file10.txt', 'file21.txt']
+```
+
+The `natural_key` function splits on digit sequences and returns a mixed list of strings and integers. Python compares integers numerically, so "10" correctly comes after "3" instead of before it.
+
+### Example 3: Sorting with Locale Awareness
+
+```python
+# Sort according to locale conventions
+from locale import strxfrm
+
+words = ["apple", "banana", "cherry", "date"]
+locale_sorted = sorted(words, key=strxfrm)
+print(locale_sorted)
+# ['apple', 'banana', 'cherry', 'date']
+```
+
+The `strxfrm` function from the `locale` module transforms strings according to locale conventions, which handles accented characters properly in locale-aware sorting.
+
+### Example 4: Sorting by Calculation
+
+```python
+# Sort points by distance from origin
+import math
+
+points = [(3, 4), (1, 1), (5, 12), (0, 0)]
+
+sorted_by_distance = sorted(points, key=lambda p: math.sqrt(p[0]**2 + p[1]**2))
+print(sorted_by_distance)
+# [(0, 0), (1, 1), (3, 4), (5, 12)]
+```
+
+The key function can perform calculations. Here we compute Euclidean distance from each point to the origin and sort by that computed value.
+
+## Summary
+
+Python's sorting capabilities extend beyond simple alphabetical or numeric ordering:
+
+- **`sorted()`** returns a new sorted list, leaving the original unchanged. **`sort()`** sorts in place and returns `None`.
+- **The `key` parameter** accepts a function that transforms elements for comparison. Common key functions include `len`, `str.lower`, and custom lambdas.
+- **Multiple sort keys** use tuples: `key=lambda x: (primary, secondary)`. Python compares tuple elements in order.
+- **`reverse=True`** sorts in descending order and combines with custom keys.
+- **Stability** preserves original order for equal keys, enabling multi-pass sorting for complex criteria.
+
+These tools enable any sorting requirement we encounter, from simple ascending lists to multi-level sorts with custom ordering rules.

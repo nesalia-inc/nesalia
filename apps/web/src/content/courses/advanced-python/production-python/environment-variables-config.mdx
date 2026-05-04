@@ -1,0 +1,310 @@
+---
+title: "Environment Variables and Configuration Management"
+description: "Learn how to manage application configuration using environment variables, the os module, and python-dotenv for production-ready settings."
+order: 2
+---
+
+# Environment Variables and Configuration Management
+
+Applications need configuration that changes between environments (development, staging, production) without modifying code. **Environment variables** are key-value pairs stored outside the application that programs read at runtime. They are the standard way to configure behavior because they can be set by the deployment system, vary per environment, and keep secrets out of source code.
+
+## Reading Environment Variables
+
+The `os` module from Python's standard library provides access to environment variables:
+
+```python
+import os
+
+# Read an environment variable
+database_url = os.environ.get("DATABASE_URL")
+api_key = os.environ.get("API_KEY", "default-key-if-not-set")
+
+print(f"Database: {database_url}")
+print(f"API Key: {api_key}")
+```
+
+The `os.environ.get()` method safely retrieves a variable, returning `None` (or a second argument) if the variable is not defined. This is safer than using `os.environ[]` directly, which would raise a `KeyError` if the variable is missing.
+
+## Setting Environment Variables
+
+Environment variables can be set in the shell before running Python:
+
+```bash
+# Unix/Linux/macOS
+export DATABASE_URL="postgresql://localhost/mydb"
+export LOG_LEVEL="DEBUG"
+
+# Windows Command Prompt
+set DATABASE_URL=postgresql://localhost/mydb
+set LOG_LEVEL=DEBUG
+
+# Windows PowerShell
+$env:DATABASE_URL="postgresql://localhost/mydb"
+$env:LOG_LEVEL="DEBUG"
+```
+
+Then in Python:
+
+```python
+import os
+
+database_url = os.environ.get("DATABASE_URL")
+log_level = os.environ.get("LOG_LEVEL", "INFO")
+
+print(f"Connecting to: {database_url}")
+print(f"Log level: {log_level}")
+```
+
+## Using python-dotenv for Local Development
+
+In development, you typically keep a `.env` file in your project root with local defaults. The `python-dotenv` package reads this file and loads variables into the environment:
+
+```bash
+# Install python-dotenv
+pip install python-dotenv
+```
+
+Create a `.env` file in your project root:
+
+```
+DATABASE_URL=postgresql://localhost/devdb
+LOG_LEVEL=DEBUG
+SECRET_KEY=my-secret-key-change-in-production
+MAX_CONNECTIONS=10
+```
+
+Load it in your Python application before accessing other variables:
+
+```python
+from dotenv import load_dotenv
+import os
+
+# Load .env file from the current directory
+load_dotenv()
+
+# Now read variables (including those from .env)
+database_url = os.environ.get("DATABASE_URL")
+secret_key = os.environ.get("SECRET_KEY")
+log_level = os.environ.get("LOG_LEVEL", "INFO")
+
+print(f"Database: {database_url}")
+print(f"Log level: {log_level}")
+```
+
+Important: never commit `.env` files to version control. Add `.env` to your `.gitignore` file to prevent accidentally sharing secrets.
+
+## Creating a Configuration Module
+
+Centralizing configuration in a dedicated module makes your application easier to manage and test. A configuration module reads environment variables and provides typed access to settings:
+
+```python
+# config.py
+from dataclasses import dataclass
+from typing import Optional
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+@dataclass
+class DatabaseConfig:
+    url: str
+    max_connections: int
+    pool_timeout: int
+
+@dataclass
+class AppConfig:
+    debug: bool
+    log_level: str
+    secret_key: str
+
+@dataclass
+class Config:
+    database: DatabaseConfig
+    app: AppConfig
+
+def load_config() -> Config:
+    """Load configuration from environment variables."""
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable is required")
+
+    return Config(
+        database=DatabaseConfig(
+            url=database_url,
+            max_connections=int(os.environ.get("MAX_CONNECTIONS", "10")),
+            pool_timeout=int(os.environ.get("POOL_TIMEOUT", "30")),
+        ),
+        app=AppConfig(
+            debug=os.environ.get("DEBUG", "false").lower() == "true",
+            log_level=os.environ.get("LOG_LEVEL", "INFO"),
+            secret_key=os.environ.get("SECRET_KEY", ""),
+        )
+    )
+```
+
+Using `@dataclass` for configuration provides type safety and automatic `__repr__` for debugging. The `load_config()` function validates required variables at startup, failing fast if essential configuration is missing.
+
+## Accessing Configuration Throughout Your Application
+
+Once loaded, configuration flows through your application cleanly:
+
+```python
+# main.py
+from config import load_config
+import logging
+
+config = load_config()
+
+# Configure logging based on environment
+logging.basicConfig(
+    level=getattr(logging, config.app.log_level),
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+
+def initialize_database(config):
+    logger.info(f"Connecting to database at {config.database.url}")
+    logger.debug(f"Max connections: {config.database.max_connections}")
+
+initialize_database(config)
+```
+
+Separating configuration from code means you can deploy the same code to multiple environments, changing behavior only through environment variables. This approach is fundamental to the [Logging Configuration](./logging-configuration.mdx) system, where logging levels come from configuration rather than hardcoded values.
+
+## Handling Missing Configuration Gracefully
+
+Production applications should fail predictably when configuration is missing. Provide clear error messages that help diagnose configuration problems quickly:
+
+```python
+import os
+from dataclasses import dataclass
+
+@dataclass
+class EmailConfig:
+    smtp_host: str
+    smtp_port: int
+    from_address: str
+
+    @classmethod
+    def from_env(cls) -> "EmailConfig":
+        """Create EmailConfig from environment variables with validation."""
+        errors = []
+
+        smtp_host = os.environ.get("SMTP_HOST")
+        if not smtp_host:
+            errors.append("SMTP_HOST is required")
+
+        smtp_port_str = os.environ.get("SMTP_PORT", "587")
+        try:
+            smtp_port = int(smtp_port_str)
+        except ValueError:
+            errors.append(f"SMTP_PORT must be an integer, got: {smtp_port_str}")
+
+        from_address = os.environ.get("EMAIL_FROM")
+        if not from_address:
+            errors.append("EMAIL_FROM is required")
+
+        if errors:
+            raise ValueError(f"Email configuration errors: {'; '.join(errors)}")
+
+        return cls(
+            smtp_host=smtp_host,
+            smtp_port=smtp_port,
+            from_address=from_address
+        )
+
+# Test with missing configuration
+try:
+    email_config = EmailConfig.from_env()
+    print(f"Email configured: {email_config}")
+except ValueError as e:
+    print(f"Configuration error: {e}")
+```
+
+Output:
+
+```
+Configuration error: SMTP_HOST is required; EMAIL_FROM is required
+```
+
+This pattern collects all configuration errors before failing, so developers see every problem at once rather than fixing one issue at a time.
+
+## Environment-Specific Configuration
+
+Different environments need different settings. A common pattern uses environment names to select configuration:
+
+```python
+import os
+from dataclasses import dataclass
+from typing import Literal
+
+@dataclass
+class Settings:
+    environment: Literal["development", "staging", "production"]
+    debug: bool
+    database_url: str
+    cache_ttl: int
+
+    @classmethod
+    def from_env(cls) -> "Settings":
+        env = os.environ.get("ENVIRONMENT", "development")
+
+        if env == "production":
+            return cls(
+                environment="production",
+                debug=False,
+                database_url=os.environ["DATABASE_URL"],
+                cache_ttl=300,
+            )
+        elif env == "staging":
+            return cls(
+                environment="staging",
+                debug=False,
+                database_url=os.environ.get("DATABASE_URL", "sqlite:///staging.db"),
+                cache_ttl=60,
+            )
+        else:
+            return cls(
+                environment="development",
+                debug=True,
+                database_url=os.environ.get("DATABASE_URL", "sqlite:///dev.db"),
+                cache_ttl=10,
+            )
+
+# Test different environments
+for env_name in ["development", "staging", "production"]:
+    os.environ["ENVIRONMENT"] = env_name
+    settings = Settings.from_env()
+    print(f"{settings.environment}: debug={settings.debug}, cache_ttl={settings.cache_ttl}")
+```
+
+Output:
+
+```
+development: debug=True, cache_ttl=10
+staging: debug=False, cache_ttl=60
+production: debug=False, cache_ttl=300
+```
+
+Production settings disable debug mode and use longer cache times for better performance. Development settings enable debug for easier troubleshooting.
+
+## Best Practices for Configuration Management
+
+- **Never hardcode secrets** — Use environment variables for API keys, database passwords, and tokens
+- **Fail fast** — Validate required configuration at startup, not when a feature is used
+- **Use sensible defaults** — Provide defaults for non-critical settings so the application works out of the box
+- **Document required variables** — Keep a `.env.example` file that lists all required variables
+- **Separate configuration from code** — Configuration belongs in the environment, not in source files
+
+## Summary
+
+- Environment variables provide a way to configure applications without modifying code
+- The `os.environ.get()` method safely reads environment variables
+- `python-dotenv` loads `.env` files for local development convenience
+- Centralize configuration in a dedicated module with validation
+- Use `@dataclass` for type-safe configuration objects
+- Fail fast with clear error messages when required configuration is missing
+
+For more on keeping configuration consistent across environments, see [Virtual Environments and Dependency Management](./venv-dependency-management.mdx). For automating checks on configuration code, see [Type Checking with mypy](./type-checking-mypy.mdx).

@@ -1,0 +1,191 @@
+---
+title: "@override for Method Overriding"
+description: "Use the @override decorator to explicitly mark methods that override methods from parent classes. Learn how this improves type safety, catches mistakes early, and serves as documentation."
+order: 9
+---
+
+# @override for Method Overriding
+
+The `@override` decorator (available in Python 3.12+) marks a method as intentionally overriding a method from a parent class or interface. If the method does not actually override anything, the type checker reports an error. This converts a silent runtime bug into a compile-time error.
+
+## The Problem: Silent Override Mistakes
+
+Consider a parent class with a method, and a subclass that accidentally misspells the method name:
+
+```python
+class Parent:
+    def fetch_data(self):
+        return "parent data"
+
+class Child(Parent):
+    def fetche_data(self):  # Typo — not an override
+        return "child data"
+
+obj = Child()
+print(obj.fetch_data())  # Returns "parent data" — probably not what was intended!
+```
+
+The subclass method `fetche_data` is not an override — it is a new method. Calling `fetch_data()` silently calls the parent's method. This kind of mistake can go unnoticed for a long time.
+
+## Using @override
+
+`@override` makes the intent explicit and catches the mistake:
+
+```python
+from typing import override
+
+class Parent:
+    def fetch_data(self) -> str:
+        return "parent data"
+
+class Child(Parent):
+    @override  # Error if this doesn't actually override a parent method
+    def fetch_data(self) -> str:
+        return "child data"
+
+    @override  # Error: fetche_data does NOT exist in Parent
+    def fetche_data(self) -> str:  # Type checker error!
+        return "child data"
+```
+
+With `@override`, the type checker verifies that `fetch_data` actually exists in `Parent`. If the method name is wrong, the type checker reports an error immediately rather than allowing a silent bug.
+
+## @override with Protocols
+
+`@override` also works when implementing methods from a Protocol:
+
+```python
+from typing import Protocol, override
+
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+
+class Shape:
+    @override  # Error if draw() is not in a parent class or Protocol
+    def draw(self) -> None:
+        print("Drawing shape")
+
+class Circle(Shape):
+    @override
+    def draw(self) -> None:
+        print("Drawing circle")
+```
+
+The type checker ensures that any method decorated with `@override` is present in a base class or implemented Protocol interface.
+
+## @override and Multiple Inheritance
+
+In complex inheritance hierarchies, `@override` clarifies which method is being overridden:
+
+```python
+from typing import override
+
+class BaseAnimal:
+    def speak(self) -> str:
+        return "..."
+
+class Dog(BaseAnimal):
+    @override
+    def speak(self) -> str:
+        return "Woof"
+
+class FriendlyDog(Dog):
+    @override
+    def speak(self) -> str:
+        return "Woof! Let's be friends!"
+
+class LoudDog(Dog):
+    @override
+    def speak(self) -> str:
+        return super().speak().upper() + "!"
+```
+
+In `LoudDog`, `@override` documents that `speak` overrides `Dog.speak`, and `super().speak()` correctly calls the immediate parent's method.
+
+## @override as Documentation
+
+Beyond type safety, `@override` serves as clear documentation to readers. When you see `@override`, you immediately know:
+
+1. This method intentionally replaces a parent class method
+2. The method name must exactly match the parent class method
+3. Changing the parent class method signature requires updating this subclass
+
+```python
+from typing import override
+
+class DataProcessor:
+    def process(self, data: list[dict]) -> list[dict]:
+        # Base implementation — just return data
+        return data
+
+class FilteringProcessor(DataProcessor):
+    @override
+    def process(self, data: list[dict]) -> list[dict]:
+        # Filter out entries with "deleted": True
+        return [item for item in data if not item.get("deleted", False)]
+
+    # vs. a non-override method with the same name — confusing:
+    def process(self, data: list[dict]) -> list[dict]:  # No @override
+        return data  # Is this an override mistake?
+```
+
+The absence of `@override` on `process` in the second case is ambiguous — is it an intentional new method or a forgotten override?
+
+## Combining @override with Other Decorators
+
+`@override` can be combined with other decorators like `@property`:
+
+```python
+from typing import override
+
+class Person:
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
+class Employee(Person):
+    @property
+    @override
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}, {self.department}"
+```
+
+The decorator order matters in Python. `@property` must be above `@override` because `property` returns a descriptor, and the decorators are applied from bottom to top. The type checker still sees `@override` on the method.
+
+## Requiring @override in a Codebase
+
+While `@override` is optional, some projects choose to require it for all override methods. This is a style policy, not a language requirement. A linter such as `ruff` can be configured to enforce this.
+
+For projects using pre-commit hooks, enabling `ruff` with the `override-required` rule ensures every override is explicitly decorated.
+
+`@override` works well alongside [Self Types](/courses/advanced-python/self-conditional-types) for ensuring that overridden methods return the correct subclass type, and alongside [Protocols and Structural Typing](/courses/advanced-python/protocols-structural-typing) for interface implementation.
+
+## Hands-On Exercise
+
+Create a class `AdvancedList` that subclasses `list` and overrides the `append` method with `@override`. Your override should:
+
+1. Only append values that are of the same type as the first item in the list (or be empty)
+2. Raise a `TypeError` if a value of a different type is attempted
+
+```python
+from typing import override
+
+class AdvancedList(list):
+    def __init__(self, *args):
+        super().__init__(args)
+
+    @override
+    def append(self, item) -> None:
+        # Implementation that enforces type consistency
+        ...
+```
+
+Then create a subclass `UniqueAdvancedList` that further overrides `append` to also enforce uniqueness (no duplicate values).
+
+```python
+class UniqueAdvancedList(AdvancedList):
+    @override
+    def append(self, item) -> None:
+        # Implementation that checks for duplicates before appending
+        ...
+```

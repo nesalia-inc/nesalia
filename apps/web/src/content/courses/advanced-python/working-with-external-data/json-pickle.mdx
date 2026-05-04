@@ -1,0 +1,427 @@
+---
+title: "JSON and Pickle Serialization"
+description: "Learn how to serialize Python objects to JSON for storage and transfer, and use Pickle for Python-native object persistence."
+order: 1
+---
+
+# JSON and Pickle Serialization
+
+Serialization is the process of converting a Python object into a format that can be saved to a file or transmitted over a network. **Deserialization** is the reverse process: converting that stored format back into a Python object. We need serialization when we persist data to disk, exchange data with external systems via APIs, or cache complex objects for later reuse.
+
+Python provides two primary serialization modules: `json` for human-readable text-based format and `pickle` for Python-specific binary format.
+
+## The JSON Format
+
+**JSON** (JavaScript Object Notation) is a text-based format that represents data using a simple structure. It is human-readable and language-independent, which makes it ideal for exchanging data between Python and other languages like JavaScript, Java, or C#. JSON supports basic types: strings, numbers, booleans, null, arrays (lists), and objects (dictionaries).
+
+The `json` module is part of Python's standard library. We import it with `import json`. JSON data must use double quotes for strings and object keys, unlike Python's single-quote string syntax.
+
+### Basic JSON Serialization
+
+The `json.dumps()` function (dump string) serializes a Python object to a JSON string. We use this when we need the JSON as a text string in memory:
+
+```python
+import json
+
+data = {
+    "name": "PyTech Academy",
+    "founded": 2020,
+    "courses": ["Python Basics", "Advanced Python"],
+    "is_active": True,
+    "average_rating": 4.8
+}
+
+json_string = json.dumps(data)
+print(json_string)
+```
+
+Output:
+
+```json
+{"name": "PyTech Academy", "founded": 2020, "courses": ["Python Basics", "Advanced Python"], "is_active": true, "average_rating": 4.8}
+```
+
+Notice that Python's `True` becomes JSON's `true` and `None` becomes `null`. This JSON string is what we would send to a web API or save to a file.
+
+### Writing JSON to a File
+
+The `json.dump()` function (dump to file) serializes a Python object directly to a file object. We use this when saving data to disk:
+
+```python
+import json
+
+config = {
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "name": "myapp_db"
+    },
+    "debug": False,
+    "max_connections": 100
+}
+
+with open("config.json", "w") as f:
+    json.dump(config, f, indent=2)
+```
+
+The `indent=2` parameter formats the output with indentation and newlines, making the file human-readable. Without it, the entire JSON would be on one line.
+
+The resulting `config.json` file looks like this:
+
+```json
+{
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "myapp_db"
+  },
+  "debug": false,
+  "max_connections": 100
+}
+```
+
+### Reading JSON from a File
+
+The `json.load()` function (load from file) deserializes a JSON file directly into a Python object:
+
+```python
+import json
+
+with open("config.json", "r") as f:
+    config = json.load(f)
+
+print(config["database"]["host"])
+print(config["debug"])
+```
+
+Output:
+
+```
+localhost
+False
+```
+
+The `json.load()` function reads the entire file and parses the JSON content back into Python dictionaries, lists, and primitive types.
+
+### Parsing JSON Strings
+
+The `json.loads()` function (load string) deserializes a JSON string into a Python object. We use this when we receive JSON data from an API response or a message queue:
+
+```python
+import json
+
+api_response = '{"status": "success", "data": [1, 2, 3], "count": 3}'
+
+result = json.loads(api_response)
+print(result["status"])
+print(result["data"])
+```
+
+Output:
+
+```
+success
+[1, 2, 3]
+```
+
+The `json.loads()` function is the counterpart to `json.dumps()`, turning a JSON string back into Python objects.
+
+### Handling Complex Python Types
+
+JSON cannot represent all Python types directly. For example, Python tuples become JSON arrays, and sets are not supported at all. We use custom encoders to handle these cases.
+
+The `json.dumps()` function accepts an `default` parameter that specifies a function to call when it encounters a type it does not know how to serialize:
+
+```python
+import json
+
+def serialize_set(obj):
+    if isinstance(obj, set):
+        return {"__set__": True, "values": list(obj)}
+    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+
+data = {
+    "name": "Alice",
+    "tags": {"python", "coding", "tutorials"}
+}
+
+json_string = json.dumps(data, default=serialize_set)
+print(json_string)
+```
+
+Output:
+
+```json
+{"name": "Alice", "tags": {"__set__": true, "values": ["python", "coding", "tutorials"]}}
+```
+
+The custom function converts sets to a dictionary with a marker `__set__` so we can deserialize them back correctly later.
+
+### Custom JSON Encoders
+
+For more complex serialization needs, we subclass `json.JSONEncoder` and override the `default` method:
+
+```python
+import json
+from datetime import datetime
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return {"__datetime__": True, "iso": obj.isoformat()}
+        return super().default(obj)
+
+event = {
+    "title": "Python Conference",
+    "start_date": datetime(2024, 6, 15, 9, 0, 0),
+    "end_date": datetime(2024, 6, 17, 17, 0, 0)
+}
+
+json_string = json.dumps(event, cls=DateTimeEncoder)
+print(json_string)
+```
+
+Output:
+
+```json
+{"title": "Python Conference", "start_date": {"__datetime__": true, "iso": "2024-06-15T09:00:00"}, "end_date": {"__datetime__": true, "iso": "2024-06-17T17:00:00"}}
+```
+
+A custom encoder lets us handle any Python type by converting it to JSON-compatible structures. We would write a corresponding decoder to restore the original types.
+
+## The Pickle Format
+
+**Pickle** is a Python-specific binary format for serializing and deserializing Python objects. Unlike JSON, pickle is not human-readable and only works within Python, but it can serialize几乎 any Python object including custom classes, functions, and objects with circular references.
+
+The `pickle` module is part of Python's standard library. We import it with `import pickle`. Because pickle produces binary data, we must open files in binary mode (`"wb"` for writing, `"rb"` for reading).
+
+### Basic Pickle Serialization
+
+The `pickle.dumps()` function serializes a Python object to a bytes object:
+
+```python
+import pickle
+
+data = {
+    "users": [
+        {"name": "Alice", "roles": ["admin", "editor"]},
+        {"name": "Bob", "roles": ["viewer"]}
+    ],
+    "settings": {"theme": "dark", "notifications": True}
+}
+
+binary_data = pickle.dumps(data)
+print(f"Pickle size: {len(binary_data)} bytes")
+print(f"First 20 bytes: {binary_data[:20]}")
+```
+
+Output:
+
+```
+Pickle size: 113 bytes
+First 20 bytes: b'\x80\x04\x95\x1e\x00\x00\x00\x00\x00\x00\x00\x94\x9d...
+```
+
+The binary format is not human-readable, but it is more compact than JSON for Python objects and preserves the exact Python types.
+
+### Writing Pickle to a File
+
+The `pickle.dump()` function writes serialized data directly to a file:
+
+```python
+import pickle
+
+cache = {
+    "fibonacci": {10: 55, 20: 6765, 30: 832040},
+    "factorial": {5: 120, 10: 3628800},
+    "metadata": {"computed_at": "2024-01-15"}
+}
+
+with open("cache.pkl", "wb") as f:
+    pickle.dump(cache, f)
+```
+
+The file `cache.pkl` contains the binary representation of the cache dictionary. We open the file in binary write mode (`"wb"`) because pickle produces bytes, not text.
+
+### Reading Pickle from a File
+
+The `pickle.load()` function deserializes a pickle file back into a Python object:
+
+```python
+import pickle
+
+with open("cache.pkl", "rb") as f:
+    restored_cache = pickle.load(f)
+
+print(restored_cache["fibonacci"])
+print(restored_cache["metadata"])
+```
+
+Output:
+
+```
+{10: 55, 20: 6765, 30: 832040}
+{'computed_at': '2024-01-15'}
+```
+
+We open the file in binary read mode (`"rb"`). The restored object is identical to the original, including the exact dictionary keys and values.
+
+### Serializing Custom Objects
+
+Pickle can serialize arbitrary Python objects, including instances of custom classes:
+
+```python
+import pickle
+
+class DataProcessor:
+    def __init__(self, name, transformations):
+        self.name = name
+        self.transformations = transformations
+        self.processed_count = 0
+
+    def process(self, data):
+        for transform in self.transformations:
+            data = transform(data)
+        self.processed_count += 1
+        return data
+
+processor = DataProcessor("text_cleaner", [str.lower, str.strip])
+processed = processor.process("  HELLO WORLD  ")
+
+with open("processor.pkl", "wb") as f:
+    pickle.dump(processor, f)
+
+with open("processor.pkl", "rb") as f:
+    restored_processor = pickle.load(f)
+
+print(restored_processor.name)
+print(restored_processor.processed_count)
+print(restored_processor.process("  NEW DATA  "))
+```
+
+Output:
+
+```
+text_cleaner
+0
+new data
+```
+
+Pickle preserves the class instance with all its attributes and methods. When we deserialize, the object is fully functional with its methods intact.
+
+### Pickle Protocol Versions
+
+Pickle supports multiple protocol versions that control the serialization format. Higher protocols produce more compact output but only work with newer Python versions:
+
+```python
+import pickle
+
+data = {"key": "value", "numbers": [1, 2, 3]}
+
+for protocol in range(pickle.HIGHEST_PROTOCOL + 1):
+    serialized = pickle.dumps(data, protocol=protocol)
+    print(f"Protocol {protocol}: {len(serialized)} bytes")
+```
+
+Output:
+
+```
+Protocol 0: 51 bytes
+Protocol 1: 37 bytes
+Protocol 2: 37 bytes
+Protocol 3: 37 bytes
+Protocol 4: 37 bytes
+Protocol 5: 35 bytes
+```
+
+Protocol 0 uses ASCII-only output and is the only protocol compatible with Python 2. Protocols 3 and above are for Python 3 only. Protocol 5 (Python 3.8+) offers better performance for large data and supports out-of-band buffers.
+
+### Security Considerations
+
+Pickle is not secure when loading data from untrusted sources. A malicious pickle file can execute arbitrary code during deserialization. The `pickle` module does not validate data before deserializing, so a crafted pickle file can run harmful operations on your system.
+
+For untrusted data, use `json` instead of `pickle`. JSON cannot execute code during parsing, so it is safe for any data source. If you must use pickle with potentially untrusted data, use the `pickle.loads()` function with a restricted unpickler that only allows safe types.
+
+## Comparing JSON and Pickle
+
+| Aspect | JSON | Pickle |
+|--------|------|--------|
+| Human-readable | Yes | No |
+| Python-specific | No | Yes |
+| Supported types | Basic types (str, int, float, bool, None, list, dict) | Almost all Python objects |
+| File format | Text (UTF-8) | Binary |
+| Cross-language | Yes | No |
+| Security | Safe for untrusted data | Unsafe for untrusted data |
+| Performance | Slower for complex objects | Faster for Python objects |
+
+We use JSON for web APIs, configuration files, and any data shared with other systems. We use Pickle for caching Python objects, serializing complex class instances, and internal data persistence where security is not a concern.
+
+## Practical Example: API Response Caching
+
+Here is a real-world example that combines JSON and Pickle for caching API responses:
+
+```python
+import pickle
+import json
+import time
+from pathlib import Path
+
+def cached_api_call(cache_file, ttl_seconds=3600):
+    """Decorator that caches API call results to a pickle file."""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            cache_path = Path(cache_file)
+
+            if cache_path.exists():
+                with open(cache_path, "rb") as f:
+                    cached_data = pickle.load(f)
+
+                if time.time() - cached_data["timestamp"] < ttl_seconds:
+                    print(f"Returning cached result (age: {time.time() - cached_data['timestamp']:.0f}s)")
+                    return cached_data["data"]
+
+            result = func(*args, **kwargs)
+
+            with open(cache_path, "wb") as f:
+                pickle.dump({"timestamp": time.time(), "data": result}, f)
+
+            return result
+        return wrapper
+    return decorator
+
+@cached_api_call("user_data.pkl", ttl_seconds=60)
+def fetch_user_profile(user_id):
+    print(f"Fetching user {user_id} from API...")
+    return {"user_id": user_id, "name": "Alice", "plan": "pro"}
+
+print(fetch_user_profile(123))
+print(fetch_user_profile(123))
+time.sleep(2)
+print(fetch_user_profile(123))
+```
+
+Output:
+
+```
+Fetching user 123 from API...
+{'user_id': 123, 'name': 'Alice', 'plan': 'pro'}
+Returning cached result (age: 0s)
+{'user_id': 123, 'name': 'Alice', 'plan': 'pro'}
+Fetching user 123 from API...
+{'user_id': 123, 'name': 'Alice', 'plan': 'pro'}
+```
+
+The first call fetches from the API. The second call returns cached data. After the TTL expires (60 seconds), the third call fetches fresh data. We use pickle because it stores complex Python objects efficiently and preserves the exact data structure.
+
+## Summary
+
+- **Serialization** converts Python objects to a storable or transmittable format; **deserialization** converts back to Python objects
+- The `json` module provides human-readable text serialization ideal for APIs and configuration files
+- `json.dumps()` serializes to string, `json.dump()` writes to file, `json.loads()` parses strings, `json.load()` reads files
+- JSON supports strings, numbers, booleans, null, arrays, and objects but not Python-specific types like tuples or sets
+- The `pickle` module provides Python-specific binary serialization for almost any Python object
+- `pickle.dump()` and `pickle.load()` work with binary files (`"wb"` and `"rb"` modes)
+- Pickle is faster and supports more types than JSON, but it is not secure against malicious data
+- We use JSON for cross-language data exchange and untrusted data; we use Pickle for Python-only caching and internal persistence
+
+For more on data handling, see the [YAML Parsing](./yaml-parsing.mdx) section for configuration file formats, and the [CSV and Pandas Basics](./csv-pandas.mdx) section for tabular data processing.
