@@ -1,0 +1,292 @@
+---
+title: "The collections.abc Module"
+description: "Explore the abstract base classes in collections.abc: Callable, Iterable, Iterator, Container, and Sequence."
+order: 1
+---
+
+# The collections.abc Module
+
+The `collections.abc` module provides abstract base classes that define the interfaces for Python's built-in collection types. These ABCs allow you to check whether an object implements a particular protocol without needing to know its concrete type. Understanding these base classes helps you design APIs that work with any object implementing the expected interface, following the duck typing principle: "if it walks like an iterator and quacks like an iterator, it is an iterator."
+
+## What Is an Abstract Base Class?
+
+An **abstract base class (ABC)** is a class that cannot be instantiated itself. Instead, it defines a set of methods that concrete classes must implement to be considered part of that abstract type. The ABCs in `collections.abc` were introduced to formalize Python's protocols and allow type checking with `isinstance()` and `issubclass()`.
+
+```python
+from collections.abc import Iterable
+
+# Lists are iterable
+print(isinstance([1, 2, 3], Iterable))  # True
+
+# Strings are iterable
+print(isinstance("hello", Iterable))     # True
+
+# Integers are not iterable
+print(isinstance(42, Iterable))          # False
+```
+
+This output confirms that lists and strings implement the `Iterable` interface, while integers do not. The ABCs define the contracts that Python's built-in types honor, and you can use them to validate whether your own objects implement the same interfaces.
+
+## Callable
+
+`Callable` represents any object that can be called with the function call syntax `object()`. This includes regular functions, lambda expressions, classes, and instances with a `__call__` method.
+
+```python
+from collections.abc import Callable
+
+def greet():
+    return "Hello!"
+
+class Adder:
+    def __call__(self, a, b):
+        return a + b
+
+# Regular function is callable
+print(isinstance(greet, Callable))  # True
+
+# Lambda is callable
+print(isinstance(lambda x: x * 2, Callable))  # True
+
+# Instance with __call__ is callable
+print(isinstance(Adder(), Callable))  # True
+
+# Built-in function is callable
+print(isinstance(len, Callable))  # True
+```
+
+The `Callable` ABC is particularly useful when designing higher-order functions that accept behavior as an argument, such as callbacks, predicates, or transformation functions.
+
+## Iterable
+
+An **iterable** is any object capable of returning its members one at a time, enabling it to be used in `for` loops and other iteration contexts. An iterable must implement the `__iter__()` method, which returns an iterator.
+
+```python
+from collections.abc import Iterable
+
+class Counter:
+    def __init__(self, limit):
+        self.limit = limit
+        self.current = 0
+
+    def __iter__(self):
+        return self
+
+# Check if Counter is considered an Iterable
+print(issubclass(Counter, Iterable))  # False (it doesn't inherit from Iterable)
+print(isinstance(Counter(5), Iterable))  # False (doesn't inherit from Iterable)
+
+# However, any object with __iter__ works in for loops
+counter = Counter(5)
+for i in counter:
+    print(i)
+```
+
+Although `Counter` has an `__iter__` method and works in for loops, it is not an instance of the `Iterable` ABC because it does not inherit from it. You can make a class inherit from `Iterable` to formally declare its contract:
+
+```python
+from collections.abc import Iterable
+
+class Counter(Iterable):
+    def __init__(self, limit):
+        self.limit = limit
+
+    def __iter__(self):
+        return CounterIterator(self.limit)
+
+class CounterIterator:
+    def __init__(self, limit):
+        self.limit = limit
+        self.current = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current >= self.limit:
+            raise StopIteration
+        result = self.current
+        self.current += 1
+        return result
+
+# Now it is a proper Iterable
+counter = Counter(5)
+print(isinstance(counter, Iterable))  # True
+
+for i in counter:
+    print(i)
+```
+
+Output:
+
+```
+0
+1
+2
+3
+4
+```
+
+Inheriting from `Iterable` formally declares that `Counter` implements the iterable protocol, making it a true subtype of `Iterable` in the type system.
+
+## Iterator
+
+An **iterator** is an object that represents a stream of data. Unlike an iterable, which can be iterated over multiple times by calling its `__iter__()`, an iterator is single-use. An iterator must implement both `__iter__()` (returning itself) and `__next__()` (returning the next item or raising `StopIteration`).
+
+The **iterator protocol** refers to the combination of `__iter__()` and `__next__()` methods that an object must implement to be used as an iterator. This protocol is the foundation of all iteration in Python.
+
+```python
+from collections.abc import Iterator
+
+class RangeIterator:
+    def __init__(self, start, stop):
+        self.current = start
+        self.stop = stop
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.current >= self.stop:
+            raise StopIteration
+        value = self.current
+        self.current += 1
+        return value
+
+# Verify it is an Iterator
+print(issubclass(RangeIterator, Iterator))  # False (doesn't inherit)
+print(isinstance(RangeIterator(0, 5), Iterator))  # False (doesn't inherit)
+
+# But it behaves like one
+it = RangeIterator(0, 5)
+print(next(it))  # 0
+print(next(it))  # 1
+print(next(it))  # 2
+print(next(it))  # 3
+print(next(it))  # 4
+print(next(it))  # Raises StopIteration
+```
+
+The key distinction is that `Iterator` requires both `__iter__()` and `__next__()`, and when `__iter__()` is called on an iterator, it must return `self` (the iterator itself). An iterable, by contrast, returns a new iterator each time.
+
+## Container
+
+`Container` is an abstract base class for objects that support the `in` and `not in` operators. These objects implement the `__contains__()` method, which determines membership.
+
+```python
+from collections.abc import Container
+
+class Bag:
+    def __init__(self, items=None):
+        self.items = items if items else []
+
+    def __contains__(self, item):
+        return item in self.items
+
+bag = Bag(["apple", "banana", "cherry"])
+
+print("apple" in bag)      # True
+print("mango" in bag)      # False
+print(isinstance(bag, Container))  # False (doesn't inherit from Container)
+```
+
+Output:
+
+```
+True
+False
+False
+```
+
+The `Container` ABC formalizes the membership test protocol. Built-in types like `list`, `set`, and `dict` all inherit from `Container`, which is why `x in mylist` works for any of them.
+
+## Sequence
+
+`Sequence` is an abstract base class for ordered, indexable collections that support efficient element access via `__getitem__()`. It combines `Container` and `Iterable`, adding support for integer indexing, slicing, and `len()`.
+
+```python
+from collections.abc import Sequence
+
+class CustomList(Sequence):
+    def __init__(self, data=None):
+        self.data = data if data else []
+
+    def __getitem__(self, index):
+        return self.data[index]
+
+    def __len__(self):
+        return len(self.data)
+
+# Verify it is a Sequence
+my_list = CustomList([10, 20, 30, 40, 50])
+
+print(my_list[0])   # 10
+print(my_list[-1])  # 50
+print(my_list[1:3])  # [20, 30]
+print(len(my_list))  # 5
+print(20 in my_list) # True
+print(isinstance(my_list, Sequence))  # True
+```
+
+Output:
+
+```
+10
+50
+[20, 30]
+5
+True
+True
+```
+
+The `Sequence` ABC provides the full sequence protocol, including indexed access, slicing, length, and membership testing. Implementing `__getitem__()` and `__len__()` is sufficient for Python to automatically provide `__contains__()` and `__iter__()` behavior.
+
+## Checking ABCs in Practice
+
+One of the primary uses of `collections.abc` is runtime type checking. This is especially valuable in code that accepts diverse input types and needs to validate them before processing.
+
+```python
+from collections.abc import Iterable, Sequence, Iterator
+
+def process_items(items):
+    if not isinstance(items, Iterable):
+        raise TypeError("items must be iterable")
+
+    # For sequences we can use indexed access
+    if isinstance(items, Sequence):
+        print(f"First item: {items[0]}")
+        print(f"Last item: {items[-1]}")
+    else:
+        # For non-sequences we must iterate
+        it = iter(items)
+        print(f"First item: {next(it)}")
+
+process_items([1, 2, 3])       # Sequence
+process_items((4, 5, 6))      # Sequence
+process_items("hello")        # Sequence (string)
+process_items({7, 8, 9})      # Set is Iterable but not Sequence
+```
+
+Output:
+
+```
+First item: 1
+Last item: 3
+First item: 4
+Last item: 6
+First item: h
+Last item: o
+First item: 7
+```
+
+The function handles different collection types appropriately, using index access for sequences and iteration for other iterables. This kind of type-based dispatch is a common pattern in library code.
+
+## Summary
+
+- `collections.abc` provides abstract base classes that formalize Python's protocols
+- `Callable` identifies objects that can be called with `()`
+- `Iterable` requires `__iter__()` and is the parent of all sequence types
+- `Iterator` requires both `__iter__()` and `__next__()` and is single-use
+- `Container` requires `__contains__()` for membership tests
+- `Sequence` combines `Container` and `Iterable` with indexed access via `__getitem__()`
+
+For a practical application of these concepts, see the [Custom Iterables](./custom-iterables.mdx) section where we implement these protocols from scratch.

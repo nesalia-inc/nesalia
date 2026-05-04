@@ -1,0 +1,331 @@
+---
+title: "Strategy and State Patterns"
+description: "Learn how the Strategy pattern encapsulates interchangeable algorithms, and how the State pattern represents an object whose behavior changes based on its internal state, with Python examples."
+order: 3
+---
+
+# Strategy and State Patterns
+
+Both the Strategy and State patterns involve delegating behavior to a separate object. The key difference is intent: **Strategy** encapsulates an interchangeable algorithm, while **State** represents an object whose behavior changes because its internal state changed. Despite this philosophical difference, the implementations look similar, and both are valuable tools for replacing large conditional logic.
+
+## The Strategy Pattern
+
+The Strategy pattern lets you define a family of algorithms, put each in its own class, and make them **interchangeable**. The calling code selects which algorithm to use without modifying its own logic.
+
+### A Shipping Cost Calculator
+
+Imagine we are building an e-commerce checkout that calculates shipping costs. Different shipping strategies (standard, express, overnight) use different pricing algorithms:
+
+```python
+from abc import ABC, abstractmethod
+
+class ShippingStrategy(ABC):
+    @abstractmethod
+    def calculate(self, weight: float, distance: float) -> float:
+        pass
+```
+
+Each shipping method implements a different pricing algorithm:
+
+```python
+class StandardShipping(ShippingStrategy):
+    def calculate(self, weight: float, distance: float) -> float:
+        base = 5.00
+        weight_fee = weight * 0.50
+        distance_fee = distance * 0.10
+        return base + weight_fee + distance_fee
+
+
+class ExpressShipping(ShippingStrategy):
+    def calculate(self, weight: float, distance: float) -> float:
+        base = 15.00
+        weight_fee = weight * 1.00
+        distance_fee = distance * 0.25
+        return base + weight_fee + distance_fee
+
+
+class OvernightShipping(ShippingStrategy):
+    def calculate(self, weight: float, distance: float) -> float:
+        base = 30.00
+        weight_fee = weight * 2.00
+        distance_fee = distance * 0.50
+        return base + weight_fee + distance_fee
+```
+
+The `Order` class accepts a shipping strategy and uses it to calculate the total cost:
+
+```python
+class Order:
+    def __init__(self, weight: float, distance: float, strategy: ShippingStrategy):
+        self.weight = weight
+        self.distance = distance
+        self._shipping_strategy = strategy
+
+    def set_shipping_strategy(self, strategy: ShippingStrategy):
+        self._shipping_strategy = strategy
+
+    def shipping_cost(self) -> float:
+        return self._shipping_strategy.calculate(self.weight, self.distance)
+
+
+order = Order(weight=5.0, distance=200.0, strategy=StandardShipping())
+print(f"Standard shipping: ${order.shipping_cost():.2f}")  # $27.50
+
+order.set_shipping_strategy(OvernightShipping())
+print(f"Overnight shipping: ${order.shipping_cost():.2f}")  # $77.50
+```
+
+The `Order` class never contains any shipping cost logic itself. It delegates to whatever `ShippingStrategy` is currently set. Adding a new shipping method — say `InternationalShipping` — requires no changes to `Order`. You just create the class and pass it in.
+
+### When to Use Strategy
+
+Use the Strategy pattern when:
+
+- **Multiple algorithms implement the same interface** — Different tax calculators, discount policies, compression algorithms, or validation rules
+- **You want to switch algorithms at runtime** — A video encoder that lets users choose between H.264 and VP9 codecs
+- **You want to avoid large conditional branches** — Instead of `if strategy == "standard": ... elif strategy == "express": ...`, each strategy is its own class
+
+```python
+# Before Strategy — tangled conditional logic
+def calculate_tax(order):
+    if order.country == "US":
+        if order.state == "CA":
+            return order.subtotal * 0.0725
+        else:
+            return order.subtotal * 0.05
+    elif order.country == "UK":
+        return order.subtotal * 0.20
+    # More countries, more branches — this grows indefinitely
+
+# After Strategy — each tax rule is its own class
+class USATaxStrategy:
+    def calculate(self, order):
+        return order.subtotal * (0.0725 if order.state == "CA" else 0.05)
+
+class UKTaxStrategy:
+    def calculate(self, order):
+        return order.subtotal * 0.20
+
+# Adding a new country = new class, no modification of existing code
+```
+
+## The State Pattern
+
+The State pattern looks similar to Strategy, but its purpose is different. In Strategy, the calling code **chooses** which algorithm to use. In State, the object **transitions between states** and its behavior changes automatically based on the current state.
+
+### A Document Workflow
+
+Imagine a document that goes through stages: Draft, Review, and Published. The document behaves differently depending on which stage it is in:
+
+```python
+from abc import ABC, abstractmethod
+
+class DocumentState(ABC):
+    @abstractmethod
+    def publish(self, document):
+        pass
+
+    @abstractmethod
+    def reject(self, document):
+        pass
+
+    @abstractmethod
+    def render(self, document) -> str:
+        pass
+```
+
+Each state class defines what happens when an action is performed in that state:
+
+```python
+class DraftState(DocumentState):
+    def publish(self, document):
+        print("Draft -> Moving to Review")
+        document._state = ReviewState()
+
+    def reject(self, document):
+        print("Draft -> Discarding")
+        document._state = DiscardedState()
+
+    def render(self, document):
+        return f"[DRAFT] {document.title}"
+
+
+class ReviewState(DocumentState):
+    def publish(self, document):
+        print("Review -> Publishing")
+        document._state = PublishedState()
+
+    def reject(self, document):
+        print("Review -> Back to Draft")
+        document._state = DraftState()
+
+    def render(self, document):
+        return f"[REVIEW] {document.title}"
+
+
+class PublishedState(DocumentState):
+    def publish(self, document):
+        print("Already published — no action")
+
+    def reject(self, document):
+        print("Cannot reject a published document")
+
+    def render(self, document):
+        return document.title
+
+
+class DiscardedState(DocumentState):
+    def publish(self, document):
+        print("Cannot publish a discarded document")
+
+    def reject(self, document):
+        print("Already discarded")
+
+    def render(self, document):
+        return f"[DISCARDED] {document.title}"
+```
+
+The `Document` class holds a reference to its current state and delegates behavior to it:
+
+```python
+class Document:
+    def __init__(self, title: str):
+        self.title = title
+        self._state: DocumentState = DraftState()
+
+    @property
+    def state(self):
+        return self._state.__class__.__name__
+
+    def publish(self):
+        self._state.publish(self)
+
+    def reject(self):
+        self._state.reject(self)
+
+    def render(self) -> str:
+        return self._state.render(self)
+```
+
+Using the document:
+
+```python
+doc = Document("Architecture Review")
+print(f"State: {doc.state}, Render: {doc.render()}")  # DraftState, [DRAFT] Architecture Review
+
+doc.publish()
+print(f"State: {doc.state}, Render: {doc.render()}")  # ReviewState, [REVIEW] Architecture Review
+
+doc.publish()
+print(f"State: {doc.state}, Render: {doc.render()}")  # PublishedState, Architecture Review
+
+doc.reject()  # Cannot reject a published document
+print(f"State: {doc.state}")  # Still PublishedState
+```
+
+Output:
+
+```
+State: DraftState, Render: [DRAFT] Architecture Review
+Draft -> Moving to Review
+State: ReviewState, Render: [REVIEW] Architecture Review
+Review -> Publishing
+State: PublishedState, Render: Architecture Review
+Cannot reject a published document
+State: PublishedState
+```
+
+Each state governs which transitions are valid and what the document looks like in that state. The document itself has no conditional logic — it simply forwards calls to its current state object.
+
+### State vs Strategy
+
+The implementations look similar, but the intent differs:
+
+| | Strategy | State |
+|---|---|---|
+| **Intent** | Swap algorithms from outside | Change behavior based on internal state |
+| **Who chooses** | The calling code explicitly sets the strategy | The object transitions between states internally |
+| **Relationship** | Composition (has-a) | Object's identity changes with state |
+| **Mutation** | Strategy is typically fixed after being set | State objects change frequently |
+
+In practice, both patterns use the same structure: an interface with multiple implementations, passed to or held by a main object. The difference is in how you think about the relationship.
+
+### When to Use State
+
+Use the State pattern when:
+
+- **An object's behavior depends on its state** — A connection that behaves differently when open, closed, or errored
+- **State transitions are complex** — Operations that are valid in some states but not others (like `publish` on a `DiscardedState` above)
+- **You want to avoid large state machine conditionals** — Instead of checking `if self.state == "draft"` everywhere, each state handles its own transitions
+
+```python
+# Before State — tangled conditional logic
+class Connection:
+    def send(self, data):
+        if self._state == "connected":
+            # send data
+        elif self._state == "disconnected":
+            raise IOError("Not connected")
+        elif self._state == "error":
+            raise IOError("Connection in error state")
+        # Adding a new state means adding a new branch everywhere
+
+# After State — each state handles its own behavior
+class Connection:
+    def send(self, data):
+        self._state.send(data)  # delegates to current state
+```
+
+## Hands-On Exercise
+
+Build a `MediaPlayer` class that behaves differently depending on whether it is **Playing**, **Paused**, or **Stopped**:
+
+```python
+from abc import ABC, abstractmethod
+
+class PlayerState(ABC):
+    @abstractmethod
+    def play(self, player):
+        pass
+
+    @abstractmethod
+    def pause(self, player):
+        pass
+
+    @abstractmethod
+    def stop(self, player):
+        pass
+
+    @abstractmethod
+    def render(self, player) -> str:
+        pass
+```
+
+Implement three states:
+
+- `StoppedState` — `play()` transitions to Playing; `pause()` does nothing; `stop()` does nothing; `render()` returns `"[Stopped] {track}"`
+- `PlayingState` — `play()` does nothing; `pause()` transitions to Paused; `stop()` transitions to Stopped; `render()` returns `"[Playing] {track}"`
+- `PausedState` — `play()` transitions to Playing; `pause()` does nothing; `stop()` transitions to Stopped; `render()` returns `"[Paused] {track}"`
+
+```python
+class MediaPlayer:
+    def __init__(self, track: str):
+        self.track = track
+        self._state = StoppedState()  # Start in stopped state
+
+    def play(self):   # Delegates to current state
+    def pause(self):  # Delegates to current state
+    def stop(self):   # Delegates to current state
+```
+
+Write a test sequence:
+
+```python
+player = MediaPlayer("Taylor Swift — Anti-Hero")
+player.play()   # Should transition to Playing
+player.pause()  # Should transition to Paused
+player.play()   # Should transition back to Playing
+player.stop()   # Should transition to Stopped
+```
+
+For more on delegation patterns, see the [Observer pattern](./observer-pattern.mdx) section, which shows another way objects can delegate behavior while maintaining loose coupling.

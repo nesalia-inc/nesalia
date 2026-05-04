@@ -1,0 +1,338 @@
+---
+title: "ChainMap and namedtuple"
+description: "Combine multiple mappings with ChainMap and create lightweight object types with namedtuple."
+order: 2
+---
+
+# ChainMap and namedtuple
+
+This chapter covers two specialized data structures from the `collections` module. ChainMap lets us treat multiple dictionaries as a single mapping, useful for layered configurations and precedence rules. namedtuple creates lightweight immutable object types, ideal for representing records with named fields.
+
+## ChainMap
+
+A ChainMap groups multiple dictionaries into a single logical view. When we look up a key, the ChainMap searches each underlying mapping in order until it finds the key. This behavior is particularly useful for implementing configuration layering, where we have defaults that can be overridden by user settings.
+
+### Creating ChainMap
+
+```python
+from collections import ChainMap
+
+# Create with multiple dictionaries
+defaults = {"theme": "light", "language": "en", "debug": False}
+user_prefs = {"theme": "dark", "notifications": True}
+
+# Combine into one ChainMap
+config = ChainMap(user_prefs, defaults)
+
+print(config["theme"])        # dark (found in user_prefs)
+print(config["language"])      # en (from defaults)
+print(config["debug"])         # False (from defaults)
+print(config["notifications"]) # True (from user_prefs)
+```
+
+The ChainMap searches user_prefs first. When the key exists there, it returns that value. When the key is missing from user_prefs, it falls back to defaults. This gives us a clean way to implement precedence rules without merging dictionaries.
+
+### Key Operations on ChainMap
+
+```python
+from collections import ChainMap
+
+# Accessing keys and values
+defaults = {"theme": "light", "language": "en"}
+overrides = {"debug": True, "theme": "dark"}
+
+combined = ChainMap(overrides, defaults)
+
+# Iterate over all keys
+print(list(combined.keys()))
+# ['debug', 'theme', 'language']
+
+# Check membership
+print("theme" in combined)      # True
+print("missing" in combined)     # False
+
+# Get all key-value pairs
+print(dict(combined))
+# {'debug': True, 'theme': 'dark', 'language': 'en'}
+```
+
+Iteration over a ChainMap includes keys from all underlying mappings. The first mapping in the chain takes precedence for duplicate keys.
+
+### Modifications Affect the First Map Only
+
+```python
+from collections import ChainMap
+
+defaults = {"theme": "light", "language": "en"}
+user_prefs = {"theme": "dark"}
+
+combined = ChainMap(user_prefs, defaults)
+
+# Adding or modifying affects only the first map
+combined["new_key"] = "value"
+print(combined["new_key"])      # value
+print("new_key" in user_prefs)   # True - added to user_prefs
+print("new_key" in defaults)     # False - not in defaults
+
+# Deleting also affects only the first map
+del combined["theme"]
+print("theme" in user_prefs)     # False - removed from user_prefs
+print("theme" in defaults)       # True - still in defaults
+print(combined["theme"])         # en - now falls back to defaults
+```
+
+Modifications always target the first map in the chain. This behavior is important to understand: the ChainMap does not merge data; it provides a read-through view with write operations directed at the first map only.
+
+### Practical Example: Application Configuration
+
+```python
+from collections import ChainMap
+import os
+
+class Config:
+    """Layered configuration with env var support."""
+
+    def __init__(self, defaults, user_config):
+        # Environment variables take precedence
+        env_overrides = {
+            "database_host": os.getenv("DB_HOST"),
+            "database_port": os.getenv("DB_PORT"),
+            "debug": os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
+        }
+        # Remove None values (env var not set)
+        env_overrides = {k: v for k, v in env_overrides.items() if v is not None}
+
+        # Chain: env vars -> user config -> defaults
+        self._chain = ChainMap(env_overrides, user_config, defaults)
+
+    def __getitem__(self, key):
+        return self._chain[key]
+
+    def get(self, key, default=None):
+        return self._chain.get(key, default)
+
+# Define configuration layers
+defaults = {
+    "database_host": "localhost",
+    "database_port": 5432,
+    "debug": False,
+    "max_connections": 10
+}
+
+user_config = {
+    "debug": True,
+    "max_connections": 50
+}
+
+config = Config(defaults, user_config)
+
+# Env vars override everything
+print(config["debug"])           # True (from user_config)
+print(config["max_connections"])  # 50 (from user_config)
+```
+
+This configuration class demonstrates three-layer precedence: environment variables (highest), user configuration (middle), and defaults (lowest). The ChainMap makes implementing this hierarchy straightforward and readable.
+
+### Accessing the Underlying Maps
+
+```python
+from collections import ChainMap
+
+first = {"a": 1, "b": 2}
+second = {"b": 10, "c": 3}
+
+combined = ChainMap(first, second)
+
+# Access the maps attribute directly
+print(combined.maps)
+# [{'a': 1, 'b': 2}, {'b': 10, 'c': 3}]
+
+# Access the first map (where modifications go)
+print(combined.maps[0])
+# {'a': 1, 'b': 2}
+
+# Add a new map at the beginning
+new_defaults = {"x": 100}
+combined.maps.insert(0, new_defaults)
+print(combined["x"])  # 100
+```
+
+The `maps` attribute gives us a list of the underlying dictionaries. We can manipulate this list directly to add new layers or reorganize precedence.
+
+## namedtuple
+
+A namedtuple creates a tuple subclass with named fields. Tuples are immutable sequences, meaning once created, their contents cannot change. This immutability provides data integrity guarantees. namedtuple adds named field access to this immutability, making code more readable than positional indexing.
+
+### Creating namedtuple
+
+```python
+from collections import namedtuple
+
+# Define a namedtuple type
+Point = namedtuple("Point", ["x", "y"])
+
+# Create instances
+p1 = Point(10, 20)
+p2 = Point(x=30, y=40)
+
+print(p1.x, p1.y)      # 10 20
+print(p2.x, p2.y)      # 30 40
+print(p1[0], p1[1])    # 10 20 (positional access still works)
+```
+
+We define a namedtuple type by specifying its name and a list of field names. Each instance can be created with positional or keyword arguments. Both positional and named access work, providing flexibility.
+
+### Why Use namedtuple Instead of a Dictionary?
+
+```python
+from collections import namedtuple
+
+# namedtuple provides immutability
+Point = namedtuple("Point", ["x", "y"])
+p = Point(10, 20)
+
+# p.x = 30  # AttributeError: can't set attribute
+
+# Regular dict is mutable
+point_dict = {"x": 10, "y": 20}
+point_dict["x"] = 30  # This works
+
+# namedtuple has a _replace method for "modification"
+p2 = p._replace(x=30)  # Creates a new instance
+```
+
+namedtuple enforces immutability, preventing accidental modification of data that should remain constant. If we need a modified version, `_replace()` creates a new instance with the changed values.
+
+### namedtuple Methods
+
+```python
+from collections import namedtuple
+
+Person = namedtuple("Person", ["name", "age", "occupation"])
+
+# _make: create from an iterable
+data = ["Alice", 30, "Engineer"]
+person = Person._make(data)
+print(person.name)  # Alice
+
+# _asdict: convert to OrderedDict
+person_dict = person._asdict()
+print(person_dict)
+# OrderedDict([('name', 'Alice'), ('age', 30), ('occupation', 'Engineer')])
+
+# _replace: create modified copy
+older = person._replace(age=31)
+print(older.age)  # 31 (original unchanged)
+
+# _fields: tuple of field names
+print(person._fields)  # ('name', 'age', 'occupation')
+```
+
+The `_make()` class method constructs an instance from an iterable. The `_asdict()` method converts the namedtuple to an OrderedDict, useful when we need a mutable dictionary representation. The `_replace()` method creates a new instance with specified fields changed.
+
+### Default Values for Fields
+
+```python
+from collections import namedtuple
+
+# Define with default values using defaults parameter
+Transaction = namedtuple("Transaction", ["id", "amount", "description", "status"], defaults=["pending"])
+
+t1 = Transaction(id=1, amount=100)  # Uses default for description and status
+t2 = Transaction(id=2, amount=200, description="Office supplies")
+
+print(t1)  # Transaction(id=1, amount=100, description='pending', status='pending')
+print(t2)  # Transaction(id=2, amount=200, description='Office supplies', status='pending')
+```
+
+The `defaults` parameter allows us to specify default values for trailing fields. When creating an instance, we can omit trailing fields and the defaults apply automatically.
+
+### Practical Example: Representing Database Records
+
+```python
+from collections import namedtuple
+
+# Define record types for a small database
+Employee = namedtuple("Employee", ["id", "name", "department", "salary"])
+Product = namedtuple("Product", ["sku", "name", "price", "stock"])
+
+# Query results as namedtuples
+employees = [
+    Employee(id=1, name="Alice Chen", department="Engineering", salary=95000),
+    Employee(id=2, name="Bob Martinez", department="Sales", salary=75000),
+    Employee(id=3, name="Carol Williams", department="Engineering", salary=98000),
+]
+
+# Find all engineers
+engineers = [e for e in employees if e.department == "Engineering"]
+for e in engineers:
+    print(f"{e.name}: {e.salary}")
+
+# Calculate average salary by department
+from collections import defaultdict
+dept_salaries = defaultdict(list)
+for e in employees:
+    dept_salaries[e.department].append(e.salary)
+
+for dept, salaries in dept_salaries.items():
+    avg = sum(salaries) / len(salaries)
+    print(f"{dept}: ${avg:,.0f}")
+```
+
+Using namedtuple for database records gives us self-documenting code. The field names make the data structure meaning obvious without needing comments or external documentation.
+
+### Practical Example: Coordinate Systems
+
+```python
+from collections import namedtuple
+import math
+
+# Define geometric types
+Point = namedtuple("Point", ["x", "y"])
+Circle = namedtuple("Circle", ["center", "radius"])
+
+# Calculate distance between two points
+def distance(p1, p2):
+    return math.sqrt((p2.x - p1.x)**2 + (p2.y - p1.y)**2)
+
+# Check if point is inside circle
+def point_in_circle(point, circle):
+    return distance(point, circle.center) <= circle.radius
+
+# Create shapes
+origin = Point(0, 0)
+point_a = Point(3, 4)
+circle = Circle(center=origin, radius=5)
+
+print(distance(origin, point_a))  # 5.0
+print(point_in_circle(point_a, circle))  # True
+
+# Out of circle
+point_b = Point(8, 8)
+print(point_in_circle(point_b, circle))  # False
+```
+
+namedtuple excels for geometric calculations where multiple related values need to be passed together. The field names (x, y) make mathematical expressions readable without needing comments explaining what each value represents.
+
+## Choosing Between ChainMap and namedtuple
+
+| Feature | ChainMap | namedtuple |
+|---------|----------|------------|
+| Purpose | Combine multiple dictionaries | Create immutable record types |
+| Mutability | Underlying maps remain mutable | Immutable once created |
+| Access pattern | Single key lookup across maps | Fixed set of named fields |
+| Use case | Configuration precedence | Representing records or coordinates |
+
+We use ChainMap when we need to layer dictionaries with precedence rules, such as combining defaults with user overrides. ChainMap keeps the underlying dictionaries separate, so modifications affect only the highest precedence map.
+
+We use namedtuple when we need to represent a fixed record with named fields that should not change. namedtuple provides immutability, making it suitable for configuration values, geographic coordinates, or any structured data that represents a complete record.
+
+## Summary
+
+Both ChainMap and namedtuple address specific data organization needs:
+
+- **ChainMap** groups multiple dictionaries into a logical view with search precedence. The first map in the chain takes precedence for lookups, and modifications affect only the first map. This makes ChainMap ideal for configuration systems with defaults, environment variables, and user settings.
+
+- **namedtuple** creates lightweight immutable types for representing records with named fields. The immutability prevents accidental modification, and named field access improves code readability over positional tuple indices.
+
+These tools complement the standard dictionary and tuple types, providing specialized behavior for configuration layering and record representation.

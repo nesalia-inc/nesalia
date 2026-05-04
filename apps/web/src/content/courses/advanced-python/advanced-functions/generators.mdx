@@ -1,0 +1,337 @@
+---
+title: "Generators and Generator Expressions"
+description: "Learn how to create memory-efficient iterables using generators and the yield keyword."
+order: 3
+---
+
+# Generators and Generator Expressions
+
+A generator is a function that produces a sequence of values lazily, meaning it generates each value only when requested. Instead of computing all values upfront and storing them in memory (like a list does), a generator computes each value on demand during iteration. This lazy evaluation makes generators extremely memory-efficient when working with large or infinite sequences.
+
+## Why Generators Matter
+
+Consider reading a million-line log file. If we load all lines into a list, we need memory for a million strings. With a generator, we process one line at a time, keeping only the current line in memory. This difference can mean gigabytes of memory saved in production systems.
+
+The key insight is that generators follow the iterator protocol, which means they produce values one at a time and maintain no history of previous values unless we explicitly store them. This makes generators suitable for processing data pipelines where we never need to look back.
+
+## Generator Functions with yield
+
+We create a generator function by using the `yield` keyword instead of `return`. When Python encounters `yield` in a function, it transforms that function into a generator. Calling the function returns a generator object, not the result of the function body.
+
+```python
+def count_up_to(max):
+    count = 1
+    while count <= max:
+        yield count
+        count += 1
+
+counter = count_up_to(5)
+print(counter)
+print(type(counter))
+```
+
+Output:
+
+```
+<generator object count_up_to at 0x7f8b2c0a5d60>
+<class 'generator'>
+```
+
+The function `count_up_to` looks like it returns values, but `yield` is fundamentally different from `return`. When `yield` executes, the function pauses and returns the value, but its state (local variables, instruction pointer) is preserved. When we call `next()` on the generator, execution resumes from where it left off.
+
+```python
+counter = count_up_to(3)
+
+print(next(counter))
+print(next(counter))
+print(next(counter))
+print(next(counter))
+```
+
+Output:
+
+```
+1
+2
+3
+Traceback (most recent call last):
+  File "example.py", line 8, in <module>
+    next(counter)
+StopIteration
+```
+
+The `next()` function retrieves the next value from the generator. After the last value (3), calling `next()` raises a `StopIteration` exception, which signals that the generator is exhausted. In a `for` loop, Python handles `StopIteration` automatically and ends the loop gracefully.
+
+We can also use `for` to iterate over generators:
+
+```python
+def count_up_to(max):
+    count = 1
+    while count <= max:
+        yield count
+        count += 1
+
+for number in count_up_to(5):
+    print(number)
+```
+
+Output:
+
+```
+1
+2
+3
+4
+5
+```
+
+The `for` loop internally calls `next()` repeatedly, handling `StopIteration` silently to end the loop.
+
+## Generator Expressions vs List Comprehensions
+
+A list comprehension creates a complete list in memory immediately. A generator expression creates a generator that produces values on demand. The syntax is nearly identical, but we use parentheses instead of brackets:
+
+```python
+squares_list = [x ** 2 for x in range(10)]
+squares_gen = (x ** 2 for x in range(10))
+
+print(squares_list)
+print(squares_gen)
+```
+
+Output:
+
+```
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+<generator object <genexpr> at 0x7f8b2c0a5e40>
+```
+
+The list `squares_list` contains all 100 squared values in memory. The generator `squares_gen` is just an object that knows how to produce squared values. We can convert the generator to a list if needed with `list(squares_gen)`, but that defeats the memory efficiency purpose.
+
+### When to Use Each
+
+We use list comprehensions when we need to:
+- Iterate multiple times over the same data
+- Use list methods like `.append()`, `.sort()`, or `.reverse()`
+- Need random access to elements by index
+- The data is small enough that memory is not a concern
+
+We use generators when we need to:
+- Process data that is too large to fit in memory
+- Create infinite sequences (data streams, real-time data)
+- Build processing pipelines that transform data in stages
+- Only need to iterate once (which is often the case)
+
+## Memory Efficiency in Practice
+
+The memory difference is dramatic with large datasets. Here is a comparison:
+
+```python
+import sys
+
+# List: all values stored in memory at once
+million_squares_list = [x ** 2 for x in range(1_000_000)]
+print(f"List size: {sys.getsizeof(million_squares_list):,} bytes")
+
+# Generator: only the generator object stored
+million_squares_gen = (x ** 2 for x in range(1_000_000))
+print(f"Generator size: {sys.getsizeof(million_squares_gen):,} bytes")
+
+# We can still iterate over the generator
+count = 0
+for square in million_squares_gen:
+    count += 1
+    if count >= 10:
+        break
+
+print(f"Iterated over {count} values")
+```
+
+Output:
+
+```
+List size: 8,000,064 bytes
+Generator size: 200 bytes
+```
+
+The list consumes about 8 megabytes, while the generator consumes only 200 bytes. For truly large datasets (millions of records, gigabyte files), this difference becomes critical.
+
+## Processing Large Files
+
+A practical use of generators is processing files line by line without loading the entire file into memory:
+
+```python
+def read_lines(filename):
+    with open(filename, 'r') as file:
+        for line in file:
+            yield line.strip()
+
+for line in read_lines("large_log.txt"):
+    if "ERROR" in line:
+        print(f"Found error: {line}")
+```
+
+The `read_lines` function opens the file and yields one line at a time. Python's `for line in file` loop reads from the file in buffered chunks, so we never hold more than one line in memory. This pattern works regardless of whether the file is 1 MB or 100 GB.
+
+## Infinite Sequences
+
+Generators can represent infinite sequences because they produce values on demand. A classic example is the Fibonacci sequence:
+
+```python
+def fibonacci():
+    a, b = 0, 1
+    while True:
+        yield a
+        a, b = b, a + b
+
+fib = fibonacci()
+for i, number in enumerate(fib):
+    print(number)
+    if i >= 9:
+        break
+```
+
+Output:
+
+```
+0
+1
+1
+2
+3
+5
+8
+13
+21
+34
+```
+
+The `fibonacci` function never terminates because it loops forever with `while True`. It yields the Fibonacci numbers indefinitely: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, and so on. We use `enumerate` to get the index and break after 10 iterations to avoid an infinite loop.
+
+This is fundamentally different from a list-based approach, where we would need to pre-compute all values or risk running out of memory.
+
+## Generator Pipelines
+
+Generators chain naturally into pipelines for data processing. Each stage transforms data and passes it to the next stage, with only one value in memory at a time:
+
+```python
+def numbers():
+    for i in range(1, 101):
+        yield i
+
+def filter_evens(numbers):
+    for num in numbers:
+        if num % 2 == 0:
+            yield num
+
+def square(numbers):
+    for num in numbers:
+        yield num ** 2
+
+def take(n, numbers):
+    for i, num in enumerate(numbers):
+        if i >= n:
+            break
+        yield num
+
+pipeline = take(5, square(filter_evens(numbers())))
+print(list(pipeline))
+```
+
+Output:
+
+```
+[4, 16, 36, 64, 100]
+```
+
+We pass a generator from `numbers()` to `filter_evens()`, which yields only even numbers. The `square()` function transforms each number to its square. Finally, `take(5, ...)` extracts only the first 5 values and stops. At any point in this pipeline, only one number is in memory. This makes it trivial to process millions of numbers with constant memory usage.
+
+## Sending Values to Generators with send()
+
+Generators support a two-way communication channel using the `send()` method. This allows external code to inject values into a generator mid-execution:
+
+```python
+def accumulator():
+    total = 0
+    while True:
+        value = yield total
+        if value is not None:
+            total += value
+
+acc = accumulator()
+print(next(acc))
+print(acc.send(10))
+print(acc.send(20))
+print(acc.send(5))
+```
+
+Output:
+
+```
+0
+10
+30
+35
+```
+
+The first `next(acc)` starts the generator and runs until the first `yield`, returning `total` (0). Then `acc.send(10)` sends 10 into the generator, where `value = yield total` receives it. The generator adds 10 to `total`, loops back, and `yield total` returns the new total (10). This pattern enables coroutines and cooperative multitasking in Python.
+
+## Practical Example: Batch Processing Database Records
+
+When working with large datasets in databases, we process records in batches to avoid loading everything into memory:
+
+```python
+def fetch_users_batch(offset, batch_size=100):
+    """Simulates fetching a batch of users from a database."""
+    # In real code: SELECT * FROM users LIMIT batch_size OFFSET offset
+    start = offset * batch_size
+    end = start + batch_size
+    for user_id in range(start, min(end, 1000)):
+        yield {"id": user_id, "name": f"User {user_id}"}
+
+def process_all_users(batch_size=100):
+    offset = 0
+    while True:
+        batch = list(fetch_users_batch(offset, batch_size))
+        if not batch:
+            break
+        yield batch
+        offset += 1
+
+total_users = 0
+for batch in process_all_users():
+    print(f"Processing batch of {len(batch)} users")
+    total_users += len(batch)
+
+print(f"Total users processed: {total_users}")
+```
+
+Output:
+
+```
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Processing batch of 100 users
+Total users processed: 1000
+```
+
+We fetch users in batches of 100, process each batch, and move to the next offset. The `process_all_users` generator yields one batch at a time, maintaining constant memory usage regardless of the total dataset size.
+
+## Summary
+
+- A generator produces values lazily, computing each value only when requested during iteration
+- We use `yield` in a function to make it a generator, which pauses execution and preserves state between calls
+- Generator expressions use parentheses `(x for x in iterable)` and are memory-efficient alternatives to list comprehensions
+- Lists store all values immediately, while generators compute values on demand
+- Infinite sequences are possible with generators because they never need to store all values
+- Generator pipelines chain transformation stages together with minimal memory overhead
+- The `send()` method allows two-way communication with generators, enabling coroutine patterns
+
+For more on lazy evaluation patterns, see the [Decorators](./decorators.mdx) section for caching decorators that complement generators.

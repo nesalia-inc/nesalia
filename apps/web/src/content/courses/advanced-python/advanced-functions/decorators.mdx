@@ -1,0 +1,293 @@
+---
+title: "Decorators and Decorator Patterns"
+description: "Learn how to use decorators to modify function behavior in Python."
+order: 1
+---
+
+# Decorators
+
+A decorator is a function that wraps another function to extend its behavior without permanently modifying its code. We use decorators when we want to add the same functionality to multiple functions in a clean, reusable way.
+
+## What Problem Do Decorators Solve?
+
+Imagine you need to measure how long each function takes to execute across your codebase. You could add timing logic to every function, but that would mix timing code with business logic and create massive repetition. A decorator lets you separate this cross-cutting concern (timing, logging, caching) from your main functions.
+
+## Basic Decorator Syntax
+
+A decorator is a function that takes a function as input and returns a new function. Here is a simple decorator that logs when a function is called:
+
+```python
+def my_decorator(func):
+    def wrapper():
+        print("The function is being called")
+        func()
+        print("The function call is complete")
+    return wrapper
+```
+
+This decorator prints a message before and after calling the original function. The `wrapper` function is defined inside `my_decorator` and has access to the original `func` through closure (a function that remembers variables from its enclosing scope).
+
+We apply a decorator using the `@` symbol directly above the function definition:
+
+```python
+@my_decorator
+def say_hello():
+    print("Hello!")
+
+say_hello()
+```
+
+Output:
+
+```
+The function is being called
+Hello!
+The function call is complete
+```
+
+When Python sees `@my_decorator` above `say_hello`, it passes `say_hello` to `my_decorator` and replaces the original `say_hello` with whatever `my_decorator` returns (in this case, `wrapper`). The `@` symbol is syntactic sugar that makes decorator usage explicit and readable.
+
+## Decorators with Arguments
+
+Most real-world decorators need to accept arguments. To do this, we add another nested function layer. Consider a timing decorator that reports how long a function took:
+
+```python
+import time
+
+def timer(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        print(f"{func.__name__} took {end - start:.4f} seconds")
+        return result
+    return wrapper
+```
+
+The `*args` and `**kwargs` in the wrapper allow it to accept any combination of positional and keyword arguments and pass them through to the original function. This makes the decorator generic and applicable to any function regardless of its signature.
+
+```python
+@timer
+def slow_function():
+    time.sleep(1)
+    return "Done"
+
+@timer
+def add(a, b):
+    return a + b
+
+slow_function()
+add(5, 3)
+```
+
+Output:
+
+```
+slow_function took 1.0012 seconds
+add took 0.0000 seconds
+```
+
+The `func.__name__` attribute gives us the original function's name even after decoration. This is useful for logging and debugging.
+
+## A Real-World Timing Decorator
+
+Here is a more complete timing decorator with proper error handling and reporting:
+
+```python
+import time
+from functools import wraps
+
+def timer(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        end = time.perf_counter()
+        print(f"{func.__name__} executed in {end - start:.4f}s")
+        return result
+    return wrapper
+```
+
+The `@wraps(func)` decorator (from the `functools` module) preserves the original function's metadata such as its name, docstring, and other attributes. Without `@wraps`, the decorated function would appear to be named `wrapper` in error messages and introspection tools.
+
+We explore `@wraps` in detail in the [functools module](./functools-module.mdx) section.
+
+## A Logging Decorator
+
+Logging decorators help us track function calls during debugging. Here is a decorator that logs the function name and its arguments:
+
+```python
+def log_calls(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        args_str = ", ".join(repr(a) for a in args)
+        kwargs_str = ", ".join(f"{k}={v!r}" for k, v in kwargs.items())
+        all_args = ", ".join(filter(None, [args_str, kwargs_str]))
+        print(f"Calling {func.__name__}({all_args})")
+        result = func(*args, **kwargs)
+        print(f"{func.__name__} returned {result!r}")
+        return result
+    return wrapper
+```
+
+The `!r` format specifier uses `repr()` on the values, which is especially helpful for seeing strings with their quotes visible.
+
+```python
+@log_calls
+def greet(name, greeting="Hello"):
+    return f"{greeting}, {name}!"
+
+@log_calls
+def calculate(x, y):
+    return x * y + 10
+
+greet("Alice")
+greet("Bob", greeting="Hi")
+calculate(4, y=7)
+```
+
+Output:
+
+```
+Calling greet(Alice)
+greet returned 'Hello, Alice!'
+Calling greet(Bob, greeting='Hi')
+greet returned 'Hi, Bob!'
+Calling calculate(4, y=7)
+calculate returned 38
+```
+
+## A Caching Decorator
+
+A caching decorator stores results so repeated calls with the same arguments return the cached value immediately. This technique is called memoization, and it can dramatically speed up functions that perform expensive computations:
+
+```python
+def cache(func):
+    cache_store = {}
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        key = (args, tuple(sorted(kwargs.items())))
+        if key not in cache_store:
+            cache_store[key] = func(*args, **kwargs)
+            print(f"Cached result for {func.__name__}{args}")
+        return cache_store[key]
+    return wrapper
+```
+
+The key is constructed from the arguments (converted to a hashable tuple) so each unique combination of arguments maps to exactly one cached result.
+
+```python
+@cache
+def expensive_computation(n):
+    print(f"Computing for n={n}...")
+    return n * n * n
+
+expensive_computation(5)
+expensive_computation(5)
+expensive_computation(3)
+expensive_computation(5)
+```
+
+Output:
+
+```
+Computing for n=5...
+Cached result for expensive_computation(5,)
+Cached result for expensive_computation(3,)
+Cached result for expensive_computation(5,)
+```
+
+Notice that "Computing for n=5..." printed only once, even though we called `expensive_computation(5)` three times. Python's standard library provides a more robust version called `@lru_cache` in the `functools` module, which we cover in [functools module](./functools-module.mdx).
+
+## Stacking Decorators
+
+We can apply multiple decorators to a single function. The decorators stack from bottom to top, meaning the outermost decorator runs first:
+
+```python
+def bold(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return f"<b>{func(*args, **kwargs)}</b>"
+    return wrapper
+
+def italic(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return f"<i>{func(*args, **kwargs)}</i>"
+    return wrapper
+
+@bold
+@italic
+def format_text(text):
+    return text
+
+format_text("Hello")
+```
+
+Output:
+
+```
+<b><i>Hello</i></b>
+```
+
+When we call `format_text("Hello")`, Python first applies `@italic` (making the text italic), then applies `@bold` (making it bold). The result is bold italic text. If we reversed the order, the output would be `<i><b>Hello</b></i>` instead.
+
+## Decorator with Arguments
+
+To create a decorator that itself accepts configuration arguments, we need three levels of functions:
+
+```python
+def repeat(times):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for _ in range(times):
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+```
+
+The outermost function `repeat(times)` accepts the configuration. It returns the actual decorator, which then processes the function. The innermost `wrapper` executes the original function.
+
+```python
+@repeat(times=3)
+def say_hello():
+    print("Hello!")
+
+say_hello()
+```
+
+Output:
+
+```
+Hello!
+Hello!
+Hello!
+```
+
+The configuration `times=3` tells the decorator to run the decorated function three times. Without `times=`, the decorator would not know how many repetitions to perform.
+
+## When to Use Decorators
+
+We use decorators to cleanly separate cross-cutting concerns from our core business logic:
+
+- **Timing** — Measure execution time without cluttering function code
+- **Logging** — Track function calls, arguments, and return values
+- **Caching** — Store results of expensive operations
+- **Authentication** — Check permissions before running a function
+- **Validation** — Validate inputs before processing
+
+Decorators follow the Single Responsibility Principle: each decorator does one thing well, and functions remain focused on their primary purpose.
+
+## Summary
+
+- A decorator is a function that wraps another function to extend its behavior
+- We apply decorators with the `@decorator_name` syntax directly above function definitions
+- Decorators use `*args` and `**kwargs` to pass through any arguments
+- We use `@wraps` from `functools` to preserve the original function's metadata
+- Multiple decorators stack from bottom to top
+- A decorator factory (decorator with arguments) adds an extra function layer to accept configuration
+
+For more advanced decorator patterns and class decorators, see the [metaprogramming](../metaprogramming/index.mdx) section.

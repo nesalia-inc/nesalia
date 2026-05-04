@@ -1,0 +1,353 @@
+---
+title: "Context Managers and the with Statement"
+description: "Master resource management in Python using context managers and the with statement."
+order: 4
+---
+
+# Context Managers and the with Statement
+
+A context manager is an object that guarantees code runs in a controlled environment with proper setup before execution and guaranteed cleanup afterward. We use the `with` statement to invoke a context manager, ensuring that cleanup code always runs regardless of whether the main code succeeds or raises an exception.
+
+## The Problem Context Managers Solve
+
+Consider opening a file and reading its contents. If an exception occurs while processing the file, we need to ensure the file handle is closed properly. Without proper cleanup, we risk resource leaks (open file handles that consume memory and file descriptors). Context managers solve this by automatically running cleanup code at the right time.
+
+The old way of handling this used `try` and `finally`:
+
+```python
+file = open("example.txt", "r")
+try:
+    content = file.read()
+    process(content)
+finally:
+    file.close()
+```
+
+The `finally` block guarantees that `file.close()` runs whether `process(content)` succeeds, raises an exception, or anything in between. However, this pattern is verbose and easy to forget. Context managers simplify this with the `with` statement.
+
+## The with Statement Syntax
+
+The `with` statement is syntactic sugar that handles setup and cleanup automatically. Python evaluates the expression after `with`, which must return a context manager object. The context manager's `__enter__` method runs before the body, and `__exit__` runs after the body completes (even if an exception occurred).
+
+```python
+with open("example.txt", "r") as file:
+    content = file.read()
+    print(f"File has {len(content)} characters")
+```
+
+In this example, `open()` returns a context manager. Python calls `__enter__` when entering the `with` block (which internally opens the file), executes the body, then calls `__exit__` (which internally closes the file). The `as file` part captures whatever `__enter__` returns.
+
+This pattern is so common because it prevents resource leaks. The file is guaranteed to close even if:
+- An exception occurs during processing
+- We return early from a function
+- We use `break` or `continue` in a loop
+
+## How to Build a Context Manager with __enter__ and __exit__
+
+To create a custom context manager, we define a class with two special methods: `__enter__` and `__exit__`. The `__enter__` method performs setup and optionally returns a value to be bound by `as`. The `__exit__` method performs cleanup.
+
+Here is a context manager that measures how long a block of code takes:
+
+```python
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.perf_counter()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end = time.perf_counter()
+        print(f"Elapsed time: {self.end - self.start:.4f} seconds")
+        return False
+
+with Timer() as timer:
+    total = sum(range(1_000_000))
+    print(f"Sum is {total}")
+
+with Timer() as timer:
+    time.sleep(0.5)
+    print("Sleep complete")
+```
+
+Output:
+
+```
+Sum is 499999500000
+Elapsed time: 0.0321 seconds
+Sleep complete
+Elapsed time: 0.5012 seconds
+```
+
+The `Timer` class stores the start time in `__enter__` and computes the elapsed time in `__exit__`. The `as timer` binds the context manager instance (which we use only for reading `timer.end` after the block).
+
+The `__exit__` method receives three arguments when an exception occurs inside the `with` block: the exception type, value, and traceback. Returning `False` (or nothing, which is `None`) means exceptions propagate normally. Returning `True` suppresses the exception.
+
+## The @contextmanager Decorator
+
+Defining a class with `__enter__` and `__exit__` works, but for simpler cases the `@contextmanager` decorator from `contextlib` is more concise. It lets us write a context manager as a generator function where the code before `yield` is `__enter__` and the code after `yield` is `__exit__`.
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def timer():
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        end = time.perf_counter()
+        print(f"Elapsed time: {end - start:.4f} seconds")
+
+with timer():
+    total = sum(range(1_000_000))
+    print(f"Sum is {total}")
+```
+
+Output:
+
+```
+Sum is 499999500000
+Elapsed time: 0.0287 seconds
+```
+
+The `yield` marks the boundary between setup and cleanup. Everything before `yield` runs in `__enter__`, and everything after `yield` runs in `__exit__`. We wrap the `yield` in a `try/finally` to guarantee the cleanup code runs. The `yield` without a value means there is nothing to bind with `as`.
+
+If we need a value in `as`, we yield it:
+
+```python
+from contextlib import contextmanager
+
+@contextmanager
+def open_file(path, mode):
+    file = open(path, mode)
+    try:
+        yield file
+    finally:
+        file.close()
+
+with open_file("example.txt", "r") as f:
+    content = f.read()
+    print(content)
+```
+
+This mimics the built-in `open()` behavior, though in practice we would just use `open()` directly since it is already a context manager.
+
+## Real-World Example: Temporary State Changes
+
+A common use case for context managers is temporarily changing a global state and guaranteeing it is restored. Here is a context manager that temporarily sets the working directory:
+
+```python
+import os
+
+from contextlib import contextmanager
+
+@contextmanager
+def change_dir(path):
+    original = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(original)
+
+print(f"Current dir: {os.getcwd()}")
+with change_dir("/tmp"):
+    print(f"Inside block: {os.getcwd()}")
+print(f"Back to: {os.getcwd()}")
+```
+
+Output:
+
+```
+Current dir: /home/user/project
+Inside block: /tmp
+Back to: /home/user/project
+```
+
+Even if an exception occurs inside the `with` block, `os.chdir(original)` runs in the `finally` block, restoring the original directory. This is essential for code that must not leave global state modified.
+
+## Real-World Example: Database Transactions
+
+Database connections use context managers to guarantee commit or rollback:
+
+```python
+from contextlib import contextmanager
+
+class DatabaseConnection:
+    def __init__(self):
+        self.transaction_log = []
+
+    def execute(self, query):
+        self.transaction_log.append(query)
+        print(f"Executed: {query}")
+
+    def commit(self):
+        print("COMMIT: All changes saved")
+
+    def rollback(self):
+        print("ROLLBACK: All changes discarded")
+        self.transaction_log.clear()
+
+@contextmanager
+def transaction(conn):
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+db = DatabaseConnection()
+
+with transaction(db):
+    db.execute("UPDATE users SET name='Alice' WHERE id=1")
+    db.execute("DELETE FROM sessions WHERE user_id=1")
+
+print("Transaction complete")
+```
+
+Output:
+
+```
+Executed: UPDATE users SET name='Alice' WHERE id=1
+Executed: DELETE FROM sessions WHERE user_id=1
+COMMIT: All changes saved
+Transaction complete
+```
+
+If an exception occurs inside the `with` block, the `except` clause runs `conn.rollback()` before re-raising the exception. This ensures that partial transactions never persist to the database.
+
+To simulate an error and trigger rollback:
+
+```python
+db2 = DatabaseConnection()
+
+try:
+    with transaction(db2):
+        db2.execute("UPDATE accounts SET balance=0 WHERE id=5")
+        raise RuntimeError("Insufficient funds")
+except RuntimeError as e:
+    print(f"Caught: {e}")
+```
+
+Output:
+
+```
+Executed: UPDATE accounts SET balance=0 WHERE id=5
+ROLLBACK: All changes discarded
+Caught: Insufficient funds
+```
+
+The transaction was rolled back because the exception occurred before `conn.commit()` could run.
+
+## Real-World Example: Suppressing Warnings Temporarily
+
+Context managers can also temporarily modify Python's warning filter:
+
+```python
+import warnings
+from contextlib import contextmanager
+
+@contextmanager
+def suppress_warnings():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        yield
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    warnings.warn("This warning is ignored")
+    print("Warning suppressed inside")
+
+warnings.warn("This warning appears normally")
+print("Warning works normally outside")
+```
+
+Output:
+
+```
+Warning suppressed inside
+This warning appears normally
+Warning works normally outside
+```
+
+The `warnings.catch_warnings()` context manager changes the warning filter for its block. This pattern is useful when testing code that produces expected warnings.
+
+## Real-World Example: Resource Pooling
+
+For resources that are expensive to create and can be shared, a context manager can handle acquiring and releasing:
+
+```python
+from contextlib import contextmanager
+
+class DatabasePool:
+    def __init__(self, max_connections=3):
+        self.available = list(range(max_connections))
+        self.in_use = []
+
+    def acquire(self):
+        if not self.available:
+            raise RuntimeError("No connections available")
+        conn_id = self.available.pop()
+        self.in_use.append(conn_id)
+        return conn_id
+
+    def release(self, conn_id):
+        self.in_use.remove(conn_id)
+        self.available.append(conn_id)
+        print(f"Connection {conn_id} released")
+
+pool = DatabasePool(max_connections=3)
+
+@contextmanager
+def get_connection(pool):
+    conn_id = pool.acquire()
+    try:
+        yield conn_id
+    finally:
+        pool.release(conn_id)
+
+with get_connection(pool) as conn:
+    print(f"Using connection {conn}")
+
+with get_connection(pool) as conn1, get_connection(pool) as conn2:
+    print(f"Using connections {conn1} and {conn2}")
+```
+
+Output:
+
+```
+Using connection 0
+Connection 0 released
+Using connections 1 and 2
+Connection 1 released
+Connection 2 released
+```
+
+The context manager `get_connection` acquires a connection when entering the block and releases it when exiting, whether normally or via exception.
+
+## When to Use Context Managers
+
+We use context managers for:
+
+- **File operations** — `open()` automatically closes files
+- **Database transactions** — commit on success, rollback on failure
+- **Locks and synchronization** — `threading.Lock()` ensures locks are released
+- **Temporary state changes** — change a global, restore it afterward
+- **Resource pooling** — acquire and release expensive resources
+- **Warning suppression** — temporarily disable warnings
+- **Temporary configurations** — change a setting, restore it afterward
+
+Any situation where we need guaranteed setup and teardown belongs in a context manager.
+
+## Summary
+
+- A context manager guarantees setup and cleanup code run around a block of code
+- We use the `with` statement to invoke a context manager, ensuring cleanup even on exceptions
+- Custom context managers implement `__enter__` (setup) and `__exit__` (cleanup)
+- The `@contextmanager` decorator from `contextlib` lets us write context managers as generator functions using `yield` to separate setup from cleanup
+- Returning `True` from `__exit__` suppresses an exception; returning `False` or `None` lets it propagate
+- Context managers prevent resource leaks and ensure consistent state, making code more robust
+
+For more on resource management patterns, see the [Generators](./generators.mdx) section for lazy evaluation patterns that complement context managers.

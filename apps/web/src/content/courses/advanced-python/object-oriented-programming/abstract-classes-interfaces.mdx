@@ -1,0 +1,251 @@
+---
+title: "Abstract Classes and Interfaces"
+description: "Understand abstract base classes (ABCs), learn to use the ABC module and @abstractmethod decorator, distinguish interfaces from abstract classes, and apply the registration pattern."
+order: 3
+---
+
+# Abstract Classes and Interfaces
+
+Abstract classes provide a way to define interfaces — sets of methods that subclasses must implement — without providing a complete implementation themselves. They serve as contracts that enforce a specific structure across multiple classes while allowing each subclass to provide its own implementation.
+
+## What Are Abstract Base Classes?
+
+An **abstract base class (ABC)** is a class that cannot be instantiated directly. It exists solely to be subclassed, and it defines a blueprint that its subclasses must follow. In Python, the `abc` module provides the infrastructure for creating abstract base classes.
+
+```python
+from abc import ABC, abstractmethod
+
+class Shape(ABC):
+    @abstractmethod
+    def area(self):
+        pass
+
+    @abstractmethod
+    def perimeter(self):
+        pass
+
+# This will raise an error:
+# shape = Shape()  # TypeError: Can't instantiate abstract class Shape
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return self.width * self.height
+
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+
+rect = Rectangle(5, 3)
+print(rect.area())       # 15
+print(rect.perimeter())  # 16
+```
+
+The `Shape` class is abstract because it inherits from `ABC`. The `@abstractmethod` decorator marks methods that must be implemented by any concrete subclass. Python will refuse to instantiate any subclass that does not implement all abstract methods.
+
+## The ABC Module and @abstractmethod
+
+The `abc` module provides two essential components: the `ABC` base class and the `@abstractmethod` decorator. Together, they form the foundation of Python's abstract class system.
+
+```python
+from abc import ABC, abstractmethod
+
+class Database(ABC):
+    @abstractmethod
+    def connect(self):
+        """Establish a connection to the database."""
+        pass
+
+    @abstractmethod
+    def disconnect(self):
+        """Close the database connection."""
+        pass
+
+    def execute(self, query):
+        """A concrete method that uses abstract methods."""
+        self.connect()
+        result = self._execute_query(query)
+        self.disconnect()
+        return result
+
+    @abstractmethod
+    def _execute_query(self, query):
+        """Implementation-specific query execution."""
+        pass
+```
+
+This example shows that abstract classes can include concrete methods (`execute`) that depend on abstract methods (`connect`, `disconnect`, `_execute_query`). The abstract class provides a partial implementation that subclasses must complete.
+
+## Interface vs Abstract Class Distinction
+
+In Python, there is no formal `interface` keyword like in Java or C#. However, the concept of an interface is important to understand:
+
+- **Interface**: A pure specification that defines what methods a class must have, with no implementation at all. In Python, an interface is typically modeled as an abstract class with only abstract methods.
+- **Abstract class**: A partially implemented class that provides some concrete functionality while requiring subclasses to implement other parts. Abstract classes may include both `@abstractmethod` decorated methods and regular methods.
+
+```python
+from abc import ABC, abstractmethod
+
+# This is how you model an "interface" in Python
+class Readable(ABC):
+    @abstractmethod
+    def read(self, n_bytes):
+        """Read n bytes from the data source."""
+        pass
+
+# This is an "abstract class" — it provides partial implementation
+class FileReader(Readable):
+    def __init__(self, filename):
+        self.filename = filename
+        self._file = None
+
+    def read(self, n_bytes):
+        if self._file is None:
+            raise RuntimeError("File not opened")
+        return self._file.read(n_bytes)
+
+    def open(self):
+        self._file = open(self.filename, 'rb')
+
+    def close(self):
+        if self._file:
+            self._file.close()
+            self._file = None
+```
+
+The `Readable` interface defines the contract, while `FileReader` provides a partial implementation that subclasses can use or override.
+
+## When to Use Abstract Classes
+
+Use abstract classes when you need to:
+
+1. **Share common implementation**: Abstract classes can provide concrete methods that all subclasses inherit, reducing code duplication.
+2. **Enforce a contract**: Ensure that subclasses implement specific methods while providing some shared functionality.
+3. **Model is-a relationships**: Use abstract classes when there is a clear hierarchical relationship (e.g., a `Rectangle` **is a** `Shape`).
+
+```python
+from abc import ABC, abstractmethod
+
+class PaymentProcessor(ABC):
+    def process_payment(self, amount):
+        """Template method pattern — defines the algorithm skeleton."""
+        self._validate_amount(amount)
+        self._authorize(amount)
+        self._capture(amount)
+        return True
+
+    @abstractmethod
+    def _authorize(self, amount):
+        """Subclasses implement how authorization works."""
+        pass
+
+    @abstractmethod
+    def _capture(self, amount):
+        """Subclasses implement how capture works."""
+        pass
+
+    def _validate_amount(self, amount):
+        """Shared validation — no need for subclasses to override."""
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
+        if amount > 10000:
+            raise ValueError("Amount exceeds limit")
+
+class CreditCardProcessor(PaymentProcessor):
+    def _authorize(self, amount):
+        print(f"Authorizing credit card for ${amount}")
+
+    def _capture(self, amount):
+        print(f"Capturing ${amount} from credit card")
+
+class PayPalProcessor(PaymentProcessor):
+    def _authorize(self, amount):
+        print(f"Authorizing PayPal for ${amount}")
+
+    def _capture(self, amount):
+        print(f"Capturing ${amount} via PayPal")
+```
+
+The `PaymentProcessor` provides a complete algorithm (`process_payment`) that calls abstract methods, which each subclass implements differently.
+
+## Registration Pattern with ABC
+
+The **registration pattern** allows you to register classes as valid implementations of an abstract base class without making them subclass the ABC directly. This is useful for plugin systems, dependency injection, and decoupling implementations from interfaces.
+
+```python
+from abc import ABC, abstractmethod
+
+class Parser(ABC):
+    _parsers = {}
+
+    @classmethod
+    def register(cls, format_name):
+        """Decorator to register a parser class."""
+        def decorator(parser_class):
+            cls._parsers[format_name] = parser_class
+            return parser_class
+        return decorator
+
+    @classmethod
+    def get_parser(cls, format_name):
+        if format_name not in cls._parsers:
+            raise ValueError(f"Unknown format: {format_name}")
+        return cls._parsers[format_name]
+
+    @abstractmethod
+    def parse(self, content):
+        pass
+
+@Parser.register('json')
+class JSONParser(Parser):
+    def parse(self, content):
+        import json
+        return json.loads(content)
+
+@Parser.register('xml')
+class XMLParser(Parser):
+    def parse(self, content):
+        import xml.etree.ElementTree as ET
+        return ET.fromstring(content)
+
+@Parser.register('yaml')
+class YAMLParser(Parser):
+    def parse(self, content):
+        import yaml
+        return yaml.safe_load(content)
+
+# Usage
+parser = Parser.get_parser('json')
+data = parser.parse('{"key": "value"}')
+print(data)  # {'key': 'value'}
+```
+
+This pattern decouples the parser implementations from the `Parser` ABC. Classes register themselves as valid implementations without explicitly subclassing `Parser`, and `get_parser` dynamically retrieves the appropriate implementation.
+
+## Hands-On Exercise
+
+Create an abstract `Validator` class with two abstract methods: `validate(data)` returning a boolean, and `get_error_message()` returning a string. Create three concrete validators:
+
+1. `EmailValidator` — validates that a string contains '@' and '.'
+2. `LengthValidator` — validates that a string is within a specified length range
+3. `RegexValidator` — validates that a string matches a given regular expression
+
+Add a `validate_all(*validators, data)` function that takes any number of validators and returns a tuple of `(is_valid, list_of_errors)` where errors are the `get_error_message()` output from each failing validator.
+
+```python
+from abc import ABC, abstractmethod
+
+# Your implementation here
+class Validator(ABC):
+    @abstractmethod
+    def validate(self, data):
+        pass
+
+    @abstractmethod
+    def get_error_message(self):
+        pass
+```
+
+Abstract classes are a powerful tool for establishing contracts in your code. By defining what methods must exist without dictating how they work, you give yourself and other developers flexibility while maintaining consistent interfaces across implementations.

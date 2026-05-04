@@ -1,0 +1,377 @@
+---
+title: "Builder and Prototype Patterns"
+description: "Learn how the Builder pattern separates object construction from representation, and how the Prototype pattern clones objects to avoid expensive re-creation, with real Python examples."
+order: 4
+---
+
+# Builder and Prototype Patterns
+
+The Builder and Prototype patterns both deal with object creation, but they solve different problems. **Builder** separates the construction of a complex object from its representation, so the same construction process can create different representations. **Prototype** creates new objects by **cloning** an existing object instead of constructing them from scratch.
+
+## The Builder Pattern
+
+When an object requires many steps or many parameters to be created, constructors become unwieldy. A Builder pattern provides a step-by-step interface for constructing an object, where each step sets a specific aspect of the final object.
+
+### A Complex Object: HTTP Request
+
+An HTTP request has many optional components — headers, query parameters, body, authentication, timeouts. A constructor with all these parameters is hard to read and harder to use:
+
+```python
+# Awkward — many parameters, unclear what each means
+request = HTTPRequest(
+    "GET", "api.example.com", "/users", True, None,
+    {"Authorization": "Bearer token123"},
+    {"page": "1", "limit": "10"},
+    None, 30, True
+)
+```
+
+A builder lets you specify each component with a clear, chainable interface:
+
+```python
+class HTTPRequest:
+    def __init__(self):
+        self.method = "GET"
+        self.host = ""
+        self.path = "/"
+        self.scheme = "https"
+        self.auth = None
+        self.headers = {}
+        self.query_params = {}
+        self.body = None
+        self.timeout = 30
+        self.verify_ssl = True
+
+
+class HTTPRequestBuilder:
+    def __init__(self):
+        self._request = HTTPRequest()
+
+    def method(self, value: str):
+        self._request.method = value
+        return self
+
+    def host(self, value: str):
+        self._request.host = value
+        return self
+
+    def path(self, value: str):
+        self._request.path = value
+        return self
+
+    def auth(self, token: str):
+        self._request.auth = {"Authorization": f"Bearer {token}"}
+        return self
+
+    def header(self, key: str, value: str):
+        self._request.headers[key] = value
+        return self
+
+    def query_param(self, key: str, value: str):
+        self._request.query_params[key] = value
+        return self
+
+    def body(self, data: str):
+        self._request.body = data
+        return self
+
+    def timeout(self, seconds: int):
+        self._request.timeout = seconds
+        return self
+
+    def verify_ssl(self, verify: bool):
+        self._request.verify_ssl = verify
+        return self
+
+    def build(self) -> HTTPRequest:
+        if not self._request.host:
+            raise ValueError("host is required")
+        return self._request
+```
+
+Each method sets one attribute and returns `self`, enabling method chaining. The `build()` method performs validation before returning the final object.
+
+Using the builder:
+
+```python
+request = (
+    HTTPRequestBuilder()
+    .method("GET")
+    .host("api.example.com")
+    .path("/users")
+    .auth("token123")
+    .query_param("page", "1")
+    .query_param("limit", "10")
+    .timeout(30)
+    .build()
+)
+
+print(f"{request.method} https://{request.host}{request.path}")
+print(f"Auth: {request.auth}")
+print(f"Query: {request.query_params}")
+```
+
+Output:
+
+```
+GET https://api.example.com/users
+Auth: {'Authorization': 'Bearer token123'}
+Query: {'page': '1', 'limit': '10'}
+```
+
+The builder makes the construction readable. Each call sets one parameter, and the `build()` method ensures the request is valid before returning it.
+
+### When to Use Builder
+
+Use the Builder pattern when:
+
+- **Object construction involves many optional parameters** — Query builders, request builders, configuration objects
+- **You want different representations of the same construction process** — Same builder steps producing a REST request vs. a GraphQL request
+- **Construction validation needs to happen in stages** — Each step can validate before the next one proceeds
+
+## The Prototype Pattern
+
+The Prototype pattern creates new objects by **cloning** an existing object (the prototype). This is useful when creating a new object is expensive (database queries, network calls, complex computation), but cloning is cheap.
+
+### Cloning with `copy.deepcopy`
+
+Python's `copy` module provides `deepcopy`, which creates a complete clone of an object:
+
+```python
+import copy
+
+class NetworkRequest:
+    def __init__(self, url: str, headers: dict, timeout: int):
+        self.url = url
+        self.headers = headers
+        self.timeout = timeout
+
+    def clone(self):
+        return copy.deepcopy(self)
+```
+
+```python
+original = NetworkRequest(
+    url="https://api.example.com/users",
+    headers={"Authorization": "Bearer token123"},
+    timeout=30
+)
+
+# Clone and modify the copy
+cloned = original.clone()
+cloned.url = "https://api.example.com/orders"
+cloned.headers["Authorization"] = "Bearer token456"
+
+print(f"Original: {original.url}")
+print(f"Cloned: {cloned.url}")
+print(f"Original auth: {original.headers['Authorization']}")
+print(f"Cloned auth: {cloned.headers['Authorization']}")
+```
+
+Output:
+
+```
+Original: https://api.example.com/users
+Cloned: https://api.example.com/orders
+Original auth: Bearer token123
+Cloned auth: Bearer token456
+```
+
+The clone is fully independent — modifying the clone does not affect the original, and vice versa. Even the nested `headers` dictionary is cloned, not shared.
+
+### When to Use Prototype
+
+Use the Prototype pattern when:
+
+- **Creating objects is expensive** — Cloning avoids repeating expensive initialization (loading a neural network model, querying a database)
+- **You need many similar objects** — Cloning a template is faster than constructing each from scratch
+- **Object construction is complex** — Cloning a fully configured object is easier than setting up each field individually
+
+```python
+# Without Prototype — each widget is constructed from scratch
+button1 = Button(color="blue", size=14, label="Submit", icon="check.png")
+button2 = Button(color="blue", size=14, label="Confirm", icon="check.png")
+button3 = Button(color="blue", size=14, label="OK", icon="check.png")
+
+# With Prototype — clone a template
+template = Button(color="blue", size=14, label="", icon="check.png")
+
+button1 = template.clone()
+button1.label = "Submit"
+
+button2 = template.clone()
+button2.label = "Confirm"
+
+button3 = template.clone()
+button3.label = "OK"
+```
+
+### Registry-Based Prototypes
+
+A common use of Prototype is to maintain a **registry of prototype objects** that you can clone on demand. This is especially useful for configurable objects that have sensible defaults:
+
+```python
+class EmailTemplate:
+    def __init__(self, subject: str, body: str, from_addr: str):
+        self.subject = subject
+        self.body = body
+        self.from_addr = from_addr
+
+    def clone(self):
+        return copy.deepcopy(self)
+
+
+class EmailTemplateRegistry:
+    _templates = {}
+
+    @classmethod
+    def register(cls, name: str, template: EmailTemplate):
+        cls._templates[name] = template
+
+    @classmethod
+    def get(cls, name: str) -> EmailTemplate:
+        if name not in cls._templates:
+            raise KeyError(f"Template '{name}' not found")
+        return cls._templates[name].clone()
+
+
+# Register some templates
+EmailTemplateRegistry.register(
+    "welcome",
+    EmailTemplate(
+        subject="Welcome to Our Platform",
+        body="Hello {{name}}, welcome aboard!",
+        from_addr="noreply@example.com"
+    )
+)
+
+EmailTemplateRegistry.register(
+    "password_reset",
+    EmailTemplate(
+        subject="Password Reset Request",
+        body="Hello {{name}}, click here to reset your password: {{link}}",
+        from_addr="security@example.com"
+    )
+)
+
+# Get a cloned template and customize it
+email = EmailTemplateRegistry.get("welcome")
+email.subject = email.subject.replace("Our Platform", "Acme Corp")
+email.body = email.body.replace("{{name}}", "Alice")
+
+print(f"Subject: {email.subject}")
+print(f"Body: {email.body}")
+print(f"From: {email.from_addr}")
+```
+
+Output:
+
+```
+Subject: Welcome to Acme Corp
+Body: Hello Alice, welcome aboard!
+From: noreply@example.com
+```
+
+The registry holds prototype templates. Each `get()` call returns a fresh clone, so the original template remains unchanged. This approach lets you define template objects once and produce customized copies without rebuilding each field.
+
+## Combining Builder and Prototype
+
+These two patterns work well together when you have complex objects that are expensive to set up but need to be customized frequently.
+
+```python
+class Report:
+    def __init__(self):
+        self.title = ""
+        self.sections = []
+        self.author = ""
+        self.created_at = None
+
+
+class ReportBuilder:
+    def __init__(self):
+        self._report = Report()
+
+    def title(self, value: str):
+        self._report.title = value
+        return self
+
+    def author(self, value: str):
+        self._report.author = value
+        return self
+
+    def add_section(self, heading: str, content: str):
+        self._report.sections.append({"heading": heading, "content": content})
+        return self
+
+    def build(self) -> Report:
+        import datetime
+        self._report.created_at = datetime.datetime.now()
+        return copy.deepcopy(self._report)
+
+
+# Create a base report template via builder
+base_template = (
+    ReportBuilder()
+    .title("Monthly Report")
+    .author("Analytics Team")
+    .add_section("Overview", "This section summarizes key metrics.")
+    .add_section("Details", "Detailed analysis follows.")
+    .build()
+)
+
+# Clone the template and customize for different months
+jan_report = copy.deepcopy(base_template)
+jan_report.title = "January 2024 Report"
+
+feb_report = copy.deepcopy(base_template)
+feb_report.title = "February 2024 Report"
+
+print(f"Jan: {jan_report.title} by {jan_report.author}")
+print(f"Feb: {feb_report.title} by {feb_report.author}")
+```
+
+Output:
+
+```
+Jan: January 2024 Report by Analytics Team
+Feb: February 2024 Report by Analytics Team
+```
+
+The base template has the same structure — author, sections — but different titles. Cloning the template is much faster than rebuilding the report with the builder each time.
+
+## Hands-On Exercise
+
+Build a `Pizza` class with the following attributes: `size` (string), `crust` (string), `sauce` (string), `toppings` (list of strings), and `extra_cheese` (bool). Use a `PizzaBuilder` class with chainable methods to construct pizzas. Register three prototype pizzas in a `PizzaRegistry`: `Margherita`, `Pepperoni`, and `Hawaiian`. Each should have sensible defaults for all attributes.
+
+Then write code that:
+1. Retrieves a `Margherita` prototype from the registry
+2. Clones it and adds extra mushrooms for a customer who wants a "Margherita with Mushrooms"
+3. Builds the final pizza and prints its full description
+
+```python
+class Pizza:
+    pass
+
+
+class PizzaBuilder:
+    def size(self, s: str):       pass
+    def crust(self, c: str):      pass
+    def sauce(self, s: str):     pass
+    def add_topping(self, t: str): pass
+    def extra_cheese(self, yes: bool): pass
+    def build(self) -> Pizza:    pass
+
+
+class PizzaRegistry:
+    @classmethod
+    def register(cls, name: str, builder: PizzaBuilder):
+        # Store a built prototype
+        pass
+
+    @classmethod
+    def get(cls, name: str) -> Pizza:
+        # Clone and return the prototype
+        pass
+```
+
+For more on object creation patterns, see the [Singleton and Factory](./singleton-factory.mdx) section, which covers patterns for controlling and delegating object creation. For an introduction to Python's object model and how these patterns interact with it, see [Dunder Methods](./dunder-methods.mdx).

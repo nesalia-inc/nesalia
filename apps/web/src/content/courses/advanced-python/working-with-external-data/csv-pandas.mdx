@@ -1,0 +1,603 @@
+---
+title: "CSV and Pandas Basics"
+description: "Learn to read, write, and analyze tabular data using Python's built-in csv module and the powerful Pandas library."
+order: 4
+---
+
+# CSV and Pandas Basics
+
+**CSV** (Comma-Separated Values) is a simple text format for storing tabular data. Each row represents a record, and values within each row are separated by commas. CSV files are plain text, can be opened in any text editor or spreadsheet application, and are the most common format for exchanging tabular data between different systems.
+
+A **dataframe** is a two-dimensional labeled data structure with columns of potentially different types. Think of it like a spreadsheet or SQL table: rows represent individual records, and columns represent fields. The Pandas library provides the `DataFrame` class for working with structured data in Python.
+
+We use the `csv` module for simple CSV reading and writing tasks, and we use Pandas for complex data analysis, filtering, aggregation, and transformation operations.
+
+## Reading CSV Files with the csv Module
+
+The `csv` module is part of Python's standard library. It provides `csv.reader()` for reading and `csv.writer()` for writing CSV files. We import it with `import csv`.
+
+### Basic CSV Reading
+
+The `csv.reader()` function returns a reader object that iterates over rows as lists of strings:
+
+```python
+import csv
+
+with open("students.csv", "r", newline="") as f:
+    reader = csv.reader(f)
+    for row in reader:
+        print(f"Student: {row[0]}, Grade: {row[1]}, Score: {row[2]}")
+```
+
+The `newline=""` argument is required when opening files for CSV operations on Windows to prevent issues with line endings.
+
+A sample `students.csv` file might look like:
+
+```csv
+name,grade,score
+Alice,A,95
+Bob,B,87
+Carol,A,92
+David,C,78
+```
+
+The output would be:
+
+```
+Student: Alice, Grade: A, Score: 95
+Student: Bob, Grade: B, Score: 87
+Student: Carol, Grade: A, Score: 92
+Student: David, Grade: C, Score: 78
+```
+
+### Reading CSV with Headers
+
+When a CSV file has a header row, we often want to access columns by name rather than by index. The `csv.DictReader()` class reads the file and represents each row as a dictionary:
+
+```python
+import csv
+
+with open("students.csv", "r", newline="") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        print(f"{row['name']} has grade {row['grade']} with score {row['score']}")
+```
+
+Output:
+
+```
+Alice has grade A with score 95
+Bob has grade B with score 87
+Carol has grade A with score 92
+David has grade C with score 78
+```
+
+The `DictReader` uses the first row as column names and creates dictionaries with those names as keys. This makes the code more readable and less error-prone.
+
+## Writing CSV Files with the csv Module
+
+The `csv.writer()` function writes rows to a CSV file:
+
+```python
+import csv
+
+data = [
+    ["Product", "Price", "Stock"],
+    ["Widget", 29.99, 150],
+    ["Gadget", 49.99, 75],
+    ["Doohickey", 19.99, 200]
+]
+
+with open("inventory.csv", "w", newline="") as f:
+    writer = csv.writer(f)
+    writer.writerows(data)
+```
+
+Output in `inventory.csv`:
+
+```csv
+Product,Price,Stock
+Widget,29.99,150
+Gadget,49.99,75
+Doohickey,19.99,200
+```
+
+The `writerows()` method writes all rows at once. We can also use `writerow()` to write a single row.
+
+### Writing CSV with Headers using DictWriter
+
+The `csv.DictWriter()` class writes dictionaries to a CSV file, automatically handling the header row:
+
+```python
+import csv
+
+inventory = [
+    {"product": "Widget", "price": 29.99, "stock": 150},
+    {"product": "Gadget", "price": 49.99, "stock": 75},
+    {"product": "Doohickey", "price": 19.99, "stock": 200}
+]
+
+with open("inventory_dict.csv", "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=["product", "price", "stock"])
+    writer.writeheader()
+    writer.writerows(inventory)
+```
+
+The `writeheader()` method writes the field names as the first row. The `writerows()` method writes all the dictionaries in sequence.
+
+## Introduction to Pandas
+
+The Pandas library is the standard tool for data manipulation and analysis in Python. It provides two primary data structures: `Series` (one-dimensional labeled array) and `DataFrame` (two-dimensional labeled data structure).
+
+We install Pandas with `pip install pandas` and import it with `import pandas as pd`. The `pd` alias is the universal convention and makes the code shorter when accessing Pandas functions repeatedly.
+
+### Creating a DataFrame
+
+We can create a DataFrame from a dictionary where keys become column names and values are lists of row data:
+
+```python
+import pandas as pd
+
+students = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David"],
+    "grade": ["A", "B", "A", "C"],
+    "score": [95, 87, 92, 78],
+    "subject": ["Math", "Math", "Science", "History"]
+})
+
+print(students)
+```
+
+Output:
+
+```
+    name grade  score  subject
+0  Alice     A     95      Math
+1    Bob     B     87      Math
+2  Carol     A     92   Science
+3  David     C     78   History
+```
+
+The DataFrame automatically adds row indices (0, 1, 2, 3) and column headers. All columns have the same length, and the DataFrame displays in a clean tabular format.
+
+## Reading Data with Pandas
+
+Pandas provides functions to read data from various file formats. The `read_csv()` function is one of the most commonly used functions in data analysis.
+
+### Reading CSV Files
+
+The `pd.read_csv()` function reads a CSV file and returns a DataFrame:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("students.csv")
+print(df)
+print(f"\nShape: {df.shape}")
+print(f"Columns: {df.columns.tolist()}")
+```
+
+Output:
+
+```
+    name grade  score
+0  Alice     A     95
+1    Bob     B     87
+2  Carol     A     92
+3  David     C     78
+
+Shape: (4, 3)
+Columns: ['name', 'grade', 'score']
+```
+
+The `shape` attribute returns a tuple of (rows, columns). The `columns` attribute returns the column names as an Index object.
+
+### Reading with Index Column
+
+We can specify which column should be the index using the `index_col` parameter:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("students.csv", index_col="name")
+print(df)
+print(f"\nIndex: {df.index.tolist()}")
+```
+
+Output:
+
+```
+       grade  score
+name
+Alice     A     95
+Bob       B     87
+Carol     A     92
+David     C     78
+
+Index: ['Alice', 'Bob', 'Carol', 'David']
+```
+
+Now the student names serve as row labels instead of numeric indices. This makes the data more meaningful when we display or process it.
+
+## Basic DataFrame Operations
+
+### Inspecting Data
+
+Pandas provides several methods to quickly inspect a DataFrame:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David", "Eve"],
+    "grade": ["A", "B", "A", "C", "B"],
+    "score": [95, 87, 92, 78, 84],
+    "subject": ["Math", "Science", "Math", "History", "Science"]
+})
+
+print("First 3 rows:")
+print(df.head(3))
+
+print("\nLast 2 rows:")
+print(df.tail(2))
+
+print("\nDataFrame info:")
+print(df.info())
+
+print("\nDescriptive statistics:")
+print(df.describe())
+```
+
+The `head()` method shows the first n rows, and `tail()` shows the last n rows. The `info()` method provides a summary of the DataFrame structure, and `describe()` calculates basic statistics (count, mean, std, min, quartiles, max) for numeric columns.
+
+### Selecting Columns
+
+We can select a single column using bracket notation with the column name:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David"],
+    "grade": ["A", "B", "A", "C"],
+    "score": [95, 87, 92, 78]
+})
+
+names = df["name"]
+print(f"Names (type: {type(names).__name__}):")
+print(names)
+```
+
+Output:
+
+```
+Names (type: Series):
+0    Alice
+1      Bob
+2     Carol
+3     David
+Name: name, dtype: object
+```
+
+Selecting a single column returns a `Series` object. A Series is a one-dimensional labeled array and is the building block of a DataFrame.
+
+We can select multiple columns using double brackets:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David"],
+    "grade": ["A", "B", "A", "C"],
+    "score": [95, 87, 92, 78]
+})
+
+name_grade = df[["name", "grade"]]
+print(name_grade)
+```
+
+Output:
+
+```
+    name grade
+0  Alice     A
+1    Bob     B
+2  Carol     A
+3  David     C
+```
+
+Selecting multiple columns returns a new DataFrame with only those columns.
+
+### Selecting Rows
+
+We can select rows by position using `iloc[]` and by label using `loc[]`:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David"],
+    "grade": ["A", "B", "A", "C"],
+    "score": [95, 87, 92, 78]
+}, index=["a", "b", "c", "d"])
+
+print("Row by position (iloc):")
+print(df.iloc[1])
+
+print("\nRow by label (loc):")
+print(df.loc["c"])
+```
+
+Output:
+
+```
+Row by position (iloc):
+name     Bob
+grade       B
+score      87
+Name: b, dtype: object
+
+Row by label (loc):
+name     Carol
+grade        A
+score       92
+Name: c, dtype: object
+```
+
+The `iloc[]` accessor uses integer positions (0, 1, 2, ...) regardless of index labels. The `loc[]` accessor uses the actual index labels, which in this case are letters.
+
+### Filtering Data
+
+We filter a DataFrame by applying a boolean condition:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David", "Eve"],
+    "grade": ["A", "B", "A", "C", "B"],
+    "score": [95, 87, 92, 78, 84]
+})
+
+a_students = df[df["grade"] == "A"]
+print("Students with grade A:")
+print(a_students)
+
+high_scorers = df[(df["score"] >= 90) & (df["grade"] == "A")]
+print("\nHigh scorers with grade A:")
+print(high_scorers)
+```
+
+Output:
+
+```
+Students with grade A:
+    name grade  score
+0  Alice     A     95
+2  Carol     A     92
+
+High scorers with grade A:
+    name grade  score
+0  Alice     A     95
+2  Carol     A     92
+```
+
+The condition `df["grade"] == "A"` creates a boolean mask, and applying it to `df[...]` filters rows where the condition is True. We combine conditions with `&` (AND) and `|` (OR).
+
+## Data Analysis with Pandas
+
+### Grouping and Aggregating
+
+The `groupby()` method groups rows by a column and lets us apply aggregation functions:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David", "Eve"],
+    "department": ["Engineering", "Sales", "Engineering", "Marketing", "Sales"],
+    "salary": [95000, 75000, 92000, 68000, 72000],
+    "years_experience": [5, 3, 6, 2, 4]
+})
+
+dept_stats = df.groupby("department").agg({
+    "salary": ["mean", "max", "min"],
+    "years_experience": "mean"
+})
+
+print("Department statistics:")
+print(dept_stats)
+```
+
+Output:
+
+```
+Department statistics:
+                 salary          years_experience
+                    mean   max   min            mean
+department
+Engineering      93500  95000 92000             5.5
+Marketing        68000  68000 68000             2.0
+Sales            73500  75000 72000             3.5
+```
+
+The `groupby()` creates groups based on the department column, and the `agg()` method applies different aggregation functions to each column. We can specify different aggregations for different columns.
+
+### Sorting
+
+The `sort_values()` method sorts the DataFrame by one or more columns:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol", "David", "Eve"],
+    "department": ["Engineering", "Sales", "Engineering", "Marketing", "Sales"],
+    "salary": [95000, 75000, 92000, 68000, 72000]
+})
+
+print("Sorted by salary (descending):")
+print(df.sort_values("salary", ascending=False))
+
+print("\nSorted by department then salary:")
+print(df.sort_values(["department", "salary"], ascending=[True, False]))
+```
+
+Output:
+
+```
+Sorted by salary (descending):
+    name    department   salary
+0  Alice   Engineering   95000
+2  Carol   Engineering   92000
+1    Bob         Sales   75000
+4    Eve         Sales   72000
+3  David    Marketing   68000
+
+Sorted by department then salary:
+    name    department   salary
+0  Alice   Engineering   95000
+2  Carol   Engineering   92000
+4    Eve         Sales   72000
+1    Bob         Sales   75000
+3  David    Marketing   68000
+```
+
+The `ascending` parameter controls sort direction. When sorting by multiple columns, we pass a list of column names and a corresponding list of sort directions.
+
+## Writing Data with Pandas
+
+### Writing CSV Files
+
+The `to_csv()` method writes a DataFrame to a CSV file:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol"],
+    "grade": ["A", "B", "A"],
+    "score": [95, 87, 92]
+})
+
+df.to_csv("output.csv", index=False)
+```
+
+The `index=False` parameter prevents Pandas from writing the row indices as the first column. If we omitted this, the output would have an unnamed first column with the indices.
+
+### Writing Excel Files
+
+Pandas can write to Excel files using the `to_excel()` method (requires the `openpyxl` package):
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({
+    "name": ["Alice", "Bob", "Carol"],
+    "grade": ["A", "B", "A"],
+    "score": [95, 87, 92]
+})
+
+df.to_excel("output.xlsx", sheet_name="Students", index=False)
+```
+
+The `openpyxl` library must be installed: `pip install openpyxl`. Excel files can have multiple sheets, so we specify the sheet name.
+
+## Practical Example: Analyzing Survey Data
+
+```python
+import pandas as pd
+
+survey_data = {
+    "respondent_id": [101, 102, 103, 104, 105, 106, 107, 108],
+    "age_group": ["25-34", "18-24", "35-44", "25-34", "18-24", "45-54", "25-34", "18-24"],
+    "satisfaction": [4, 5, 3, 4, 2, 5, 4, 3],
+    "recommendation_likelihood": ["likely", "very likely", "neutral", "likely", "unlikely", "very likely", "likely", "neutral"],
+    "product": ["Widget", "Gadget", "Widget", "Doohickey", "Widget", "Gadget", "Doohickey", "Gadget"]
+}
+
+df = pd.DataFrame(survey_data)
+
+print("Survey Summary")
+print("=" * 50)
+
+print("\nAverage satisfaction by product:")
+product_satisfaction = df.groupby("product")["satisfaction"].mean()
+print(product_satisfaction.sort_values(ascending=False))
+
+print("\nRecommendation likelihood distribution:")
+recommendation_counts = df["recommendation_likelihood"].value_counts()
+print(recommendation_counts)
+
+print("\nSatisfaction by age group:")
+age_stats = df.groupby("age_group")["satisfaction"].agg(["mean", "count"])
+print(age_stats)
+
+high_satisfaction = df[df["satisfaction"] >= 4]
+print(f"\nRespondents with high satisfaction (4+): {len(high_satisfaction)} out of {len(df)}")
+```
+
+Output:
+
+```
+Survey Summary
+==================================================
+
+Average satisfaction by product:
+product
+Gadget       4.666667
+Widget       3.333333
+Doohickey    4.000000
+Name: satisfaction, dtype: float64
+
+Recommendation likelihood distribution:
+recommendation_likelihood
+likely         3
+very likely    2
+neutral        2
+unlikely       1
+Name: count, dtype: int64
+
+Satisfaction by age group:
+              mean  count
+age_group
+18-24         3.5     3
+25-34         3.8     3
+35-44         3.0     1
+45-54         5.0     1
+
+Respondents with high satisfaction (4+): 5 out of 8
+```
+
+This example demonstrates typical data analysis workflow: reading data, grouping by categories, calculating statistics, filtering records, and summarizing results.
+
+## CSV Module vs Pandas
+
+| Aspect | csv module | Pandas |
+|--------|------------|--------|
+| Built-in | Yes | No (requires installation) |
+| Memory efficiency | Lower (row-by-row processing) | Higher (vectorized operations) |
+| Data manipulation | Limited | Extensive |
+| Learning curve | Simple | Moderate |
+| Performance (small files) | Good | Good |
+| Performance (large files) | Acceptable | Excellent |
+| Column selection | By index only | By name or index |
+| Missing value handling | Manual | Automatic |
+| Use case | Simple conversion, filtering | Complex analysis, transformation |
+
+We use the `csv` module for quick scripts, simple data extraction, or when we need fine-grained control over parsing. We use Pandas for data analysis, reporting, merging multiple datasets, and any task requiring complex data manipulation.
+
+## Summary
+
+- **CSV** (Comma-Separated Values) is a plain-text format for tabular data, readable by any text editor or spreadsheet application
+- The `csv` module provides `csv.reader()` and `csv.DictReader()` for reading, `csv.writer()` and `csv.DictWriter()` for writing
+- A **dataframe** is a two-dimensional labeled data structure with rows and columns, provided by the Pandas library
+- Pandas is installed via `pip install pandas` and imported with `import pandas as pd`
+- `pd.read_csv()` reads CSV files into DataFrames; `df.to_csv()` writes DataFrames to CSV files
+- We select columns with `df["column"]`, rows with `df.iloc[]` (position) or `df.loc[]` (label)
+- We filter data by applying boolean conditions: `df[df["column"] == value]`
+- `groupby()` groups data for aggregation; `agg()` applies functions to grouped data
+- `sort_values()` sorts by column values; `sort_index()` sorts by index
+- We use the `csv` module for simple tasks and Pandas for complex data analysis
+
+For configuration file formats, see the [YAML Parsing](./yaml-parsing.mdx) section. For serialization of Python objects, see the [JSON and Pickle Serialization](./json-pickle.mdx) section. For pattern matching in text, see the [Regular Expressions](./regular-expressions.mdx) section.

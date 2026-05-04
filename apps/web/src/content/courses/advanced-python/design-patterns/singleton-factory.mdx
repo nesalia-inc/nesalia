@@ -1,0 +1,274 @@
+---
+title: "Singleton and Factory Patterns"
+description: "Learn how the Singleton pattern ensures a single instance across your application, and how the Factory pattern delegates object creation to subclasses, with real-world Python examples."
+order: 1
+---
+
+# Singleton and Factory Patterns
+
+Design patterns are reusable solutions to common problems in software design. They are not specific to Python — they apply across programming languages — but Python's language features let us implement them cleanly and idiomatically. In this chapter we cover two patterns that deal with object creation: **Singleton** and **Factory**.
+
+## The Singleton Pattern
+
+The Singleton pattern restricts a class so that only **one instance** can ever exist. Every time you request an instance, you get the same object. This is useful for things like configuration managers, database connections, or logging systems — resources where having multiple copies would cause problems or waste resources.
+
+### A Naive Singleton
+
+Here is the simplest way to implement a Singleton in Python:
+
+```python
+class DatabaseConnection:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if not self._initialized:
+            self.host = "localhost"
+            self.port = 5432
+            self._initialized = True
+
+db1 = DatabaseConnection()
+db2 = DatabaseConnection()
+
+print(db1 is db2)        # True — same object
+print(db1.host)          # localhost
+db2.host = "production"
+print(db1.host)          # production — db2 changes affected db1
+```
+
+The `__new__` method intercepts object creation. When `DatabaseConnection()` is called, it checks whether `_instance` already exists. If not, it creates a new instance by calling `super().__new__(cls)`. Subsequent calls return the existing instance. The `is` operator confirms that `db1` and `db2` are the exact same object in memory.
+
+### Singleton via Module
+
+The most Pythonic way to create a Singleton is to simply use a **module** instead of a class. Python's import system guarantees that a module is only executed once per interpreter session:
+
+```python
+# config.py
+class _Config:
+    def __init__(self):
+        self.debug = False
+        self.log_level = "INFO"
+        self.database_url = "postgres://localhost/mydb"
+
+config = _Config()
+```
+
+```python
+# app.py
+from config import config
+
+config.debug = True  # Mutate the single config object
+
+from config import config as config2
+print(config is config2)  # True — same module, same object
+```
+
+We name the class `_Config` with an underscore to signal that it is an internal implementation detail. We export only the `config` instance. When any other module in the application imports from `config`, it receives the same instance. This approach requires no special metaclass machinery and works with every Python import mechanism.
+
+### When to Use Singleton
+
+Use a Singleton when you need exactly one of something:
+
+- **Configuration** — A single object holds all application settings
+- **Connection pooling** — One shared connection manager rather than many separate connections
+- **Logging** — One centralized logger that all modules write to
+- **Caching** — A single cache instance that all parts of the application read and write
+
+Be cautious about Singletons, though. They can make testing harder because they carry global state. The module-as-Singleton approach is preferred because it is explicit and requires no custom class machinery.
+
+## The Factory Pattern
+
+The Factory pattern delegates object creation to a **subclass** rather than calling a constructor directly. The calling code does not need to know which concrete subclass will be created — it works with an abstract interface. This lets you swap implementations without changing the code that uses them.
+
+### A Payment Processor Factory
+
+Imagine we are building a payment system that supports multiple providers. Each provider has a different API, but they all share a common interface:
+
+```python
+from abc import ABC, abstractmethod
+
+class PaymentMethod(ABC):
+    @abstractmethod
+    def charge(self, amount: float) -> dict:
+        pass
+
+    @abstractmethod
+    def refund(self, transaction_id: str) -> dict:
+        pass
+```
+
+Each payment provider implements this interface. The factory's job is to create the right instance based on configuration:
+
+```python
+class CreditCardPayment(PaymentMethod):
+    def charge(self, amount: float) -> dict:
+        print(f"Charging ${amount:.2f} to credit card")
+        return {"status": "success", "method": "credit_card", "amount": amount}
+
+    def refund(self, transaction_id: str) -> dict:
+        print(f"Refunding transaction {transaction_id} to credit card")
+        return {"status": "refunded", "method": "credit_card"}
+
+
+class PayPalPayment(PaymentMethod):
+    def charge(self, amount: float) -> dict:
+        print(f"Charging ${amount:.2f} via PayPal")
+        return {"status": "success", "method": "paypal", "amount": amount}
+
+    def refund(self, transaction_id: str) -> dict:
+        print(f"Refunding transaction {transaction_id} via PayPal")
+        return {"status": "refunded", "method": "paypal"}
+
+
+class CryptoPayment(PaymentMethod):
+    def charge(self, amount: float) -> dict:
+        print(f"Charging ${amount:.2f} in cryptocurrency")
+        return {"status": "success", "method": "crypto", "amount": amount}
+
+    def refund(self, transaction_id: str) -> dict:
+        return {"status": "error", "message": "Crypto refunds not supported"}
+```
+
+The factory class holds a mapping from provider names to classes. Its `create` method instantiates the correct class:
+
+```python
+class PaymentFactory:
+    _providers = {
+        "credit_card": CreditCardPayment,
+        "paypal": PayPalPayment,
+        "crypto": CryptoPayment,
+    }
+
+    @classmethod
+    def create(cls, provider: str) -> PaymentMethod:
+        if provider not in cls._providers:
+            raise ValueError(f"Unknown payment provider: {provider}")
+        return cls._providers[provider]()
+
+    @classmethod
+    def register(cls, name: str, payment_class):
+        """Allow adding new payment providers at runtime."""
+        cls._providers[name] = payment_class
+```
+
+Using the factory, the calling code decouples from the concrete class:
+
+```python
+def process_payment(amount: float, provider: str):
+    payment = PaymentFactory.create(provider)
+    result = payment.charge(amount)
+    print(f"Result: {result}")
+
+process_payment(99.99, "paypal")
+process_payment(250.00, "credit_card")
+process_payment(1000.00, "crypto")
+```
+
+Output:
+
+```
+Charging $99.99 via PayPal
+Result: {'status': 'success', 'method': 'paypal', 'amount': 99.99}
+Charging $250.00 to credit card
+Result: {'status': 'success', 'method': 'credit_card', 'amount': 250.0}
+Charging $1000.00 in cryptocurrency
+Result: {'status': 'success', 'method': 'crypto', 'amount': 1000.0}
+```
+
+The `process_payment` function never mentions `PayPalPayment` or `CreditCardPayment` by name. It asks the factory for whatever provider is configured and works with the abstract `PaymentMethod` interface. Adding a new payment provider requires only registering it with the factory — the `process_payment` function needs no changes.
+
+### When to Use Factory
+
+Use the Factory pattern when:
+
+- **Object creation involves complex logic** — The creation process is too involved to put in a constructor
+- **The exact type is determined at runtime** — Configuration, user input, or environment variables decide which class to instantiate
+- **You want to isolate creation from usage** — Calling code depends on an abstract interface, not concrete classes
+- **You need to add new types without modifying existing code** — The Open/Closed Principle in action (open for extension, closed for modification)
+
+Factories appear frequently in plugin architectures, multi-backend systems (databases, caches, loggers), and anywhere configuration drives behavior.
+
+## Combining Singleton and Factory
+
+These two patterns work well together. A common pattern is a **Singleton Factory** — a factory that always returns the same instance for a given type:
+
+```python
+class SingletonFactory:
+    _instances = {}
+
+    @classmethod
+    def get_instance(cls, klass):
+        if klass not in cls._instances:
+            cls._instances[klass] = klass()
+        return cls._instances[klass]
+```
+
+```python
+class DatabaseConnection:
+    def query(self, sql):
+        print(f"Executing: {sql}")
+
+class CacheService:
+    def get(self, key):
+        return None
+
+db = SingletonFactory.get_instance(DatabaseConnection)
+cache = SingletonFactory.get_instance(CacheService)
+db2 = SingletonFactory.get_instance(DatabaseConnection)
+
+print(db is db2)  # True — same instance
+print(db is cache)  # False — different type
+```
+
+This is useful when you want exactly one instance per type, but still need the flexibility of a factory to create instances of different classes.
+
+## Hands-On Exercise
+
+Create a `SettingsManager` class that acts as a Singleton and stores application settings as key-value pairs. Then create a `WidgetFactory` that produces three types of widgets: `Button`, `TextBox`, and `DropDown`. Each widget should have a `render` method that returns a string description of what it draws.
+
+```python
+# Part 1: Singleton settings manager
+class SettingsManager:
+    # Implement Singleton so only one instance exists
+    pass
+
+# Part 2: Widget classes
+class Widget(ABC):
+    @abstractmethod
+    def render(self) -> str:
+        pass
+
+class Button(Widget):
+    pass
+
+class TextBox(Widget):
+    pass
+
+class DropDown(Widget):
+    pass
+
+# Part 3: Factory
+class WidgetFactory:
+    # Map widget names to classes
+    _widgets = {}
+
+    @classmethod
+    def create(cls, widget_type: str) -> Widget:
+        # Return the appropriate widget instance
+        pass
+```
+
+Write code that uses both patterns together: load settings from the `SettingsManager` to decide which widget type to create, then render a widget of that type.
+
+## Summary
+
+- **Singleton** ensures only one instance exists. Use it for shared resources like configuration, connections, and caches. The module-as-Singleton pattern is the most Pythonic approach.
+- **Factory** delegates object creation to a subclass or method. Use it when creation logic is complex or when you need to swap implementations without changing calling code.
+- Both patterns reduce coupling between code that requests something and code that creates it.
+
+For more on class creation patterns, see the [metaprogramming](../metaprogramming/index.mdx) section, which covers metaclasses — Python's most powerful tool for controlling class instantiation.

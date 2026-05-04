@@ -1,0 +1,211 @@
+---
+title: "@final to Prevent Overriding"
+description: "Use @final to mark classes and methods as immutable. Learn how this prevents inheritance and method overriding, catching mistakes at type-checking time rather than runtime."
+order: 10
+---
+
+# @final to Prevent Overriding
+
+`@final` is a class and method decorator that signals a type checker that a class should not be subclassed or a method should not be overridden. It is a design enforcement tool: when someone tries to subclass or override a `@final` item, the type checker reports an error immediately rather than waiting for a runtime problem.
+
+## @final on Methods
+
+Marking a method with `@final` means subclasses cannot override it:
+
+```python
+from typing import final
+
+class BaseProcessor:
+    @final
+    def validate(self) -> bool:
+        return True  # Base validation cannot be overridden
+
+    def process(self) -> str:
+        return "processing"
+
+class SpecializedProcessor(BaseProcessor):
+    # Error: Cannot override 'validate' because it is marked @final in BaseProcessor
+    @final
+    def validate(self) -> bool:  # Type checker error!
+        return False
+
+    @override
+    def process(self) -> str:
+        return f"specialized: {super().process()}"
+```
+
+The type checker rejects any attempt to override `validate`. This is useful for methods that implement critical base behavior that must not change, such as security checks or resource cleanup.
+
+## @final on Classes
+
+Marking a class with `@final` means it cannot be subclassed:
+
+```python
+from typing import final
+
+@final
+class Configuration:
+    def __init__(self, host: str, port: int):
+        self.host = host
+        self.port = port
+
+    def get_connection_string(self) -> str:
+        return f"{self.host}:{self.port}"
+
+# Error: Cannot subclass 'Configuration' because it is marked @final
+class CustomConfiguration(Configuration):  # Type checker error!
+    pass
+```
+
+`@final` on a class is appropriate for utility classes, immutable data containers, or base classes where the implementation must not be extended.
+
+## Combining @final and @override
+
+A method can be both `@final` and `@override` if you want to allow overriding but require a specific implementation pattern:
+
+```python
+from typing import final, override
+
+class Base:
+    @final
+    @override
+    def get_version(self) -> str:
+        return "1.0"
+```
+
+This is rare but available for scenarios where a method must be overridden but the override must call the parent implementation (via `super()`).
+
+## @final with Type Aliases
+
+`@final` can also be used with `TypeAlias` to create a final type alias (though this is less common):
+
+```python
+from typing import TypeAlias, final
+
+# A final type alias cannot be redeclared — useful in large codebases
+# to prevent accidental shadowing
+DefaultTimeout: TypeAlias: final = 30  # This is a type-level signal
+```
+
+Note that `@final` on a type alias is a static type hint and does not actually prevent runtime reassignment. Its primary use is on classes and methods.
+
+## Why @final
+
+`@final` provides several benefits:
+
+1. **Design enforcement**: Communicate that a class or method is complete and not designed for extension.
+2. **Prevent accidental overriding**: Catch mistakes where a developer thinks they are overriding a method but the base class did not have that method.
+3. **Optimization hints**: Some type checkers and runtime environments can optimize final classes more aggressively since they cannot be subclassed.
+4. **Code clarity**: When reading code, `@final` immediately tells you "do not change this".
+
+```python
+from typing import final
+
+@final
+class UUID:
+    """Immutable unique identifier."""
+    def __init__(self, value: str):
+        self._value = value
+
+    def __str__(self) -> str:
+        return self._value
+
+    def __repr__(self) -> str:
+        return f"UUID('{self._value}')"
+
+# Cannot subclass UUID — it is a final, immutable value object
+# uuid = CustomUUID("123")  # Would be a type error if uncommented
+```
+
+## @final vs. @override
+
+| Aspect | `@final` | `@override` |
+|---|---|---|
+| Purpose | Prevent overriding/subclassing | Require overriding |
+| Applied to method | Prevents subclasses from overriding | Marks method as intentionally overriding |
+| Applied to class | Prevents any subclassing | N/A — classes cannot be marked `@override` |
+| Use when | API is complete, not designed for extension | Subclass MUST provide its own implementation |
+
+Both decorators can coexist: `@final` prevents overriding a method, while `@override` marks that a subclass IS overriding a parent method.
+
+## Real-World Pattern: Template Method with @final
+
+A common pattern combines `@final` with an abstract method to implement the Template Method pattern while preventing override of the template itself:
+
+```python
+from abc import ABC, abstractmethod
+from typing import final
+
+class DataPipeline(ABC):
+    """Base pipeline — subclasses must implement extract() and load()."""
+
+    @final
+    def run(self) -> None:
+        """Template method — cannot be overridden."""
+        data = self.extract()
+        transformed = self.transform(data)
+        self.load(transformed)
+
+    @abstractmethod
+    def extract(self) -> dict: ...
+
+    def transform(self, data: dict) -> dict:
+        """Default transformation — can be overridden."""
+        return data
+
+    @abstractmethod
+    def load(self, data: dict) -> None: ...
+
+class MyPipeline(DataPipeline):
+    def extract(self) -> dict:
+        return {"source": "api", "records": [1, 2, 3]}
+
+    def load(self, data: dict) -> None:
+        print(f"Loading {len(data['records'])} records")
+```
+
+The `run` method is `@final` so the pipeline execution order cannot be changed by subclasses. The `extract` and `load` methods are abstract, forcing subclasses to provide implementations. The `transform` method can be overridden if needed.
+
+`@final` pairs well with [Frozen Data Classes](/courses/advanced-python/dataclasses) (via `frozen=True`) for immutable data, and with [@override](/courses/advanced-python/override) to explicitly mark which methods are being overridden in subclasses. Together, these decorators give you fine-grained control over the inheritance hierarchy.
+
+## Hands-On Exercise
+
+Create a frozen data class `Point` representing an immutable 2D point with `@final`. Then create a class `PointProcessor` with a `@final` method `process` that calls an abstract method `transform_point`. The abstract method should accept a `Point` and return a `Point`.
+
+```python
+from abc import ABC, abstractmethod
+from typing import final
+from dataclasses import dataclass
+
+@final
+@dataclass(frozen=True)
+class Point:
+    x: float
+    y: float
+
+class PointProcessor(ABC):
+    @final
+    def process(self, point: Point) -> Point:
+        # Template method pattern — final, cannot be overridden
+        validated = self.validate(point)
+        return self.transform_point(validated)
+
+    @abstractmethod
+    def validate(self, point: Point) -> Point:
+        # Abstract validation step
+        ...
+
+    @abstractmethod
+    def transform_point(self, point: Point) -> Point:
+        # Abstract transformation step
+        ...
+
+class DoublePointProcessor(PointProcessor):
+    def validate(self, point: Point) -> Point:
+        # Accept all points
+        return point
+
+    def transform_point(self, point: Point) -> Point:
+        # Return a new point with doubled coordinates
+        return Point(x=point.x * 2, y=point.y * 2)
+```

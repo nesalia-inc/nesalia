@@ -183,7 +183,114 @@ function getCourseSections(courseSlug: string): Section[] {
       {
         title: 'Advanced Functions',
         chapters: [
-          { slug: '01-advanced-functions', title: 'Advanced Functions', order: 1 },
+          { slug: 'decorators', title: 'Decorators and Decorator Patterns', order: 1 },
+          { slug: 'functools-module', title: 'functools Module', order: 2 },
+          { slug: 'generators', title: 'Generators and Generator Expressions', order: 3 },
+          { slug: 'context-managers', title: 'Context Managers and the with Statement', order: 4 },
+          { slug: 'walrus-operator', title: 'The Walrus Operator', order: 5 },
+        ],
+      },
+      {
+        title: 'Advanced Data Structures',
+        chapters: [
+          { slug: 'collections-module', title: 'Collections Module', order: 1 },
+          { slug: 'chainmap-namedtuple', title: 'ChainMap and namedtuple', order: 2 },
+          { slug: 'comprehensions', title: 'List, Set, and Dictionary Comprehensions', order: 3 },
+          { slug: 'sorting-custom-keys', title: 'Sorting with Custom Keys', order: 4 },
+        ],
+      },
+      {
+        title: 'Object-Oriented Programming',
+        chapters: [
+          { slug: 'multiple-inheritance-mro', title: 'Multiple Inheritance and MRO', order: 1 },
+          { slug: 'super-cooperative-mro', title: 'Super() and Cooperative Multiple Inheritance', order: 2 },
+          { slug: 'abstract-classes-interfaces', title: 'Abstract Classes and Interfaces', order: 3 },
+          { slug: 'enumerations', title: 'Enumerations', order: 4 },
+          { slug: 'property-decorator', title: 'Properties and the @property Decorator', order: 5 },
+          { slug: 'dunder-methods', title: 'Dunder Methods', order: 6 },
+          { slug: 'dataclasses', title: 'Data Classes', order: 7 },
+          { slug: 'descriptors', title: 'Descriptors and the Descriptor Protocol', order: 8 },
+          { slug: 'structural-pattern-matching', title: 'Structural Pattern Matching', order: 9 },
+        ],
+      },
+      {
+        title: 'Metaprogramming',
+        chapters: [
+          { slug: 'init-new-call', title: 'Understanding __init__, __new__, __call__', order: 1 },
+          { slug: 'slots', title: '__slots__ for Memory Optimization', order: 2 },
+          { slug: 'metaclasses', title: 'Custom Metaclasses', order: 3 },
+          { slug: 'class-creation-patterns', title: 'Class Creation Patterns', order: 4 },
+        ],
+      },
+      {
+        title: 'Advanced Type Annotations',
+        chapters: [
+          { slug: 'generic-types', title: 'Generic Types', order: 1 },
+          { slug: 'union-optional-literal', title: 'Union, Optional, and Literal Types', order: 2 },
+          { slug: 'type-aliases-newtype', title: 'Type Aliases and NewType', order: 3 },
+          { slug: 'typeddict', title: 'TypedDict', order: 4 },
+          { slug: 'protocols-structural-typing', title: 'Protocols and Structural Typing', order: 5 },
+          { slug: 'typevar-bounded-generics', title: 'TypeVar and Bounded Generics', order: 6 },
+          { slug: 'self-conditional-types', title: 'Self Types and Conditional Types', order: 7 },
+          { slug: 'overload', title: '@overload for Function Overloading', order: 8 },
+          { slug: 'override', title: '@override for Method Overriding', order: 9 },
+          { slug: 'final', title: '@final to Prevent Overriding', order: 10 },
+        ],
+      },
+      {
+        title: 'Collections and Iterators',
+        chapters: [
+          { slug: 'collections-abc', title: 'collections.abc Module', order: 1 },
+          { slug: 'custom-iterables', title: 'Implementing Custom Iterables', order: 2 },
+          { slug: 'abcs-interfaces', title: 'ABCs for Interfaces', order: 3 },
+        ],
+      },
+      {
+        title: 'Concurrency and Parallelism',
+        chapters: [
+          { slug: 'threading-gil', title: 'Threading and the GIL', order: 1 },
+          { slug: 'multiprocessing', title: 'Multiprocessing for CPU-Bound Tasks', order: 2 },
+          { slug: 'asyncio-fundamentals', title: 'AsyncIO Fundamentals', order: 3 },
+          { slug: 'await-async-task', title: 'await, async def, and Task', order: 4 },
+          { slug: 'concurrent-futures', title: 'Concurrent.futures', order: 5 },
+          { slug: 'exception-groups-taskgroup', title: 'Exception Groups and TaskGroup', order: 6 },
+        ],
+      },
+      {
+        title: 'Testing and Debugging',
+        chapters: [
+          { slug: 'unit-testing', title: 'Unit Testing with unittest and pytest', order: 1 },
+          { slug: 'fixtures-mocking', title: 'Fixtures and Mocking', order: 2 },
+          { slug: 'coverage-analysis', title: 'Coverage Analysis', order: 3 },
+          { slug: 'debugging-pdb', title: 'Debugging Techniques and pdb', order: 4 },
+        ],
+      },
+      {
+        title: 'Design Patterns',
+        chapters: [
+          { slug: 'singleton-factory', title: 'Singleton and Factory Patterns', order: 1 },
+          { slug: 'observer-pattern', title: 'Observer Pattern', order: 2 },
+          { slug: 'strategy-state', title: 'Strategy and State Patterns', order: 3 },
+          { slug: 'builder-prototype', title: 'Builder and Prototype Patterns', order: 4 },
+        ],
+      },
+      {
+        title: 'Working with External Data',
+        chapters: [
+          { slug: 'json-pickle', title: 'JSON and Pickle Serialization', order: 1 },
+          { slug: 'yaml-parsing', title: 'YAML Parsing', order: 2 },
+          { slug: 'regular-expressions', title: 'Regular Expressions', order: 3 },
+          { slug: 'csv-pandas', title: 'CSV and Pandas Basics', order: 4 },
+        ],
+      },
+      {
+        title: 'Production Python',
+        chapters: [
+          { slug: 'logging-configuration', title: 'Logging Configuration', order: 1 },
+          { slug: 'environment-variables-config', title: 'Environment Variables and Config Management', order: 2 },
+          { slug: 'venv-dependency-management', title: 'Virtual Environments and Dependency Management', order: 3 },
+          { slug: 'type-checking-mypy', title: 'Type Checking with mypy', order: 4 },
+          { slug: 'code-formatting-black-ruff', title: 'Code Formatting with Black and Ruff', order: 5 },
         ],
       },
     ],

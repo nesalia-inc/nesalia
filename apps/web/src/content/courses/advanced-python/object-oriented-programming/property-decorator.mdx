@@ -1,0 +1,213 @@
+---
+title: "Properties and the @property Decorator"
+description: "Master Python's @property decorator for creating computed attributes, controlled mutation with setters and deleters, and learn when to use properties versus methods."
+order: 5
+---
+
+# Properties and the @property Decorator
+
+Properties are a Python mechanism that allows you to expose method calls as attribute access. They bridge the gap between simple attribute access and method calls, enabling you to add logic to attribute get, set, and delete operations without changing the interface your code uses.
+
+## What Properties Do
+
+A property lets you treat a method as an attribute. When code accesses an attribute, Python calls the getter method you defined. This allows you to add validation, computation, or side effects to what appears to be simple attribute access.
+
+```python
+class Circle:
+    def __init__(self, radius):
+        self.radius = radius  # This calls the setter, not direct assignment
+
+    @property
+    def diameter(self):
+        return self.radius * 2
+
+circle = Circle(5)
+print(circle.diameter)  # 10 — accessed like an attribute, not a method
+```
+
+Without the `@property` decorator, you would need to call `circle.diameter()` with parentheses. With it, you access `circle.diameter` as if it were a stored attribute.
+
+## @property for Computed Attributes
+
+The most common use of `@property` is to create **computed attributes** — values that are derived from other attributes rather than stored directly. This ensures that the computed value is always consistent with the underlying data.
+
+```python
+class Rectangle:
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    @property
+    def area(self):
+        """Compute the area on-the-fly from width and height."""
+        return self.width * self.height
+
+    @property
+    def perimeter(self):
+        return 2 * (self.width + self.height)
+
+    @property
+    def is_square(self):
+        return self.width == self.height
+
+rect = Rectangle(4, 5)
+print(rect.area)       # 20
+print(rect.perimeter)  # 18
+print(rect.is_square)  # False
+
+rect.width = 5
+print(rect.area)       # 25 (recalculated automatically)
+print(rect.is_square)  # True
+```
+
+The `area`, `perimeter`, and `is_square` attributes are always consistent because they are computed from `width` and `height` each time they are accessed.
+
+## Setter and Deleter for Controlled Mutation
+
+Properties support three decorators: `@property` for getting, `@setter` for setting, and `@deleter` for deletion. This allows you to control how attributes are modified and prevent accidental changes.
+
+```python
+class Temperature:
+    def __init__(self, celsius):
+        self._celsius = celsius
+
+    @property
+    def celsius(self):
+        return self._celsius
+
+    @celsius.setter
+    def celsius(self, value):
+        if value < -273.15:
+            raise ValueError("Temperature cannot be below absolute zero")
+        self._celsius = value
+
+    @celsius.deleter
+    def celsius(self):
+        print("Cannot delete temperature — resetting to 0 instead")
+        self._celsius = 0
+
+temp = Temperature(25)
+print(temp.celsius)    # 25
+
+temp.celsius = 30      # Calls the setter
+print(temp.celsius)   # 30
+
+temp.celsius = -300   # Raises ValueError — below absolute zero
+
+del temp.celsius      # Calls the deleter
+print(temp.celsius)   # 0
+```
+
+The setter allows you to validate incoming values before storing them. The deleter lets you define what happens when someone tries to delete the attribute — perhaps to prevent deletion entirely or to apply a default value instead.
+
+## Read-Only vs Read-Write Properties
+
+A property with only a `@property` getter but no `@setter` is effectively read-only. However, Python does not prevent you from assigning to the underlying attribute directly:
+
+```python
+class ReadOnlyCircle:
+    def __init__(self, radius):
+        self.radius = radius  # This bypasses the property
+
+    @property
+    def diameter(self):
+        return self.radius * 2
+
+circle = ReadOnlyCircle(5)
+print(circle.diameter)  # 10
+
+circle.diameter = 20    # This creates a NEW instance attribute, shadowing the property
+print(circle.diameter)  # 20 (but the property still returns 10 if you delete the instance attribute)
+```
+
+To create truly read-only properties, you should use private attributes (with underscore prefix) and avoid providing a setter:
+
+```python
+class Circle:
+    def __init__(self, radius):
+        self._radius = radius  # Private attribute
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @property
+    def diameter(self):
+        return self._radius * 2
+
+    # No setter defined — assignment to radius will fail if Python can detect it
+```
+
+A common pattern to make properties truly immutable is to use a private attribute and not provide a setter. However, Python cannot fully prevent direct assignment to `_radius` if someone really tries.
+
+## When to Use Properties vs Methods
+
+Use properties when:
+
+1. **The value is derived from other state**: If computing the value requires no arguments and depends only on the object's internal state, make it a property.
+
+2. **Reading should be fast and side-effect-free**: Properties should not have significant side effects or long-running computations. Each access may happen at any time.
+
+3. **You want attribute-like syntax**: If you are replacing a direct attribute with a computed one to maintain API compatibility, properties are ideal.
+
+Use methods when:
+
+1. **Arguments are needed**: If the operation requires parameters beyond `self`, it must be a method.
+
+2. **The operation is expensive**: If computing the value takes significant time or resources, callers should explicitly invoke it with `()`. This signals that there is a cost.
+
+3. **The operation is not idempotent**: If calling the function changes state or has side effects, it should be a method.
+
+```python
+class User:
+    def __init__(self, first_name, last_name):
+        self.first_name = first_name
+        self.last_name = last_name
+
+    @property
+    def full_name(self):
+        """Computed from other attributes — good use of property."""
+        return f"{self.first_name} {self.last_name}"
+
+    def greet(self, language="en"):
+        """Takes arguments — must be a method."""
+        greetings = {"en": "Hello", "es": "Hola", "fr": "Bonjour"}
+        return f"{greetings.get(language, 'Hello')}, {self.full_name}!"
+
+    def expensive_calculation(self):
+        """Expensive operation — should be a method to signal cost."""
+        import time
+        time.sleep(1)
+        return 42
+```
+
+## Hands-On Exercise
+
+Create a `BankAccount` class with properties:
+
+1. `balance` — a read-only property that returns the current balance
+2. `interest_rate` — a property with getter, setter, and deleter. The setter should validate that the rate is between 0 and 1 (0% to 100%).
+
+Add a `deposit(amount)` method and a `withdraw(amount)` method that modify the internal `_balance`. Ensure that withdrawal fails if the amount exceeds the current balance.
+
+```python
+class BankAccount:
+    def __init__(self, account_holder, initial_balance=0, interest_rate=0.01):
+        self.account_holder = account_holder
+        self._balance = initial_balance
+        self._interest_rate = interest_rate
+
+    @property
+    def balance(self):
+        return self._balance
+
+    # Add interest_rate property with validation
+
+    def deposit(self, amount):
+        pass
+
+    def withdraw(self, amount):
+        pass
+```
+
+Properties are one of Python's most elegant features, allowing you to maintain clean APIs while encapsulating validation, computation, and state management behind attribute-like syntax.

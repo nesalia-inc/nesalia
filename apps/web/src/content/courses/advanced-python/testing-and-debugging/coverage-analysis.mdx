@@ -1,0 +1,315 @@
+---
+title: "Coverage Analysis"
+description: "Learn how to measure and interpret code coverage to ensure your tests exercise your entire codebase."
+order: 3
+---
+
+# Coverage Analysis
+
+Coverage measures how much of your code is executed by your test suite. A coverage report shows which lines, branches, and functions were reached during testing. High coverage does not guarantee correct tests, but low coverage reliably indicates untested code paths where bugs can hide.
+
+## Why Coverage Matters
+
+Imagine we have a function with an `if/else` branch. If our tests only exercise the `if` branch, we never verify the `else` branch works. Coverage reports reveal exactly this situation, showing us lines that were never executed.
+
+Consider this function:
+
+```python
+def validate_age(age):
+    if age < 0:
+        raise ValueError("Age cannot be negative")
+    if age > 150:
+        raise ValueError("Age cannot exceed 150")
+    return True
+```
+
+If our tests only pass positive ages, we never exercise the boundary checks. Coverage would show those `raise` lines as uncovered, alerting us to a gap.
+
+## Measuring Coverage with coverage.py
+
+The `coverage.py` package (imported as `coverage`) is the standard tool for measuring Python code coverage. It runs your test suite while tracking which lines execute, then produces detailed reports.
+
+Install it with:
+
+```bash
+pip install coverage
+```
+
+### Running Coverage
+
+We run tests under coverage using the `coverage run` command:
+
+```bash
+coverage run -m pytest
+```
+
+This runs pytest and tracks which lines execute. By default, coverage creates a `.coverage` file containing the raw data.
+
+### Generating Reports
+
+After running tests with coverage, we generate human-readable reports:
+
+```bash
+coverage report
+```
+
+The terminal output shows each file with line coverage percentages:
+
+```
+Name                      Stmts   Miss  Cover
+-------------------------------------------------
+src/models.py                45      5    89%
+src/utils.py                 30      3    90%
+src/views.py                 60     15    75%
+-------------------------------------------------
+TOTAL                      135     23    83%
+```
+
+- **Stmts** — total statements in the file
+- **Miss** — statements not executed
+- **Cover** — percentage of statements executed
+
+### Annotated Source Reports
+
+We can also generate an annotated report showing exactly which lines were executed:
+
+```bash
+coverage report --show-missing
+```
+
+This adds a column showing line numbers that were not covered:
+
+```
+Name                      Stmts   Miss  Cover   Missing
+-------------------------------------------------------
+src/models.py                45      5    89%    23-24,41
+src/utils.py                 30      3    90%    17
+```
+
+The `Missing` column lists line numbers that were never executed.
+
+### HTML Reports
+
+For a more visual experience, generate an HTML report that we can open in a browser:
+
+```bash
+coverage html
+```
+
+This creates a `htmlcov/` directory with an `index.html` file. Opening it in a browser shows a navigable view where we can click through each file and see lines highlighted green (covered) or red (uncovered).
+
+### Combining Reports
+
+When we run tests across multiple machines or environments, we can combine their coverage data:
+
+```bash
+coverage combine
+coverage report
+```
+
+This merges all `.coverage` files from parallel test runs or previous sessions into one aggregate report.
+
+## Interpreting Coverage Data
+
+Coverage tells us which lines ran, but not whether those lines produced correct results. We must interpret the numbers carefully.
+
+### What High Coverage Does Not Mean
+
+High coverage (90%+) does not mean our tests are good. Consider:
+
+```python
+def add(a, b):
+    return a + b
+
+# Test with 100% coverage
+def test_add():
+    assert add(1, 1) == 2
+```
+
+Coverage is 100%, but we never test that adding negative numbers works, or that adding strings raises an error. The test is shallow despite full coverage.
+
+### What Low Coverage Definitely Means
+
+Low coverage (<70%) means parts of the code never ran during tests. These are the places where bugs live undetected. Even if we believe the code is correct, untested paths can harbor subtle issues.
+
+### Branch Coverage
+
+Branch coverage tracks whether each branch (like `if` outcomes) was exercised. A line might execute, but if we never test the `else` branch, that branch is uncovered:
+
+```python
+if condition:
+    do_something()
+# no else branch tested
+```
+
+Use `--branch` to enable branch coverage:
+
+```bash
+coverage run --branch -m pytest
+coverage report
+```
+
+Branch coverage appears as a separate column in the report showing the percentage of branches taken.
+
+### Function Coverage
+
+Function coverage measures whether each function was called at least once:
+
+```
+Name                      Stmts   Miss  Cover   Missing
+-------------------------------------------------------
+src/models.py                45      5    89%    23-24,41, func 'validate_age'
+```
+
+The `Missing` column can list function names that were never called, not just line numbers.
+
+## Integrating Coverage in CI
+
+Running coverage in continuous integration (CI) ensures that code coverage does not drop below a threshold when new changes are merged.
+
+### Setting a Minimum Threshold
+
+We can enforce a minimum coverage percentage using `--fail-under`:
+
+```bash
+coverage report --fail-under=80
+```
+
+If overall coverage falls below 80%, this command exits with a non-zero status code, causing the CI pipeline to fail.
+
+### Configuration File
+
+We can store coverage settings in a `.coveragerc` file to avoid repeating command-line options:
+
+```ini
+[run]
+source = src
+branch = True
+
+[report]
+fail_under = 80
+show_missing = True
+skip_covered = False
+```
+
+Now running `coverage run -m pytest` and `coverage report` uses these settings automatically.
+
+### Ignoring Code
+
+Sometimes we want to exclude certain files from coverage analysis:
+
+```ini
+[run]
+source = src
+omit =
+    */tests/*
+    */migrations/*
+    */__init__.py
+```
+
+This is useful for test files themselves, migration scripts, and generated code that should not be part of coverage metrics.
+
+### Annotated Report Example
+
+When we generate a detailed report with `coverage annotate`, each source file gets a companion `.cover` file showing execution status:
+
+```python
+def calculate_discount(price, discount_percent):
+->    if discount_percent < 0:
+->        raise ValueError("Discount cannot be negative")
+->    if discount_percent > 100:
+->        raise ValueError("Discount cannot exceed 100%")
+->    return price * (1 - discount_percent / 100)
+```
+
+The `->` prefix indicates lines that executed. Lines without `->` never ran. In the HTML report, green highlighting shows executed lines and red highlighting shows missed lines.
+
+## Pytest Coverage Plugin
+
+The `pytest-cov` plugin integrates coverage directly into pytest, eliminating the need for separate commands:
+
+```bash
+pip install pytest-cov
+```
+
+Now we add `--cov` to the pytest command:
+
+```bash
+pytest --cov=src --cov-report=html
+```
+
+This runs tests with coverage enabled and generates an HTML report at the end. The `--cov=src` specifies which package to measure.
+
+### Combining with Other Options
+
+We can combine coverage options with pytest's filtering:
+
+```bash
+pytest --cov=src --cov-report=term-missing --cov-fail-under=80 -v
+```
+
+- `--cov=src` — measure coverage for the `src` package
+- `--cov-report=term-missing` — show uncovered lines in the terminal
+- `--cov-fail-under=80` — fail if coverage drops below 80%
+- `-v` — verbose output showing each test name
+
+### Reporting on Specific Tests
+
+We can run coverage for specific tests only:
+
+```bash
+pytest tests/test_models.py --cov=src/models --cov-report=html
+```
+
+This limits coverage analysis to just the models module during those specific tests, producing a narrower report.
+
+## Practical Coverage Workflow
+
+A practical workflow for maintaining coverage over time:
+
+1. Run tests with coverage and review the HTML report
+2. Identify uncovered lines and add tests for those paths
+3. Set a minimum threshold (e.g., 80%) in CI to prevent regressions
+4. Exclude generated code, tests, and migrations from analysis
+5. Check coverage after every pull request
+
+This workflow gradually improves coverage while preventing new code from dragging down the overall percentage.
+
+### Example: Building Coverage Gradually
+
+Starting with a legacy codebase:
+
+```bash
+coverage run -m pytest
+coverage report
+```
+
+Initial report might show 45% coverage. We identify the most critical modules and add tests:
+
+```bash
+# Add tests for models.py
+coverage report --include="src/models.py"
+```
+
+Repeat until the critical modules reach 80%+, then set `fail_under=80` in CI.
+
+### Coverage Goals
+
+Different contexts warrant different coverage targets:
+
+- **New code** — aim for 90%+ coverage on new functions and modules
+- **Critical paths** — payment processing, authentication, data validation should approach 100%
+- **Legacy code** — improving from 45% to 70% is significant; 80% is a good target
+- **Test files** — exclude test files themselves from coverage (they are tested, not used for testing)
+
+## Summary
+
+- Coverage measures which lines of code execute during tests, revealing untested paths
+- The `coverage` tool runs tests while tracking execution, then produces reports in terminal, HTML, or annotated source formats
+- High coverage does not guarantee correct tests, but low coverage reliably indicates untested code where bugs hide
+- Branch coverage tracks whether each branch (if/else outcomes) was exercised, not just whether the line executed
+- `pytest-cov` integrates coverage directly into pytest with `--cov` for cleaner workflows
+- CI integration with `--fail-under` prevents coverage from dropping below a threshold
+- `.coveragerc` configuration file stores settings so command-line arguments stay simple
+
+For writing more comprehensive tests that cover edge cases, see [Unit Testing with unittest and pytest](./unit-testing.mdx). For setup and isolation techniques that support coverage goals, see [Fixtures and Mocking](./fixtures-mocking.mdx). For debugging why coverage is low, see [Debugging with pdb](./debugging-pdb.mdx).

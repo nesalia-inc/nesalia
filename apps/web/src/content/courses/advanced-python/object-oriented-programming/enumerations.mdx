@@ -1,0 +1,239 @@
+---
+title: "Enumerations"
+description: "Learn to create and use enumerations with Python's enum module, explore Enum, IntEnum, and Flag classes, and understand auto values with custom behavior."
+order: 4
+---
+
+# Enumerations
+
+Enumerations are a way to define fixed sets of named constants. The Python `enum` module provides a powerful enumeration system that goes far beyond simple integer constants, offering type safety, namespacing, and rich functionality for working with related constants.
+
+## Creating Enums with Class Syntax
+
+The `enum` module provides several enumeration classes, the most common being `Enum`. You define an enumeration by subclassing `Enum` and listing member names with their values.
+
+```python
+from enum import Enum
+
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+    BLUE = 3
+
+print(Color.RED)        # Color.RED
+print(Color.RED.name)   # RED
+print(Color.RED.value)  # 1
+print(type(Color.RED))  # <enum 'Color'>
+```
+
+Each member of an enumeration is an instance of the enum class. The member name (`RED`) and value (`1`) are both accessible as attributes.
+
+You can iterate over all members of an enum:
+
+```python
+for color in Color:
+    print(f"{color.name} = {color.value}")
+
+# RED = 1
+# GREEN = 2
+# BLUE = 3
+```
+
+## Enum Member Access and Identity
+
+Enum members have unique identity. You can access members by name using attribute notation or by value using the enum class as a callable.
+
+```python
+# Access by name
+c = Color.RED
+
+# Access by value
+c = Color(1)  # Returns Color.RED
+
+# Access by name string
+c = Color['RED']  # Returns Color.RED
+
+# Identity comparison
+print(Color.RED is Color.RED)  # True
+print(Color.RED == Color.RED)  # True
+print(Color.RED == 1)         # False (different types)
+print(Color.RED.value == 1)   # True (comparing values)
+```
+
+A critical feature of enums is that members are singleton objects. There is only one `Color.RED` in existence, which makes identity comparisons reliable.
+
+## IntEnum for Numeric-Compatible Enums
+
+`IntEnum` is a variation of `Enum` where members can be compared with integers. This is useful when you need enum values to interoperate with numeric code without explicit conversion.
+
+```python
+from enum import IntEnum
+
+class Status(IntEnum):
+    PENDING = 0
+    RUNNING = 1
+    COMPLETED = 2
+    FAILED = 3
+
+# Can compare with integers directly
+print(Status.RUNNING == 1)           # True
+print(Status.COMPLETED > Status.PENDING)  # True
+print(Status.FAILED >= 2)             # True
+
+# Can use in arithmetic
+print(Status.RUNNING + 1)             # 2 (returns int, not Status)
+
+# Works with collections expecting integers
+data = ['a', 'b', 'c']
+print(data[Status.PENDING])  # 'a' (Status.PENDING == 0)
+```
+
+While convenient, `IntEnum` sacrifices some type safety. Because `Status.RUNNING == 1` is `True`, it becomes possible to accidentally pass an integer where an enum is expected.
+
+## Flag for Bitwise Enum Operations
+
+`Flag` is designed for enum values that represent bit masks — sets of flags that can be combined using bitwise operations. This is ideal for permissions, options, and other scenarios where multiple values can be active simultaneously.
+
+```python
+from enum import Flag, auto
+
+class Permission(Flag):
+    READ = auto()
+    WRITE = auto()
+    EXECUTE = auto()
+    DELETE = auto()
+
+# Individual permissions
+print(Permission.READ)          # Permission.READ
+print(Permission.READ.value)    # 1
+
+# Combined permissions using bitwise OR
+editor = Permission.READ | Permission.WRITE | Permission.EXECUTE
+print(editor)                   # Permission.READ | Permission.WRITE | Permission.EXECUTE
+print(editor & Permission.READ)  # Permission.READ (truthy check)
+print(editor & Permission.DELETE)  # Permission.NONE (falsy check)
+
+# Check if specific permission is present
+if editor & Permission.WRITE:
+    print("Editor can write")  # This prints
+```
+
+`auto()` assigns successive powers of 2 to each member, starting from 1. This enables combining and checking flags with bitwise operations:
+
+- `|` (OR): Combines flags — user has both permissions
+- `&` (AND): Tests if a flag is present — checks single permission
+- `^` (XOR): Toggles a flag on or off
+- `~` (NOT): Removes a flag
+
+## Auto Values and Custom Behavior
+
+The `auto()` function automatically assigns values to enum members. By default, it assigns integers starting from 1, but you can customize the auto-generation by overriding the `_generate_next_value_` method.
+
+```python
+from enum import Enum, auto
+
+class Direction(Enum):
+    NORTH = auto()
+    SOUTH = auto()
+    EAST = auto()
+    WEST = auto()
+
+print(list(Direction))
+# [<Direction.NORTH>, <Direction.SOUTH>, <Direction.EAST>, <Direction.WEST>]
+```
+
+For more control, you can create enums with string-based auto values:
+
+```python
+from enum import Enum, auto
+
+class Planet(Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name.lower()
+
+    MERCURY = auto()
+    VENUS = auto()
+    EARTH = auto()
+
+print(Planet.MERCURY.value)  # mercury
+print(Planet.EARTH.value)    # earth
+```
+
+You can also add methods to enums for more complex behavior:
+
+```python
+from enum import Enum
+
+class Operation(Enum):
+    ADD = '+'
+    SUBTRACT = '-'
+    MULTIPLY = '*'
+    DIVIDE = '/'
+
+    def execute(self, a, b):
+        ops = {
+            '+': lambda x, y: x + y,
+            '-': lambda x, y: x - y,
+            '*': lambda x, y: x * y,
+            '/': lambda x, y: x / y if y != 0 else float('inf')
+        }
+        return ops[self.value](a, b)
+
+print(Operation.ADD.execute(3, 4))      # 7
+print(Operation.DIVIDE.execute(10, 2))  # 5.0
+```
+
+## Enumeration Membership and Iteration
+
+You can check if a value is a valid enum member using the enum class itself:
+
+```python
+class Weekday(Enum):
+    MONDAY = 1
+    TUESDAY = 2
+    WEDNESDAY = 3
+    THURSDAY = 4
+    FRIDAY = 5
+    SATURDAY = 6
+    SUNDAY = 7
+
+# Check if a value is a valid enum member
+print(3 in Weekday._value2member_map_)  # True (has value 3)
+print(Weekday(3))                        # Weekday.WEDNESDAY
+
+# The _member_map_ and _value2member_map_ provide direct access
+print(list(Weekday._member_map_.keys()))  # ['MONDAY', 'TUESDAY', ...]
+```
+
+Enumerations provide a clean, type-safe way to work with fixed sets of related constants. They eliminate "magic numbers" from your code, improve readability, and prevent invalid values from being used in places where only certain constants make sense.
+
+## Hands-On Exercise
+
+Create a `LogLevel` enumeration using `IntEnum` that supports bitwise operations for filtering. Define the following levels:
+
+- `DEBUG = 10`
+- `INFO = 20`
+- `WARNING = 30`
+- `ERROR = 40`
+- `CRITICAL = 50`
+
+Then create a function `should_log(message_level, threshold)` that returns `True` if the message should be logged (i.e., if `message_level >= threshold`). Test it with different combinations of log levels and thresholds.
+
+Next, extend your solution to support composite log levels using `Flag`:
+
+```python
+from enum import IntEnum, Flag, auto
+
+class LogLevel(Flag):
+    # Define flag members using auto()
+    pass
+
+# Set a filter to receive DEBUG and ERROR only
+filter_level = LogLevel.DEBUG | LogLevel.ERROR
+
+# Check if a level should be included in the filter
+def should_log_filter(level, filter):
+    pass  # Your implementation
+```
+
+Enumerations transform scattered constants into organized, self-documenting code that is easier to maintain and less prone to errors.

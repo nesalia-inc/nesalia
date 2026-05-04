@@ -1,0 +1,209 @@
+---
+title: "Generic Types"
+description: "Learn how to use generic type parameters like List[T], Dict[K, V], and Tuple to write reusable, type-safe code. Understand type erasure and how generics work at runtime versus static type check time."
+order: 1
+---
+
+# Generic Types
+
+Generic types allow you to write code that works with multiple types while still maintaining type safety. Instead of hardcoding a specific type, you define a placeholder that gets filled in when the code is used. This reduces code duplication and lets type checkers catch errors before runtime.
+
+## What Generics Solve
+
+Imagine you need a function that returns the first element of a list. Without generics, you might write:
+
+```python
+def get_first(data: list) -> object | None:
+    if data:
+        return data[0]
+    return None
+```
+
+This loses type information: the return type is just `object | None`, so callers cannot know what type to expect. With generics, you preserve that information:
+
+```python
+from typing import TypeVar
+
+T = TypeVar("T")
+
+def get_first(data: list[T]) -> T | None:
+    if data:
+        return data[0]
+    return None
+
+names = get_first(["Alice", "Bob", "Carol"])
+age = get_first([25, 30, 35])
+```
+
+Here `get_first(["Alice", "Bob", "Carol"])` returns `str | None` and `get_first([25, 30, 35])` returns `int | None`. The type checker verifies each call independently.
+
+The `TypeVar` creates a type variable named `T` that acts as a placeholder. When you call the function with a specific type, Python substitutes `T` with that type.
+
+## Generic Collections
+
+Python's `typing` module provides generic versions of standard collection types. These let you specify what type of elements the collection holds.
+
+```python
+from typing import List, Dict, Set, Tuple
+
+# List of strings
+names: List[str] = ["Alice", "Bob"]
+
+# Dictionary mapping string keys to integer values
+scores: Dict[str, int] = {"Alice": 95, "Bob": 87}
+
+# Set of float values
+prices: Set[float] = {19.99, 29.99, 9.99}
+
+# Tuple with specific types for each position
+point: Tuple[float, float] = (3.14, 2.71)
+
+# Tuple with a repeated type
+pair: Tuple[int, int] = (10, 20)
+```
+
+The type checker enforces that only strings go into `names`, only integers go into `scores`, and so on. Passing a wrong type produces an error:
+
+```python
+scores: Dict[str, int] = {"Alice": "ninety-five"}  # Error: "ninety-five" is not int
+names: List[str] = [1, 2, 3]  # Error: 1 is not str
+```
+
+## Type Erasure
+
+Python generics use **type erasure** — type parameters are only used by static type checkers and are not present at runtime. When Python executes your code, it treats `List[str]` exactly the same as `List[int]` or `List[any]`. The type annotations disappear during execution.
+
+```python
+from typing import List
+
+def process(items: List[str]) -> None:
+    print(items)
+
+# At runtime this is just a regular list
+# Type information is only checked by mypy, pyright, etc.
+```
+
+This is important because it means you cannot use type parameters for runtime type discrimination:
+
+```python
+from typing import TypeVar, List
+
+T = TypeVar("T")
+
+def is_string_list(items: List[T]) -> bool:
+    # This does NOT work — T does not exist at runtime
+    # return isinstance(items, List[str])  # Wrong approach
+    return all(isinstance(item, str) for item in items)
+
+print(is_string_list(["a", "b", "c"]))  # True
+print(is_string_list([1, 2, 3]))         # False
+```
+
+The lesson: type parameters guide static analysis but do not create runtime type tags.
+
+## Multiple Type Parameters
+
+Functions and classes can use more than one type parameter when the relationship between types matters.
+
+```python
+from typing import TypeVar, Dict
+
+K = TypeVar("K")
+V = TypeVar("V")
+
+def merge_dicts(left: Dict[K, V], right: Dict[K, V]) -> Dict[K, V]:
+    result = dict(left)
+    result.update(right)
+    return result
+
+a: Dict[str, int] = {"x": 1, "y": 2}
+b: Dict[str, int] = {"y": 3, "z": 4}
+merged = merge_dicts(a, b)
+
+print(merged)  # {'x': 1, 'y': 3, 'z': 4}
+```
+
+Both dictionaries must use the same type for keys and the same type for values, but `K` and `V` can each be any type independently. If you try to merge `Dict[str, int]` with `Dict[str, float]`, the type checker rejects it because `V` would need to be both `int` and `float` simultaneously.
+
+## Generics in Custom Classes
+
+You can make your own classes generic by inheriting from `Generic[T]`:
+
+```python
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
+
+class Stack(Generic[T]):
+    def __init__(self):
+        self._items: list[T] = []
+
+    def push(self, item: T) -> None:
+        self._items.append(item)
+
+    def pop(self) -> T:
+        if not self._items:
+            raise IndexError("pop from empty stack")
+        return self._items.pop()
+
+    def peek(self) -> T:
+        if not self._items:
+            raise IndexError("peek from empty stack")
+        return self._items[-1]
+
+# Usage — type is inferred from context
+stack: Stack[int] = Stack()
+stack.push(10)
+stack.push(20)
+print(stack.pop())  # 20
+print(stack.peek()) # 10
+```
+
+The `Stack[int]` annotation tells the type checker that this is a stack of integers. Each `push` accepts only integers, and `pop` and `peek` return integers.
+
+## TypeVar Defaults
+
+Starting with Python 3.11, `TypeVar` can have a default type, reducing repetition when a type is usually the same:
+
+```python
+from typing import TypeVar, Generic
+
+T = TypeVar("T", default=int)
+
+class Container(Generic[T]):
+    def __init__(self, value: T):
+        self.value = value
+
+    def get(self) -> T:
+        return self.value
+
+# Explicitly specify str
+c1: Container[str] = Container("hello")
+
+# Use default (int)
+c2: Container = Container(42)
+```
+
+The `c2` declaration is equivalent to `Container[int]` because no type argument was provided, so the default `int` is used.
+
+Generics are the foundation for most advanced type annotation patterns. Understanding type erasure, type variables, and generic collections prepares you for the more powerful constructs covered in the chapters that follow, including [TypeVar and Bounded Generics](/courses/advanced-python/typevar-bounded-generics) and [Type Aliases and NewType](/courses/advanced-python/type-aliases-newtype).
+
+## Hands-On Exercise
+
+Create a generic class `Pair` that holds two values of potentially different types. It should have properties `first` and `second` that return the respective values. Then implement a function `swap` that takes a `Pair[A, B]` and returns a `Pair[B, A]`.
+
+```python
+from typing import TypeVar, Generic
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+class Pair(Generic[T, U]):
+    def __init__(self, first: T, second: U):
+        self.first = first
+        self.second = second
+
+def swap(pair: Pair[T, U]) -> Pair[U, T]:
+    # Your implementation here
+    pass
+```

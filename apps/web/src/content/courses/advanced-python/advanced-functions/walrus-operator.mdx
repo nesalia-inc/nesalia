@@ -1,0 +1,285 @@
+---
+title: "The Walrus Operator"
+description: "Learn how the walrus operator (:=) enables concise assignment expressions in Python."
+order: 5
+---
+
+# The Walrus Operator
+
+The walrus operator (`:=`) assigns a value to a variable as part of an expression. It is called the walrus operator because the colon and equals sign together resemble walrus eyes and tusks. We use the walrus operator when we need to assign and immediately use a value in the same expression, reducing repetition and improving readability.
+
+## Assignment Expressions vs Assignment Statements
+
+Before the walrus operator, assignment in Python was a statement, which means it could not appear inside an expression. The classic example is trying to assign and print in the same expression:
+
+```python
+# This is a syntax error before Python 3.8
+if (n := 10) > 5:
+    print(n)
+```
+
+The statement `n = 10` is separate from the expression `n > 5`. We could work around this with extra lines of code, but the walrus operator allows assignment as an expression, enabling new patterns.
+
+The distinction matters: a statement performs an action but does not produce a value, while an expression evaluates to a value and can appear anywhere a value is expected (in function arguments, conditions, comprehensions, and more).
+
+## The Basic Pattern
+
+The walrus operator assigns to a variable and returns the assigned value, all in one expression. Here is the simplest valid use:
+
+```python
+(n := 5)
+print(n)
+```
+
+The parentheses are required in this standalone case because `:=` has very low precedence. In practice, we use the walrus operator inside larger expressions.
+
+## Common Use Case: While Loops
+
+A common use for the walrus operator is in a `while` loop that reads values until a sentinel (a special value that signals the end):
+
+```python
+import sys
+
+def read_until_quit():
+    history = []
+    while (line := input("Enter text (or 'quit' to exit): ")) != "quit":
+        history.append(line)
+        print(f"Got: {line}")
+    print(f"Total lines: {len(history)}")
+
+# Simulating input for demonstration
+# Uncomment and run interactively:
+# read_until_quit()
+```
+
+In this pattern, the assignment `line := input(...)` happens, the value is compared to "quit", and the result of the comparison determines whether the loop continues. Without the walrus operator, we would need to duplicate the `input()` call:
+
+```python
+def read_until_quit():
+    history = []
+    line = input("Enter text (or 'quit' to exit): ")
+    while line != "quit":
+        history.append(line)
+        print(f"Got: {line}")
+        line = input("Enter text (or 'quit' to exit): ")
+    print(f"Total lines: {len(history)}")
+```
+
+The walrus version avoids repeating the `input()` call, which keeps the code DRY (Do Not Repeat Yourself) and prevents the bug where we update one occurrence but forget the other.
+
+## Common Use Case: Comprehensions
+
+Another powerful use is in list comprehensions and other comprehensions (set, dict). We might want to filter a computation's result based on a condition derived from that same result:
+
+```python
+data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+squares_of_evens = [square for x in data if (square := x ** 2) > 10]
+print(squares_of_evens)
+```
+
+Output:
+
+```
+[16, 25, 36, 49, 64, 81, 100]
+```
+
+Here we compute `x ** 2` and assign it to `square`, then check if it is greater than 10, all in one expression inside the comprehension. Without the walrus operator, we would need to compute the square twice (once in the condition, once in the expression), or extract to a helper function.
+
+Consider a case where we want to filter and transform based on an expensive computation:
+
+```python
+import math
+
+numbers = [2, 5, 8, 12, 15, 18, 21]
+
+# Without walrus: compute sqrt twice
+filtered_sqrt = [math.sqrt(n) for n in numbers if math.sqrt(n) > 2]
+print(f"Filtered (without walrus): {filtered_sqrt}")
+
+# With walrus: compute once
+filtered_sqrt_walrus = [root for n in numbers if (root := math.sqrt(n)) > 2]
+print(f"Filtered (with walrus): {filtered_sqrt_walrus}")
+```
+
+Output:
+
+```
+Filtered (without walrus): [2.8284271247461903, 3.4641016151377544, 3.872983346207417, 4.242640687119285, 4.58257569495584]
+Filtered (with walrus): [2.8284271247461903, 3.4641016151377544, 3.872983346207417, 4.242640687119285, 4.58257569495584]
+```
+
+Both produce the same result, but the walrus version computes `math.sqrt(n)` only once per number, making it significantly faster for expensive computations.
+
+## Common Use Case: Conditional Assignment
+
+We can use the walrus operator to assign a value that is only computed when needed (lazily):
+
+```python
+import random
+
+# Only rolls the die if we actually need it
+def get_game_move():
+    roll = random.randint(1, 6) if random.random() > 0.5 else None
+    if (actual := roll):
+        print(f"You rolled: {actual}")
+        return "play"
+    else:
+        print("Skipped turn")
+        return "skip"
+
+# Simulate several moves
+for _ in range(5):
+    result = get_game_move()
+    print(f"Move result: {result}\n")
+```
+
+Output:
+
+```
+You rolled: 3
+Move result: play
+
+Skipped turn
+Move result: skip
+
+You rolled: 5
+Move result: play
+
+You rolled: 2
+Move result: play
+
+Skipped turn
+Move result: skip
+```
+
+The walrus operator lets us assign `actual := roll` inside the condition and then use `actual` in the subsequent branches. Without it, we would need to assign `roll` beforehand (which always computes it) and then reference `roll` in the branches.
+
+## Common Use Case: Repeated Variable Access in Expressions
+
+When a computed value is needed multiple times in different parts of an expression, the walrus operator avoids recomputation:
+
+```python
+data = [("alice", 85), ("bob", 92), ("charlie", 78), ("diana", 95)]
+
+# Find a student with score above 90 and print their name twice
+for entry in data:
+    if (score := entry[1]) > 90:
+        print(f"Honored student: {entry[0]} (score: {score})")
+        print(f"Congratulations, {entry[0]}!")
+```
+
+Output:
+
+```
+Honored student: bob (score: 92)
+Congratulations, bob!
+Honored student: diana (score: 95)
+Congratulations, diana!
+```
+
+We assign `score := entry[1]` once and use it twice in the `if` block. Without the walrus operator, we would need to either access `entry[1]` twice or create an intermediate variable before the `if`.
+
+## Common Use Case: Default Value with Fallback
+
+The walrus operator helps with patterns where we want to compute a value once and fall back to a default:
+
+```python
+def get_user_status(user_id):
+    users = {
+        "u1": {"name": "Alice", "role": "admin"},
+        "u2": {"name": "Bob", "role": "member"},
+    }
+
+    if (user := users.get(user_id)):
+        return f"{user['name']} ({user['role']})"
+    return "Unknown user"
+
+print(get_user_status("u1"))
+print(get_user_status("u3"))
+```
+
+Output:
+
+```
+Alice (admin)
+Unknown user
+```
+
+The walrus assigns `user := users.get(user_id)`, and the `if` condition evaluates the truthiness of that assignment. If the user exists (truthy), we enter the `if` block. If not (None is falsy), we go to `return "Unknown user"`.
+
+## When to Use the Walrus Operator
+
+We use the walrus operator when:
+
+- A value is needed both for assignment and for a condition in the same expression
+- Avoiding duplicate computation improves performance
+- Reducing code repetition makes the logic clearer
+- A computed value feeds multiple uses in the same scope
+
+## When to Avoid the Walrus Operator
+
+We should avoid the walrus operator when:
+
+- It makes code harder to read or understand at a glance
+- The variable is used only once, making the assignment pointless
+- It creates a side effect that is not obvious from context
+- The assignment happens far from where the variable is used, breaking the principle of locality
+- The variable name is unclear, because the assignment is inline and can confuse readers
+
+The walrus operator is a tool for specific situations, not a replacement for clear variable assignment. If the resulting expression becomes hard to parse mentally, it is better to use a traditional approach with a separate statement.
+
+```python
+# Hard to read - avoid
+if (x := get_value()) > 10 and (y := x * 2) < 100 and (z := process(y)) > 0:
+    print(z)
+
+# Better - separate statements, clearer intent
+x = get_value()
+if x > 10:
+    y = x * 2
+    if y < 100:
+        z = process(y)
+        if z > 0:
+            print(z)
+```
+
+The second version is longer but easier to follow, especially when debugging. The walrus operator shines in concise expressions, not in replacing all variable assignments.
+
+## Syntax Rules
+
+The walrus operator has some syntax constraints:
+
+- It cannot be used as a standalone statement (must be part of an expression)
+- It cannot be used for global or nonlocal variable assignment
+- It has very low precedence, so always use parentheses when mixing with operators of higher precedence
+- In comprehensions, the walrus variable is visible within the comprehension's scope but also in the enclosing scope (after the point of assignment)
+
+```python
+# Demonstrating scope behavior
+data = [1, 2, 3]
+
+result = [y for x in data if (y := x * 2) > 4]
+print(f"Result: {result}")
+print(f"y is still accessible: {y}")
+```
+
+Output:
+
+```
+Result: [6]
+y is still accessible: 6
+```
+
+The walrus variable `y` leaks out of the comprehension into the enclosing scope. This can be surprising and is why some style guides recommend caution with the walrus operator in comprehensions.
+
+## Summary
+
+- The walrus operator (`:=`) assigns a value to a variable as part of an expression
+- It enables assigning and using a value in the same expression, reducing repetition
+- Common uses include `while` loops with sentinel values, comprehensions with computed filters, and conditional assignments
+- We avoid using it when it reduces clarity or when a simple variable assignment would be more readable
+- The walrus operator has low precedence, so we use parentheses to avoid unexpected behavior
+- Variables assigned with walrus are visible outside the comprehension scope in which they are defined
+
+For more on Python expression patterns, see the [Generators](./generators.mdx) section for comprehension patterns and the [Decorators](./decorators.mdx) section for advanced assignment patterns.

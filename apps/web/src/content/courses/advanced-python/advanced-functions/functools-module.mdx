@@ -1,0 +1,388 @@
+---
+title: "The functools Module"
+description: "Master functools.wraps, functools.lru_cache, and functools.partial for writing elegant, efficient Python."
+order: 2
+---
+
+# The functools Module
+
+The `functools` module provides higher-order functions that operate on other functions. We use it when we need to create decorators that preserve metadata, cache function results, or create specialized versions of functions. This module is part of Python's standard library, so we import it with `import functools` or `from functools import wraps, lru_cache, partial`.
+
+## The @wraps Decorator
+
+When we write a decorator, the wrapper function we create replaces the original function. Without special handling, this replacement hides the original function's metadata such as its name, docstring, and type annotations. The `@wraps` decorator from `functools` solves this problem by copying all important metadata from the original function to the wrapper.
+
+### Why Metadata Matters
+
+Metadata matters because Python uses it throughout the language for introspection. When an error occurs, Python shows the function name in the traceback. Documentation tools use the docstring to generate help text. Debuggers and profilers read the function name to identify which function is running. Without preserving metadata, all decorated functions would appear to be named "wrapper" with no docstring.
+
+Here is what happens without `@wraps`:
+
+```python
+def simple_decorator(func):
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+@simple_decorator
+def greet(name):
+    """Return a greeting message for the given name."""
+    return f"Hello, {name}!"
+
+print(greet.__name__)
+print(greet.__doc__)
+```
+
+Output:
+
+```
+wrapper
+None
+```
+
+The function now appears to be named "wrapper" and has no docstring, even though we explicitly wrote one for `greet`. This breaks any code that relies on introspection.
+
+Here is the correct version using `@wraps`:
+
+```python
+import functools
+
+def simple_decorator(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, **kwargs)
+    return wrapper
+
+@simple_decorator
+def greet(name):
+    """Return a greeting message for the given name."""
+    return f"Hello, {name}!"
+
+print(greet.__name__)
+print(greet.__doc__)
+```
+
+Output:
+
+```
+greet
+Return a greeting message for the given name.
+```
+
+Now `greet.__name__` correctly returns "greet" and `greet.__doc__` returns the docstring we wrote. The `functools.wraps` decorator copies attributes from the original function to the wrapper, making introspection work as expected.
+
+### What @wraps Actually Copies
+
+The `@wraps` decorator copies these attributes from the original function to the wrapper:
+
+- `__name__` — the function name
+- `__doc__` — the docstring
+- `__module__` — the module name
+- `__qualname__` — the qualified name (for nested functions)
+- `__annotations__` — type hints
+- `__dict__` — the function's attribute dictionary
+- `__wrapped__` — a reference to the original function (useful for debugging)
+
+When writing any decorator, we should always include `@wraps(func)` on the wrapper function. It is a simple addition that prevents subtle bugs in debugging, logging, and documentation generation.
+
+## The @lru_cache Decorator
+
+Memoization is an optimization technique that stores the results of expensive function calls and returns the cached result when the same inputs occur again. The `@lru_cache` decorator (Least Recently Used cache) implements memoization automatically.
+
+We apply `@lru_cache` to a function, and Python handles all the caching logic behind the scenes. The cache survives across multiple calls with the same arguments, which means subsequent calls are nearly instantaneous.
+
+### Basic Usage
+
+```python
+import functools
+
+@functools.lru_cache(maxsize=128)
+def fibonacci(n):
+    print(f"Computing fibonacci({n})...")
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+print(fibonacci(10))
+print(f"Cache info: {fibonacci.cache_info()}")
+```
+
+Output:
+
+```
+Computing fibonacci(10)
+Computing fibonacci(9)
+Computing fibonacci(8)
+Computing fibonacci(7)
+Computing fibonacci(6)
+Computing fibonacci(5)
+Computing fibonacci(4)
+Computing fibonacci(3)
+Computing fibonacci(2)
+Computing fibonacci(1)
+Computing fibonacci(0)
+55
+Cache info: CacheInfo(hits=15, misses=11, maxsize=128, currsize=11)
+```
+
+Without caching, the naive recursive Fibonacci implementation makes exponentially many calls (calling `fibonacci(10)` triggers over 100 recursive calls). With `@lru_cache`, each unique `n` value is computed only once. The `cache_info()` method returns a `CacheInfo` object showing `hits=15` (times we retrieved a cached result) and `misses=11` (unique calls that needed computation).
+
+### The maxsize Parameter
+
+The `maxsize` parameter controls how many unique argument combinations the cache can hold. By default, it is `128`:
+
+```python
+@functools.lru_cache(maxsize=3)
+def get_color(name):
+    print(f"Fetching color for {name}...")
+    return name.upper()
+
+get_color("red")
+get_color("blue")
+get_color("green")
+get_color("red")
+get_color("yellow")
+get_color("green")
+get_color("blue")
+```
+
+Output:
+
+```
+Fetching color for red...
+Fetching color for blue...
+Fetching color for green...
+Fetching color for red...
+Fetching color for yellow...
+Fetching color for green...
+Fetching color for blue...
+```
+
+After the cache holds three colors, calling with "red" again pushes out the least recently used entry. When we then call "yellow", the cache evicts "blue" (the oldest entry after "red" was used again). This is the "Least Recently Used" behavior in action.
+
+Setting `maxsize=None` makes the cache unbounded (it grows indefinitely). Setting `maxsize=1` creates a cache that remembers only the most recent result:
+
+```python
+@functools.lru_cache(maxsize=1)
+def get_current_user():
+    print("Fetching current user from database...")
+    return "alice"
+
+get_current_user()
+get_current_user()
+get_current_user()
+```
+
+Output:
+
+```
+Fetching current user from database...
+```
+
+After the first call, every subsequent call returns the cached result immediately without executing the function body. This pattern is useful for configuration loaders and singleton-like access patterns.
+
+### Cache Invalidation with cache_clear
+
+To clear the cache and reset hit/miss statistics, we call the `cache_clear()` method on the cached function:
+
+```python
+@functools.lru_cache()
+def load_config(environment):
+    print(f"Loading config for {environment}...")
+    return {"env": environment, "debug": True}
+
+load_config("production")
+load_config("staging")
+print(f"Before clear: {load_config.cache_info()}")
+load_config.cache_clear()
+print(f"After clear: {load_config.cache_info()}")
+load_config("production")
+```
+
+Output:
+
+```
+Loading config for production...
+Loading config for staging...
+Before clear: CacheInfo(hits=0, misses=2, maxsize=128, currsize=2)
+After clear: CacheInfo(hits=0, misses=0, maxsize=128, currsize=0)
+Loading config for production...
+```
+
+Cache invalidation is necessary when the underlying data changes. In a web application, you would typically call `cache_clear()` when configuration files change or when you deploy new code.
+
+### When to Use @lru_cache
+
+We use `@lru_cache` for functions that:
+
+- Perform expensive computation (like Fibonacci, factorial, or complex calculations)
+- Make network requests (API calls, database queries)
+- Read from disk (file parsing, configuration loading)
+- Have deterministic output for the same inputs (pure functions)
+
+We should avoid `@lru_cache` for functions that:
+
+- Have side effects (printing, writing files, modifying global state)
+- Rely on mutable arguments (lists, dictionaries that might change)
+- Return different values for the same inputs over time (time-based results)
+
+A pure function is one that, given the same inputs, always returns the same output and produces no side effects. `@lru_cache` works best with pure functions because cached values remain valid indefinitely.
+
+## The functools.partial Function
+
+The `functools.partial` function creates a new function with some arguments already fixed. We call the original function a "curried" function when we create a specialized version using `partial`. This technique reduces repetition when we need to call the same function multiple times with similar arguments.
+
+### Basic Usage
+
+```python
+import functools
+
+def power(base, exponent):
+    return base ** exponent
+
+square = functools.partial(power, exponent=2)
+cube = functools.partial(power, exponent=3)
+
+print(square(5))
+print(cube(5))
+print(square(10))
+print(cube(10))
+```
+
+Output:
+
+```
+25
+125
+100
+1000
+```
+
+We created `square` as a partial function with `exponent=2` and `cube` with `exponent=3`. Now calling `square(5)` is equivalent to calling `power(5, exponent=2)`. The partial function captures the fixed arguments and provides a cleaner interface for specific use cases.
+
+### Creating Specialized Database Connections
+
+A common pattern is using `partial` to create specialized versions of a general function:
+
+```python
+import functools
+
+def connect(host, port, database, timeout=30):
+    return f"Connected to {database} on {host}:{port} (timeout: {timeout}s)"
+
+connect_prod_db = functools.partial(connect, host="prod.example.com", port=5432, database="users")
+connect_cache = functools.partial(connect, host="redis.example.com", port=6379, database="cache")
+connect_analytics = functools.partial(connect, host="analytics.example.com", port=5432, database="analytics")
+
+print(connect_prod_db(timeout=60))
+print(connect_cache(timeout=10))
+print(connect_analytics())
+```
+
+Output:
+
+```
+Connected to users on prod.example.com:5432 (timeout: 60s)
+Connected to cache on redis.example.com:6379 (timeout: 10s)
+Connected to users on analytics.example.com:5432 (timeout: 30s)
+```
+
+The partial function `connect_prod_db` has `host`, `port`, and `database` pre-configured. We only pass the `timeout` argument at call time, which can still be customized. This pattern reduces error-prone repetition when connecting to known services.
+
+### Partial with Positional Arguments
+
+We can also pre-fill positional arguments. When we call `partial` with positional arguments, they fill in from the left:
+
+```python
+import functools
+
+def greet(greeting, name, punctuation):
+    return f"{greeting}, {name}{punctuation}"
+
+say_hello = functools.partial(greet, "Hello")
+say_goodbye = functools.partial(greet, "Goodbye")
+say_cheers = functools.partial(greet, "Cheers", " friend")
+
+print(say_hello("Alice", "!"))
+print(say_goodbye("Bob", "?"))
+print(say_cheers("!"))
+```
+
+Output:
+
+```
+Hello, Alice!
+Goodbye, Bob?
+Cheers, friend!
+```
+
+The partial fills arguments from the left, so `say_hello` fixes "Hello" as the first argument. When we call `say_hello("Alice", "!")`, the "Hello" is pre-filled and the call becomes `greet("Hello", "Alice", "!")`.
+
+### Using partial with Map
+
+The `partial` function combines well with `map` to create readable data transformation pipelines:
+
+```python
+import functools
+
+numbers = [1, 2, 3, 4, 5]
+
+double = functools.partial(map, lambda x: x * 2)
+squared = functools.partial(map, lambda x: x ** 2)
+
+print(list(double(numbers)))
+print(list(squared(numbers)))
+print(list(double(squared(numbers))))
+```
+
+Output:
+
+```
+[2, 4, 6, 8, 10]
+[1, 4, 9, 16, 25]
+[2, 8, 18, 32, 50]
+```
+
+This creates clean, reusable transformation functions. The alternative would be writing `map(lambda x: x * 2, numbers)` every time, which is more verbose and less descriptive.
+
+## Combining functools Tools
+
+These three tools from `functools` work well together in real codebases:
+
+```python
+import functools
+
+def expensive_operation(x, y, verbose=False):
+    if verbose:
+        print(f"Computing with x={x}, y={y}")
+    return (x + y) ** 2
+
+cached_operation = functools.lru_cache(maxsize=256)(expensive_operation)
+
+log_cached = functools.partial(cached_operation, verbose=True)
+
+print(log_cached(3, 4))
+print(log_cached(3, 4))
+print(f"Cache stats: {cached_operation.cache_info()}")
+```
+
+Output:
+
+```
+Computing with x=3, y=4
+25
+25
+Cache stats: CacheInfo(hits=1, misses=1, maxsize=256, currsize=1)
+```
+
+We first apply `@lru_cache` to `expensive_operation`, then create a partial `log_cached` with `verbose=True`. The second call with the same arguments hits the cache, so "Computing with..." prints only once.
+
+## Summary
+
+- `@wraps` from `functools` preserves the original function's metadata in decorators, making introspection work correctly
+- `@lru_cache` implements memoization to cache expensive function results, dramatically speeding up repeated calls with the same arguments
+- `functools.partial` creates specialized functions with some arguments pre-filled, reducing repetition and improving readability
+- We use `cache_info()` to monitor cache performance and `cache_clear()` to invalidate the cache when needed
+- Combining these tools lets us write elegant, efficient, and maintainable Python code
+
+For more on caching patterns and advanced uses of functools, see the [Decorators](./decorators.mdx) section which covers decorator patterns that complement these tools.

@@ -1,0 +1,223 @@
+---
+title: "@overload for Function Overloading"
+description: "Define multiple function signatures for the same function using @overload. Learn how to provide different type-based behavior while sharing a single implementation."
+order: 8
+---
+
+# @overload for Function Overloading
+
+Python's `@overload` decorator lets you define multiple function signatures for a single function, enabling precise type checking when a function behaves differently depending on the types of its arguments. The actual implementation is separate from the overloaded signatures; only the type checker uses the `@overload` definitions.
+
+## Why Function Overloading
+
+In languages like Java or C++, you can define multiple functions with the same name but different parameter types. Python does not support this natively, but `@overload` provides static type-checking support for the same pattern:
+
+```python
+from typing import overload
+
+@overload
+def process(value: int) -> int: ...
+
+@overload
+def process(value: str) -> str: ...
+
+@overload
+def process(value: list[int]) -> int: ...
+
+def process(value):
+    # Single implementation handles all overloads
+    if isinstance(value, int):
+        return value * 2
+    elif isinstance(value, str):
+        return value.upper()
+    elif isinstance(value, list):
+        return sum(value)
+    raise TypeError(f"Unsupported type: {type(value)}")
+
+print(process(5))          # 10
+print(process("hello"))    # HELLO
+print(process([1, 2, 3]))  # 6
+```
+
+The type checker sees three distinct signatures. When you call `process(5)`, it knows the return type is `int`. When you call `process("hello")`, it knows the return type is `str`. The actual function body handles all cases.
+
+## How @overload Works
+
+`@overload` definitions do not provide implementations. They only give the type checker information about valid call signatures. The actual function implementation comes last, without the `@overload` decorator:
+
+```python
+from typing import overload
+
+# These are type hints only — no implementation
+@overload
+def combine(a: str, b: str) -> str: ...
+
+@overload
+def combine(a: int, b: int) -> int: ...
+
+@overload
+def combine(a: str, b: int) -> str: ...
+
+@overload
+def combine(a: int, b: str) -> str: ...
+
+# This is the actual implementation — called at runtime
+def combine(a, b):
+    if isinstance(a, str) and isinstance(b, str):
+        return a + b
+    elif isinstance(a, int) and isinstance(b, int):
+        return a + b
+    elif isinstance(a, str) and isinstance(b, int):
+        return a + str(b)
+    elif isinstance(a, int) and isinstance(b, str):
+        return str(a) + b
+    raise TypeError(f"Cannot combine {type(a)} and {type(b)}")
+```
+
+The implementation uses `isinstance` checks to determine which logic to apply. This is the standard pattern: overloads define the interface, and the implementation uses runtime type checking to dispatch.
+
+## Overloading with Different Return Types
+
+Overloading is particularly valuable when the return type depends on the input type:
+
+```python
+from typing import overload
+
+@overload
+def parse(value: str) -> tuple[int, int] | None: ...
+
+@overload
+def parse(value: bytes) -> int | None: ...
+
+def parse(value):
+    if isinstance(value, str):
+        # Parse as "row,col"
+        if "," in value:
+            parts = value.split(",")
+            return int(parts[0]), int(parts[1])
+        return None
+    elif isinstance(value, bytes):
+        # Parse as a single number
+        return int(value)
+    raise TypeError(f"Cannot parse {type(value)}")
+
+result1 = parse("10,20")   # tuple[int, int] | None
+result2 = parse(b"42")     # int | None
+```
+
+Without `@overload`, a single return type would have to cover all cases, making the type annotation less precise.
+
+## Method Overloading
+
+`@overload` also works with methods in classes:
+
+```python
+from typing import overload
+
+class Container:
+    @overload
+    def get(self, index: int) -> str: ...
+
+    @overload
+    def get(self, index: str) -> list[str]: ...
+
+    def get(self, index):
+        if isinstance(index, int):
+            return f"Item at position {index}"
+        elif isinstance(index, str):
+            return [f"Items matching {index}"]
+        raise TypeError(f"Invalid index type: {type(index)}")
+```
+
+When calling `container.get(0)`, the type checker knows the return is `str`. When calling `container.get("name")`, the return is `list[str]`.
+
+## Overload vs Union
+
+When would you use `@overload` versus a simple `Union` return type?
+
+| Scenario | Use |
+|---|---|
+| Return type differs per argument combination | `@overload` |
+| Behavior differs per argument type | `@overload` |
+| Multiple arguments combine into one type | `Union` |
+| Simple one-of-many type | `Union` or `|` |
+
+```python
+from typing import overload
+
+# Use @overload when return types differ meaningfully
+@overload
+def format_value(value: int, as_currency: bool) -> str: ...
+
+@overload
+def format_value(value: str, as_currency: bool) -> str: ...
+
+def format_value(value, as_currency=False):
+    # Implementation here
+    ...
+
+# vs. Union when all return the same type:
+def format_value_simple(value: int | str) -> str:
+    return str(value)
+```
+
+## Overloading with Literal Types
+
+Combining `@overload` with `Literal` creates powerful dispatch patterns:
+
+```python
+from typing import overload, Literal
+
+@overload
+def load_config(path: str, format: Literal["json"]) -> dict: ...
+
+@overload
+def load_config(path: str, format: Literal["yaml"]) -> dict: ...
+
+@overload
+def load_config(path: str, format: Literal["toml"]) -> dict: ...
+
+def load_config(path, format):
+    import json
+    if format == "json":
+        with open(path) as f:
+            return json.load(f)
+    elif format == "yaml":
+        import yaml
+        with open(path) as f:
+            return yaml.safe_load(f)
+    elif format == "toml":
+        import tomllib
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+    raise ValueError(f"Unknown format: {format}")
+```
+
+The type checker enforces that the `format` argument is one of the three literal strings, and the return type is always `dict` (so it could also be expressed as a Union, but the literal approach also validates the input).
+
+`@overload` pairs well with [Type Aliases and NewType](/courses/advanced-python/type-aliases-newtype) for naming complex overloaded signatures, and with [Literal Types](/courses/advanced-python/union-optional-literal) for restricting input values.
+
+## Hands-On Exercise
+
+Create an overloaded function `serialize` that handles three cases:
+
+1. If the input is a `dict`, return it as-is (return type: `dict`)
+2. If the input is a `list`, return a JSON string (return type: `str`)
+3. If the input is any other type, return a string representation (return type: `str`)
+
+```python
+from typing import overload
+
+@overload
+def serialize(value: dict) -> dict: ...
+
+@overload
+def serialize(value: list) -> str: ...
+
+@overload
+def serialize(value: object) -> str: ...
+
+def serialize(value):
+    # Your implementation here
+    pass
+```

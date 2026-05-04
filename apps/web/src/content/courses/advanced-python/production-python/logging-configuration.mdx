@@ -1,0 +1,262 @@
+---
+title: "Logging Configuration"
+description: "Learn how to configure Python's logging system for production applications, with handlers, formatters, and log levels."
+order: 1
+---
+
+# Logging Configuration
+
+Production applications need a reliable way to record events, errors, and diagnostics. The Python standard library's `logging` module provides a full-featured system for this, far more powerful than simple `print()` statements. A **log level** is a severity indicator that controls which messages get recorded: `DEBUG` for detailed diagnostic information, `INFO` for general operational messages, `WARNING` for unexpected situations, `ERROR` for serious problems, and `CRITICAL` for catastrophic failures.
+
+## The Basic Problem with Print Statements
+
+Developers often use `print()` for debugging, but print statements have no severity filtering, no formatting control, and cannot be redirected to different outputs easily. Imagine trying to track down a production issue when every message goes to the same output with no timestamp or source information.
+
+```python
+# Bad practice: print statements for logging
+def process_order(order_id, amount):
+    print(f"Processing order {order_id}")
+    print(f"Amount: {amount}")
+    if amount < 0:
+        print("ERROR: Negative amount!")
+    print(f"Order {order_id} complete")
+```
+
+The `logging` module solves these problems by providing a centralized, configurable logging system with proper severity levels and structured output.
+
+## Setting Up Basic Logging
+
+The simplest way to start logging is to configure the root logger:
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger(__name__)
+logger.info("Application started")
+logger.warning("Configuration file not found, using defaults")
+```
+
+Output:
+
+```
+2024-01-15 10:23:45,123 - __main__ - INFO - Application started
+2024-01-15 10:23:45,124 - __main__ - WARNING - Configuration file not found, using defaults
+```
+
+The `logging.basicConfig()` call configures the root logger, which all loggers inherit from. The `%(asctime)s` format string produces timestamps, `%(name)s` shows the logger name, `%(levelname)s` shows the severity, and `%(message)s` shows the actual message. Using `__name__` in `getLogger(__name__)` means the logger automatically gets the module name, making it easy to trace where messages originate.
+
+## Logging Levels Explained
+
+Each log level represents a severity threshold. When you set a level, the logger records messages at that level and all higher levels:
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger("example")
+
+logger.debug("Debug: entering function")
+logger.info("Info: operation succeeded")
+logger.warning("Warning: deprecated feature used")
+logger.error("Error: file not found")
+logger.critical("Critical: database connection lost")
+```
+
+Output:
+
+```
+Debug: entering function
+Info: operation succeeded
+Warning: deprecated feature used
+Error: file not found
+Critical: database connection lost
+```
+
+If you set `level=logging.WARNING`, only `WARNING`, `ERROR`, and `CRITICAL` messages would appear. This filtering lets you control verbosity in different environments: development uses `DEBUG` for full diagnostics, production uses `WARNING` or `ERROR` to reduce noise.
+
+## Configuring Handlers
+
+A **handler** determines where log messages go. The root logger can have multiple handlers, each sending messages to different destinations. Common handlers include `StreamHandler` for console output and `FileHandler` for writing to files:
+
+```python
+import logging
+
+# Create a logger
+logger = logging.getLogger("production_app")
+logger.setLevel(logging.DEBUG)
+
+# Console handler: INFO and above
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_format = logging.Formatter("%(levelname)s: %(message)s")
+console_handler.setFormatter(console_format)
+
+# File handler: DEBUG and above
+file_handler = logging.FileHandler("app.log")
+file_handler.setLevel(logging.DEBUG)
+file_format = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+file_handler.setFormatter(file_format)
+
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
+
+logger.debug("Debug message goes to file only")
+logger.info("Info message goes to both console and file")
+```
+
+Output on console:
+
+```
+Info: Info message goes to both console and file
+```
+
+The file `app.log` contains both messages. This separation is useful: developers see important messages on console while full debug information goes to the log file for investigation.
+
+## Using Configuration Files
+
+For complex applications, configuring logging in code becomes unwieldy. The `logging.config` module lets you define logging configuration in a dictionary or an INI-style file:
+
+```python
+import logging.config
+
+config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "detailed": {
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        },
+        "simple": {
+            "format": "%(levelname)s - %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "level": "INFO",
+            "formatter": "simple",
+            "stream": "ext://sys.stdout"
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "formatter": "detailed",
+            "filename": "app.log"
+        }
+    },
+    "loggers": {
+        "production_app": {
+            "level": "DEBUG",
+            "handlers": ["console", "file"],
+            "propagate": False
+        }
+    }
+}
+
+logging.config.dictConfig(config)
+logger = logging.getLogger("production_app")
+
+logger.debug("Debug message")
+logger.info("Info message")
+```
+
+Storing configuration in a dictionary or file makes it easy to adjust logging behavior without changing code. You can use environment-specific configuration files that get loaded at startup, which ties into the environment variables approach covered in [Environment Variables and Configuration Management](./environment-variables-config.mdx).
+
+## Structured Logging with Context
+
+Production applications often need to correlate log entries across requests or operations. Adding contextual information makes logs more searchable:
+
+```python
+import logging
+import random
+import uuid
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
+logger = logging.getLogger("api")
+
+def process_request(request_id, user_id):
+    # Add contextual fields to logs
+    extra = {"request_id": request_id, "user_id": user_id}
+
+    logger.info("Processing request started", extra=extra)
+
+    result = simulate_work()
+
+    if result["status"] == "success":
+        logger.info("Request completed successfully", extra=extra)
+    else:
+        logger.error("Request failed", extra=extra)
+
+    return result
+
+def simulate_work():
+    return {"status": random.choice(["success", "error"])}
+
+# Simulate multiple requests
+for _ in range(3):
+    request_id = str(uuid.uuid4())[:8]
+    user_id = f"user_{random.randint(1, 3)}"
+    process_request(request_id, user_id)
+```
+
+Output:
+
+```
+2024-01-15 10:23:45 - api - INFO - Processing request started
+2024-01-15 10:23:45 - api - INFO - Request completed successfully
+2024-01-15 10:23:45 - api - INFO - Processing request started
+2024-01-15 10:23:45 - api - ERROR - Request failed
+2024-01-15 10:23:45 - api - INFO - Processing request started
+2024-01-15 10:23:45 - api - INFO - Request completed successfully
+```
+
+Adding `request_id` and `user_id` to every log entry lets you filter and trace specific user journeys through the system. This structured approach integrates well with log aggregation tools that search by these fields.
+
+## Log Levels in Practice
+
+Choosing the right log level for each message matters for maintainability:
+
+- `DEBUG` — Detailed information for diagnosing problems during development
+- `INFO` — Confirmation that things are working as expected
+- `WARNING` — Something unexpected happened but the program can continue
+- `ERROR` — A serious problem prevented a specific operation from completing
+- `CRITICAL` — The program itself cannot continue running
+
+```python
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
+logger = logging.getLogger("example")
+
+# Correct level choices
+logger.debug("Entering function calculate_total with items: %d", 5)
+logger.info("Database connection established")
+logger.warning("Cache miss, falling back to database")
+logger.error("Failed to retrieve user data for id=123")
+logger.critical("Cannot connect to primary database, shutting down")
+```
+
+Notice that the `debug()` and `info()` calls above use format string placeholders (`%d`, `%s`) rather than f-strings. This approach is preferred in logging because it avoids string interpolation when the message would be filtered out, improving performance.
+
+## Summary
+
+- The `logging` module provides a structured alternative to `print()` statements for production applications
+- Log levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) filter messages by severity
+- Handlers control where log messages go, such as console or file
+- Formatters control the structure and content of log messages
+- Use `logging.getLogger(__name__)` to create module-specific loggers
+- Structured logging with contextual information aids debugging in production
+
+For environment-specific configuration that controls logging behavior, see [Environment Variables and Configuration Management](./environment-variables-config.mdx). For automating code quality checks alongside logging, see [Code Formatting with Black and Ruff](./code-formatting-black-ruff.mdx).

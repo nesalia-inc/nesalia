@@ -1,0 +1,311 @@
+---
+title: "Data Classes"
+description: "Learn Python's @dataclass decorator to eliminate boilerplate, understand field types and default values, use auto and field with default_factory, and create frozen immutable data classes."
+order: 7
+---
+
+# Data Classes
+
+Data classes are a feature introduced in Python 3.7 that eliminate boilerplate code for classes whose primary purpose is to store data. The `@dataclass` decorator automatically generates `__init__`, `__repr__`, `__eq__`, and other dunder methods based on class annotations.
+
+## What Data Classes Solve
+
+Before data classes, you had to write repetitive boilerplate code for simple data containers:
+
+```python
+# Without dataclasses — tedious boilerplate
+class Point:
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
+    def __repr__(self):
+        return f"Point(x={self.x}, y={self.y})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
+
+    # Manually add __hash__ if you want to use Point in sets/dicts
+    def __hash__(self):
+        return hash((self.x, self.y))
+```
+
+With data classes, you declare the fields with type annotations and Python generates everything automatically:
+
+```python
+from dataclasses import dataclass
+
+# With dataclasses — minimal boilerplate
+@dataclass
+class Point:
+    x: float
+    y: float
+
+p1 = Point(3.0, 4.0)
+p2 = Point(3.0, 4.0)
+
+print(p1)        # Point(x=3.0, y=4.0) — auto-generated __repr__
+print(p1 == p2)  # True — auto-generated __eq__
+```
+
+The `@dataclass` decorator inspects the class annotations (type hints) and generates an `__init__` that assigns each annotated field, along with `__repr__`, `__eq__`, and optionally `__hash__`.
+
+## @dataclass Decorator and Its Options
+
+The `@dataclass` decorator accepts several options that control what methods are generated:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class Product:
+    name: str
+    price: float
+    quantity: int = 0  # Default value
+
+    # Generated: __init__(name, price, quantity=0)
+
+@dataclass(eq=False, repr=False)
+class SpecialProduct:
+    """Data class with no auto-generated eq and repr."""
+    name: str
+    price: float
+
+    # You must define your own __repr__ and __eq__ if needed
+
+@dataclass(order=True)
+class OrderedProduct:
+    """Data class with comparison operators generated."""
+    sort_key: str  # First field determines ordering
+    name: str
+    price: float
+
+    # Generated: __lt__, __le__, __gt__, __ge__ based on sort_key
+```
+
+Available decorator options:
+- `eq`: Generate `__eq__` (default: `True`)
+- `order`: Generate `__lt__`, `__le__`, `__gt__`, `__ge__` (default: `False`)
+- `repr`: Generate `__repr__` (default: `True`)
+- `frozen`: Generate immutable instances (default: `False`)
+- `unsafe_hash`: Generate `__hash__` even if `eq=False` (default: `False`)
+
+## Field Types and Default Values
+
+Type annotations in data classes are not enforced at runtime — they serve as documentation and enable tools like IDEs and type checkers. However, they affect how `__init__` is generated.
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Employee:
+    name: str
+    department: str
+    salary: float = 50000.0
+    start_date: str = "2024-01-01"
+
+# Arguments order matches field declaration
+emp1 = Employee("Alice", "Engineering", 70000)
+emp2 = Employee("Bob", "Marketing")  # Uses defaults for salary and start_date
+```
+
+A field with a default value must come after all fields without default values. This is the same rule that applies to regular function arguments.
+
+```python
+from dataclasses import dataclass
+
+# This will raise an error — non-default field follows default field
+@dataclass
+class Broken:
+    name: str = "Default"  # Has default
+    age: int              # No default — ERROR at class definition time
+
+# Correct — all non-default fields first
+@dataclass
+class Correct:
+    age: int              # No default
+    name: str = "Default" # Has default
+```
+
+## auto and field with default_factory
+
+Sometimes you need mutable default values like lists or dictionaries, or you want to compute default values dynamically. Using regular mutable defaults directly leads to a common Python pitfall:
+
+```python
+# WRONG — this is a classic Python gotcha
+@dataclass
+class BrokenStudent:
+    name: str
+    courses: list = []  # Shared empty list across ALL instances!
+
+s1 = BrokenStudent("Alice")
+s2 = BrokenStudent("Bob")
+s1.courses.append("Python")
+print(s2.courses)  # ['Python'] — s2 is also affected!
+```
+
+The solution is `field` with `default_factory`. The `default_factory` parameter accepts a callable that produces a new default value for each instance:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class Student:
+    name: str
+    courses: list = field(default_factory=list)
+
+    # For each new Student, courses starts as a fresh empty list
+
+s1 = Student("Alice")
+s2 = Student("Bob")
+s1.courses.append("Python")
+print(s2.courses)  # [] — s2's list is independent
+```
+
+`default_factory` is also useful for dictionaries:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class WordCounter:
+    text: str
+    word_counts: dict = field(default_factory=dict)
+
+    def count_words(self):
+        for word in self.text.split():
+            self.word_counts[word] = self.word_counts.get(word, 0) + 1
+
+counter = WordCounter("the cat and the dog")
+counter.count_words()
+print(counter.word_counts)  # {'the': 2, 'cat': 1, 'and': 1, 'dog': 1}
+```
+
+You can also use `field` with `default` to specify a default value that is not a mutable literal:
+
+```python
+from dataclasses import dataclass, field
+
+def default_config():
+    return {"timeout": 30, "retries": 3}
+
+@dataclass
+class Request:
+    url: str
+    config: dict = field(default_factory=default_config)
+```
+
+## Frozen Data Classes for Immutability
+
+A **frozen** data class cannot be modified after creation. All fields become read-only, and any attempt to assign to a field raises a `FrozenInstanceError`. This is useful for representing configuration, immutable records, or data that should not change.
+
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Position:
+    x: float
+    y: float
+    z: float = 0.0
+
+pos = Position(1.0, 2.0)
+print(pos)  # Position(x=1.0, y=2.0, z=0.0)
+
+pos.x = 10.0  # Raises FrozenInstanceError: cannot assign to field 'x'
+```
+
+Frozen classes are automatically hashable (since they cannot change, their hash value remains constant):
+
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class Color:
+    r: int
+    g: int
+    b: int
+
+c1 = Color(255, 0, 0)
+c2 = Color(255, 0, 0)
+
+color_set = {c1, c2}
+print(len(color_set))  # 1 — equal frozen instances hash equal
+
+# Can be used as dict keys
+color_map = {c1: "red", c2: "also red"}
+print(color_map[c1])  # red
+```
+
+## Post-Init Processing
+
+Data classes support a special `__post_init__` method that runs after the generated `__init__` completes. This is useful for validation, computing derived fields, or setting up complex state:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class Circle:
+    radius: float
+    diameter: float = field(init=False)  # Excluded from __init__
+
+    def __post_init__(self):
+        self.diameter = self.radius * 2
+
+circle = Circle(5)
+print(circle.radius)   # 5
+print(circle.diameter) # 10 — computed from radius
+```
+
+You can also use `field(init=False)` to exclude a field from the auto-generated `__init__` but still include it in other auto-generated methods:
+
+```python
+from dataclasses import dataclass, field
+
+@dataclass
+class FullName:
+    first: str
+    last: str
+    full: str = field(init=False, repr=False)
+
+    def __post_init__(self):
+        self.full = f"{self.first} {self.last}"
+
+name = FullName("John", "Doe")
+print(name)       # FullName(first='John', last='Doe') — full not shown in repr
+print(name.full)  # John Doe
+```
+
+## Hands-On Exercise
+
+Create a data class `InventoryItem` with the following fields:
+
+- `name: str` — the item name (required)
+- `quantity: int` — quantity in stock (default: 0)
+- `price: float` — unit price (default: 0.0)
+- `tags: list` — a list of tag strings (default: empty list)
+- `last_updated: str` — ISO timestamp string (auto-set to "2024-01-01T00:00:00" initially, excluded from repr)
+
+Use `field(default_factory=...)` for the `tags` list. Use `field(init=False)` for `last_updated`. In `__post_init__`, set `last_updated` to the current timestamp.
+
+Then create a second frozen data class `ImmutablePoint` representing a 3D point. Implement `__post_init__` to validate that coordinates are non-negative.
+
+```python
+from dataclasses import dataclass, field
+import datetime
+
+# Your implementation here
+@dataclass
+class InventoryItem:
+    pass
+
+@dataclass(frozen=True)
+class ImmutablePoint:
+    x: float
+    y: float
+    z: float
+    # Add __post_init__ to validate non-negative coordinates
+```
+
+Data classes dramatically reduce boilerplate for classes whose primary purpose is bundling data together, letting you focus on the actual logic of your application rather than writing accessor methods and equality comparisons.

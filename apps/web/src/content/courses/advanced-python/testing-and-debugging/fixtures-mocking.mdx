@@ -1,0 +1,355 @@
+---
+title: "Fixtures and Mocking"
+description: "Learn how to use fixtures to set up test resources and mocking to isolate code from external dependencies."
+order: 2
+---
+
+# Fixtures and Mocking
+
+Writing tests requires consistent setup and teardown of resources. Fixtures provide a way to create reusable test resources that get set up before each test and cleaned up afterward. Mocking replaces real objects with fake ones during tests so we can isolate the code under test from external dependencies like databases, APIs, or file systems.
+
+## pytest Fixtures
+
+A fixture is a function decorated with `@pytest.fixture` that provides a resource to test functions. pytest manages the fixture lifecycle automatically, running setup code before the test and teardown code after.
+
+### Creating a Simple Fixture
+
+Here is a fixture that provides a database connection for tests:
+
+```python
+import pytest
+
+@pytest.fixture
+def db_connection():
+    """Provides a fresh database connection for each test."""
+    connection = create_test_database()
+    yield connection  # test runs here
+    connection.close()
+    connection.delete()  # cleanup after test
+```
+
+The `yield` keyword separates setup from teardown. Everything before `yield` runs before the test. Everything after `yield` runs after the test completes, regardless of whether the test passed or failed.
+
+When we write a test that needs the fixture, we add it as a parameter:
+
+```python
+def test_insert_user(db_connection):
+    db_connection.insert("users", {"name": "Alice", "email": "alice@example.com"})
+    user = db_connection.fetch_one("SELECT * FROM users WHERE name = 'Alice'")
+    assert user["email"] == "alice@example.com"
+```
+
+pytest injects the fixture's return value into the test function automatically by matching parameter names to fixture names.
+
+### Why Use Fixtures?
+
+Fixtures solve the problem of duplicating setup code across many tests. Without fixtures, every test would need to create its own database connection, mock object, or sample data. Fixtures centralize this logic in one place and ensure consistency across all tests.
+
+### Fixture Scope
+
+By default, a fixture runs once per test function. We can control this behavior with the `scope` parameter:
+
+- `scope="function"` (default) — runs before each test function
+- `scope="class"` — runs once per test class
+- `scope="module"` — runs once per test module (file)
+- `scope="session"` — runs once for the entire test session
+
+Consider a fixture that reads a configuration file. We only need to read it once per module, not once per test:
+
+```python
+import json
+
+@pytest.fixture(scope="module")
+def config():
+    with open("config.json") as f:
+        return json.load(f)
+
+def test_database_host(config):
+    assert config["database"]["host"] == "localhost"
+
+def test_database_port(config):
+    assert config["database"]["port"] == 5432
+```
+
+Both tests share the same `config` object, so the file is read only once. If any test modifies the config, however, tests could interfere with each other, so use `scope="module"` carefully.
+
+### Built-in Fixtures
+
+pytest provides several built-in fixtures that are available without any imports:
+
+- `tmp_path` — a unique temporary directory for the test (cleaned up automatically)
+- `tmp_path_factory` — creates temporary directories for the entire session
+- `pytest.fixture` — the decorator itself
+- `pytest.mark.parametrize` — marks a test with multiple parameter sets
+
+The `tmp_path` fixture is especially useful for tests that involve the filesystem:
+
+```python
+def test_write_and_read_file(tmp_path):
+    file_path = tmp_path / "data.txt"
+    file_path.write_text("hello world")
+
+    with open(file_path) as f:
+        content = f.read()
+
+    assert content == "hello world"
+```
+
+Each test gets its own temporary directory that is removed when the test finishes. This avoids conflicts between tests that use the same filename.
+
+### Fixture with Parameters
+
+Sometimes a fixture needs configuration. We make fixtures accept parameters by accepting arguments in the fixture function:
+
+```python
+@pytest.fixture
+def sample_users():
+    def _create_users(role="user", count=3):
+        return [{"id": i, "name": f"User {i}", "role": role} for i in range(count)]
+    return _create_users
+
+def test_admin_users(sample_users):
+    admins = sample_users(role="admin", count=2)
+    assert len(admins) == 2
+    assert all(u["role"] == "admin" for u in admins)
+
+def test_regular_users(sample_users):
+    users = sample_users(role="user", count=5)
+    assert len(users) == 5
+    assert all(u["role"] == "user" for u in users)
+```
+
+The `sample_users` fixture is actually a factory function that creates user lists with configurable roles and counts. This pattern provides flexibility without duplicating fixture code.
+
+## Introduction to Mocking
+
+Mocking replaces real objects with fake implementations that we control. We mock external dependencies like web APIs, database connections, or file I/O so tests run fast and do not depend on external systems.
+
+### What Is a Mock?
+
+A mock is a fake object that we can program to return specific values, raise exceptions, or record how it was called. When a function we are testing calls a mocked object, we can verify the function behaved correctly without touching any real external systems.
+
+Consider a function that sends emails. We do not want tests to actually send emails during test runs. We mock the email sender instead:
+
+```python
+def send_email(to, subject, body):
+    # Real implementation would connect to an SMTP server
+    pass
+
+def order_confirmation(customer_email, order_id):
+    subject = f"Confirmation for order #{order_id}"
+    body = f"Your order {order_id} has been confirmed."
+    send_email(customer_email, subject, body)
+```
+
+Testing `order_confirmation` requires mocking `send_email` so it does not actually send anything.
+
+### Using unittest.mock.patch
+
+The `unittest.mock.patch` decorator replaces an object with a mock for the duration of a test:
+
+```python
+from unittest.mock import patch
+
+@patch("__main__.send_email")
+def test_order_confirmation_sends_email(mock_send_email):
+    order_confirmation("alice@example.com", "ORD-123")
+
+    mock_send_email.assert_called_once()
+    mock_send_email.assert_called_with(
+        "alice@example.com",
+        "Confirmation for order #ORD-123",
+        "Your order ORD-123 has been confirmed."
+    )
+```
+
+`patch` intercepts the `send_email` function and replaces it with `mock_send_email`. When `order_confirmation` calls `send_email`, it actually calls the mock. The `assert_called_once()` checks the mock was called exactly one time, and `assert_called_with` verifies the arguments matched exactly.
+
+### patch as a Context Manager
+
+We can also use `patch` as a context manager when we need it for only part of a test:
+
+```python
+from unittest.mock import patch
+
+def test_order_confirmation_sends_email():
+    with patch("__main__.send_email") as mock_send_email:
+        order_confirmation("alice@example.com", "ORD-123")
+
+        assert mock_send_email.call_count == 1
+        args, kwargs = mock_send_email.call_args
+        assert args[0] == "alice@example.com"
+```
+
+The context manager form is useful when we want to patch something only for a specific block of code rather than an entire test function.
+
+### Mock Return Values
+
+We can configure a mock to return a specific value when it is called:
+
+```python
+from unittest.mock import patch
+
+@patch("mymodule.Database.fetch_one")
+def test_user_lookup_returns_name(mock_fetch):
+    mock_fetch.return_value = {"id": 1, "name": "Alice"}
+
+    result = get_user_name(1)
+
+    assert result == "Alice"
+    mock_fetch.assert_called_once_with("SELECT * FROM users WHERE id = 1")
+```
+
+`mock_fetch.return_value` sets what `fetch_one` returns when called. This lets us test our logic without a real database.
+
+### Mocking Side Effects
+
+Sometimes we need a mock to raise an exception rather than return a value:
+
+```python
+from unittest.mock import patch
+
+@patch("mymodule.Database.fetch_one")
+def test_database_error_handling(mock_fetch):
+    mock_fetch.side_effect = ConnectionError("Database unavailable")
+
+    with pytest.raises(ConnectionError, match="Database unavailable"):
+        get_user_name(1)
+```
+
+`side_effect` accepts either a value to return on each call or an exception to raise. In this case, every call to `mock_fetch` raises `ConnectionError`.
+
+We can also use `side_effect` to return different values on successive calls:
+
+```python
+mock_fetch.side_effect = [
+    {"id": 1, "name": "Alice"},
+    {"id": 2, "name": "Bob"},
+]
+
+assert get_user_name(1) == "Alice"
+assert get_user_name(2) == "Bob"
+```
+
+This sequence of return values is useful for testing loops or repeated calls.
+
+### Verifying Call Patterns
+
+Mocks record every call they receive, allowing us to verify the code under test called external dependencies correctly:
+
+```python
+from unittest.mock import patch, call
+
+@patch("mymodule.EmailSender.send")
+def test_order_sends_confirmation_and_receipt(mock_send):
+    process_order("ORD-123", "alice@example.com")
+
+    # Verify both emails were sent
+    assert mock_send.call_count == 2
+
+    # Check the first call arguments
+    first_call = mock_send.call_args_list[0]
+    assert "Confirmation" in first_call[0][1]
+
+    # Check the second call arguments
+    second_call = mock_send.call_args_list[1]
+    assert "Receipt" in second_call[0][1]
+```
+
+`call_args_list` holds a list of all calls made to the mock in order. Each entry contains the positional and keyword arguments from that call.
+
+### The Mock Object
+
+`unittest.mock.Mock()` creates a flexible mock that accepts any method calls and stores their arguments for later inspection:
+
+```python
+from unittest.mock import Mock
+
+def test_cache_set_and_get():
+    mock_cache = Mock()
+
+    mock_cache.set("key1", "value1")
+    mock_cache.set("key2", "value2")
+    mock_cache.get("key1")
+
+    assert mock_cache.set.call_count == 2
+    assert mock_cache.get.call_count == 1
+    assert mock_cache.get.call_args[0][0] == "key1"
+```
+
+A `Mock` accepts any method call without raising errors, making it useful for objects with many methods. We can inspect `call_count`, `call_args_list`, and `return_value` to verify behavior.
+
+### Real Example: Testing a Repository Class
+
+Consider a repository class that fetches users from a database. We mock the database layer to test the repository in isolation:
+
+```python
+from unittest.mock import patch, Mock
+
+class UserRepository:
+    def __init__(self, db):
+        self.db = db
+
+    def find_by_email(self, email):
+        return self.db.fetch_one(
+            "SELECT * FROM users WHERE email = %s",
+            (email,)
+        )
+
+    def create(self, name, email):
+        user_id = self.db.insert(
+            "users",
+            {"name": name, "email": email}
+        )
+        return self.find_by_email(email)
+
+@patch("mymodule.Database")
+def test_create_user(MockDatabase):
+    mock_db = MockDatabase.return_value
+    mock_db.fetch_one.return_value = {"id": 42, "name": "Alice", "email": "alice@example.com"}
+
+    repo = UserRepository(mock_db)
+    user = repo.create("Alice", "alice@example.com")
+
+    assert user["id"] == 42
+    mock_db.insert.assert_called_once_with(
+        "users",
+        {"name": "Alice", "email": "alice@example.com"}
+    )
+```
+
+`MockDatabase.return_value` is the instance returned when we call `UserRepository(mock_db)`. We configure `fetch_one` to return the user data we expect and then verify that `insert` was called with the right arguments.
+
+## The patch Path
+
+When using `patch`, the string must point to the name used by the code being tested, not where it is defined. This is a common source of confusion:
+
+```python
+# mymodule.py defines the send_email function
+def send_email(to, subject, body):
+    pass
+
+# test file imports it
+from mymodule import send_email
+
+# WRONG: patch looks up "send_email" in test file's globals
+@patch("send_email")  # may work but fragile
+
+# CORRECT: patch the name as seen by the module being tested
+@patch("mymodule.send_email")  # correct for the module path
+```
+
+The general rule is to patch where the object is looked up, not where it is defined. This means patching `mymodule.send_email` if the module being tested imports `send_email` from `mymodule`.
+
+## Summary
+
+- A fixture is a function that provides resources to tests, with `yield` separating setup from teardown
+- Fixture scope controls how often the fixture is created: function (default), class, module, or session
+- pytest's `tmp_path` fixture provides a clean temporary directory for each test automatically
+- Mocking replaces external dependencies with controlled fake objects so tests run fast and reliably
+- `unittest.mock.patch` replaces an object for the duration of a test, accepting either a decorator or context manager form
+- `mock.return_value` sets what the mock returns when called; `mock.side_effect` can return values or raise exceptions
+- `mock.assert_called_with` and `mock.call_count` verify how the mock was used
+- `Mock()` creates a flexible mock that accepts any method calls and records their arguments for inspection
+
+For more on test isolation and interaction testing, see [Unit Testing with unittest and pytest](./unit-testing.mdx). For measuring how much of your code is tested, see [Coverage Analysis](./coverage-analysis.mdx). For fixing bugs interactively, see [Debugging with pdb](./debugging-pdb.mdx).

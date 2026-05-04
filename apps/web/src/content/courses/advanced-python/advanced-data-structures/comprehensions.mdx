@@ -1,0 +1,418 @@
+---
+title: "Comprehensions"
+description: "Master list, set, and dictionary comprehensions for concise and efficient data transformation."
+order: 3
+---
+
+# Comprehensions
+
+Comprehensions provide a concise syntax for creating collections from iterables. We use list comprehensions to create lists, set comprehensions to create sets, and dictionary comprehensions to create dictionaries. Beyond basic creation, comprehensions support filtering and transforming data in a single expressive line.
+
+## List Comprehensions
+
+A list comprehension consists of an expression followed by a for clause and optional if clauses. The comprehension evaluates the expression for each item that passes the filter conditions.
+
+### Basic List Comprehension Syntax
+
+```python
+# Create a list of squares
+squares = [x**2 for x in range(10)]
+print(squares)
+# [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+```
+
+For each number from 0 to 9, the comprehension calculates x squared and collects the results into a new list. The equivalent using a for loop would require four lines.
+
+### Comprehension with Filtering
+
+```python
+# Create list of even squares only
+even_squares = [x**2 for x in range(10) if x % 2 == 0]
+print(even_squares)
+# [0, 4, 16, 36, 64]
+```
+
+The optional if clause filters which items the comprehension processes. Only even numbers pass the filter, so we compute squares for 0, 2, 4, 6, and 8.
+
+### Transforming Data
+
+```python
+# Convert temperatures from Celsius to Fahrenheit
+celsius = [0, 20, 37, 100, -10]
+fahrenheit = [(t * 9/5) + 32 for t in celsius]
+print(fahrenheit)
+# [32.0, 68.0, 98.6, 212.0, 14.0]
+```
+
+The expression part can be any transformation. Here we apply a formula to convert each temperature from Celsius to Fahrenheit.
+
+### String Operations in Comprehensions
+
+```python
+# Extract lengths of words
+words = ["Python", "is", "a", "powerful", "language"]
+lengths = [len(word) for word in words]
+print(lengths)
+# [6, 2, 1, 8, 8]
+
+# Create uppercase versions
+upper_words = [word.upper() for word in words]
+print(upper_words)
+# ['PYTHON', 'IS', 'A', 'POWERFUL', 'LANGUAGE']
+```
+
+Comprehensions work with strings and any other iterable. We can chain multiple string methods within the expression.
+
+## Set Comprehensions
+
+Set comprehensions use the same syntax as list comprehensions but with curly braces instead of square brackets. The result is a set containing unique values.
+
+### Basic Set Comprehension
+
+```python
+# Get unique word lengths from a sentence
+sentence = "Python is a powerful programming language Python is widely used"
+words = sentence.split()
+lengths = {len(word) for word in words}
+print(lengths)
+# {1, 2, 6, 7, 8, 10, 11}
+```
+
+The curly braces create a set rather than a list. Sets automatically eliminate duplicates, so if multiple words have the same length, the set contains only one occurrence of that length.
+
+### Filtering with Set Comprehensions
+
+```python
+# Get even numbers from 1 to 20
+even_numbers = {x for x in range(1, 21) if x % 2 == 0}
+print(even_numbers)
+# {2, 4, 6, 8, 10, 12, 14, 16, 18, 20}
+
+# Get unique vowels from a string
+text = "Python Programming"
+vowels = {c for c in text.lower() if c in "aeiou"}
+print(vowels)
+# {'o', 'a', 'i'}
+```
+
+Set comprehensions filter exactly like list comprehensions but produce sets with unique values.
+
+## Dictionary Comprehensions
+
+Dictionary comprehensions use curly braces with key-value pairs separated by a colon. The syntax is `{key_expression: value_expression for item in iterable}`.
+
+### Basic Dictionary Comprehension
+
+```python
+# Create a mapping of numbers to their squares
+squares_dict = {x: x**2 for x in range(5)}
+print(squares_dict)
+# {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+```
+
+The key comes before the colon and the value expression comes after. Each item from the iterable generates one key-value pair.
+
+### Filtering with Dictionary Comprehensions
+
+```python
+# Filter dictionary to include only values above a threshold
+original = {"a": 10, "b": 5, "c": 20, "d": 15, "e": 30}
+filtered = {k: v for k, v in original.items() if v > 10}
+print(filtered)
+# {'c': 20, 'd': 15, 'e': 30}
+```
+
+We iterate over `.items()` to access both keys and values, then filter based on the value.
+
+### Transforming Dictionary Keys and Values
+
+```python
+# Swap keys and values
+original = {"a": 1, "b": 2, "c": 3}
+swapped = {v: k for k, v in original.items()}
+print(swapped)
+# {1: 'a', 2: 'b', 3: 'c'}
+
+# Normalize string keys to lowercase
+messy_keys = {"Name": "Alice", "Age": 30, "City": "NYC"}
+normalized = {k.lower(): v for k, v in messy_keys.items()}
+print(normalized)
+# {'name': 'Alice', 'age': 30, 'city': 'NYC'}
+```
+
+The expression part can transform both keys and values independently.
+
+## Nested Comprehensions
+
+Comprehensions can contain nested loops, allowing us to flatten nested structures or create multidimensional results.
+
+### Flattening Nested Lists
+
+```python
+# Flatten a matrix (list of lists)
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+flattened = [num for row in matrix for num in row]
+print(flattened)
+# [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+The comprehension has two for clauses. The outer loop iterates over rows, and the inner loop iterates over each number in the row. All numbers collect into a single flat list.
+
+### Creating Multidimensional Results
+
+```python
+# Create a 3x4 matrix of zeros
+rows, cols = 3, 4
+matrix = [[0 for _ in range(cols)] for _ in range(rows)]
+print(matrix)
+# [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+```
+
+For nested comprehensions that need to repeat a value, we use `_` as the loop variable when we do not need the actual value.
+
+### Processing Nested Data
+
+```python
+# Extract all email addresses from nested structure
+users = [
+    {"name": "Alice", "emails": ["alice@work.com", "alice@home.com"]},
+    {"name": "Bob", "emails": ["bob@work.com"]},
+    {"name": "Carol", "emails": ["carol@home.com", "carol@work.com", "carol@other.com"]}
+]
+
+# Flatten all emails into one list
+all_emails = [email for user in users for email in user["emails"]]
+print(all_emails)
+# ['alice@work.com', 'alice@home.com', 'bob@work.com', 'carol@home.com', 'carol@work.com', 'carol@other.com']
+```
+
+The outer loop iterates over users, and the inner loop iterates over each user's email list, collecting all email addresses into a single list.
+
+## Generator Expressions
+
+A generator expression uses parentheses instead of brackets and produces values lazily, one at a time, rather than creating a full collection immediately. Lazy evaluation means values are computed only when we iterate over the generator.
+
+### Generator Expression Syntax
+
+```python
+# Create a generator (note the parentheses)
+squares_gen = (x**2 for x in range(1000000))
+
+print(squares_gen)
+# <generator object at 0x...>
+
+# Iterate to get values
+for sq in squares_gen:
+    print(sq)
+    if sq > 100:
+        break
+```
+
+The parentheses look like a tuple but create a generator object. Because generators are lazy, we can create a generator for a million items without consuming memory for a million results.
+
+### Why Use Generators?
+
+```python
+import sys
+
+# Compare memory usage
+list_of_squares = [x**2 for x in range(10000)]
+gen_of_squares = (x**2 for x in range(10000))
+
+list_size = sys.getsizeof(list_of_squares)
+gen_size = sys.getsizeof(gen_of_squares)
+
+print(f"List size: {list_size} bytes")   # ~90KB
+print(f"Generator size: {gen_size} bytes")  # ~200 bytes
+```
+
+The generator object itself is tiny because it only stores the logic to produce values, not the values themselves. For large sequences where we only need to iterate once, generators save significant memory.
+
+### Using Generators with Functions
+
+```python
+# Sum of squares without creating intermediate list
+total = sum(x**2 for x in range(1000000))
+print(total)  # 333332833333500000
+
+# Finding maximum without loading all into memory
+data = range(10000000)
+maximum = max(x for x in data if x % 7 == 0)
+print(maximum)  # 9999996
+```
+
+Many functions that expect sequences also accept generators. The `sum()`, `max()`, `min()`, and `any()` functions all work with generator expressions, computing results lazily without materializing the full sequence.
+
+### Generator vs Comprehension Performance
+
+```python
+import time
+
+# List comprehension - computes everything immediately
+start = time.time()
+result = [x**2 for x in range(10000000)]
+list_time = time.time() - start
+
+# Generator expression - computes on demand
+start = time.time()
+gen = (x**2 for x in range(10000000))
+gen_time = time.time() - start
+# Taking the first element from generator
+value = next(gen)
+
+print(f"List comprehension: {list_time:.4f}s")
+print(f"Generator creation: {gen_time:.6f}s")
+```
+
+Creating a list comprehension takes measurable time because it computes all million squares. Creating a generator is nearly instantaneous because it only sets up the iteration logic without computing any values.
+
+## Readability Considerations
+
+Comprehensions excel when they remain simple. When comprehensions grow complex, readability suffers. We should understand when to use comprehensions and when to prefer explicit loops.
+
+### When Comprehensions Improve Readability
+
+```python
+# Clear and concise
+squares = [x**2 for x in range(10)]
+
+# Filtering is still clear
+even_squares = [x**2 for x in range(10) if x % 2 == 0]
+
+# Multiple transforms are readable
+names = ["Alice Smith", "Bob Jones", "Carol White"]
+initials = [name.split()[0][0] + name.split()[-1][0] for name in names]
+```
+
+Simple comprehensions express intent more clearly than equivalent for loops. The single-line form makes the transformation easy to understand at a glance.
+
+### When to Avoid Comprehensions
+
+```python
+# Overly complex - avoid this
+result = [(x, y) for x in range(10) for y in range(10) if x != y if x + y == 12 if x < y]
+
+# Better as explicit loop
+result = []
+for x in range(10):
+    for y in range(10):
+        if x != y and x + y == 12 and x < y:
+            result.append((x, y))
+```
+
+Multiple filter conditions and complex logic obscure the comprehension's purpose. An explicit loop with descriptive variable names and comments often serves better.
+
+### Guidelines for Readable Comprehensions
+
+We follow these principles when writing comprehensions:
+
+1. **Single purpose** - Each comprehension should do one thing: filter, transform, or create.
+2. **Keep it short** - If a comprehension spans multiple lines, consider an explicit loop.
+3. **Meaningful names** - Use descriptive variable names in the comprehension.
+4. **Limit nesting** - Avoid nesting more than two levels deep.
+5. **Extract complex logic** - Move complex expressions into functions.
+
+```python
+# Good: single clear purpose
+active_users = [user for user in users if user.is_active]
+
+# Good: transformation is clear
+emails = [user.email.lower() for user in active_users]
+
+# Good: extracted complex calculation
+squared_distances = [calculate_distance(p1, p2)**2 for p1, p2 in point_pairs]
+```
+
+## Practical Examples
+
+### Example 1: Building a Frequency Counter
+
+```python
+# Count word frequencies using a dictionary comprehension
+text = "Python is a powerful programming language Python is widely used"
+words = text.lower().split()
+
+word_freq = {word: words.count(word) for word in set(words)}
+print(word_freq)
+# {'python': 2, 'is': 2, 'a': 1, 'powerful': 1, ...}
+```
+
+A dictionary comprehension can build a frequency map by counting occurrences of each unique word.
+
+### Example 2: Filtering and Transforming Data
+
+```python
+# Process a list of transactions
+transactions = [
+    {"date": "2024-01-15", "amount": 100, "category": "food"},
+    {"date": "2024-01-16", "amount": 250, "category": "transport"},
+    {"date": "2024-01-17", "amount": 50, "category": "food"},
+    {"date": "2024-01-18", "amount": 500, "category": "utilities"}
+]
+
+# Get food expenses over $75
+food_over_75 = [
+    t["amount"] for t in transactions
+    if t["category"] == "food" and t["amount"] > 75
+]
+print(food_over_75)  # []
+```
+
+We combine filtering conditions to select only transactions that match multiple criteria.
+
+### Example 3: Creating Lookup Dictionaries
+
+```python
+# Create fast lookup from list of objects
+class Product:
+    def __init__(self, sku, name, price):
+        self.sku = sku
+        self.name = name
+        self.price = price
+
+products = [
+    Product("A001", "Widget", 9.99),
+    Product("A002", "Gadget", 14.99),
+    Product("B001", "Gizmo", 19.99)
+]
+
+# Build SKU lookup dictionary
+sku_lookup = {p.sku: p for p in products}
+print(sku_lookup["A002"].name)  # Gadget
+```
+
+Dictionary comprehensions create efficient lookup structures from collections, enabling O(1) access by a specific field.
+
+### Example 4: Matrix Operations
+
+```python
+# Transpose a matrix
+matrix = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+transposed = [[matrix[row][col] for row in range(3)] for col in range(3)]
+print(transposed)
+# [[1, 4, 7], [2, 5, 8], [3, 6, 9]]
+```
+
+Nested list comprehensions perform matrix operations concisely. The outer comprehension builds each row of the transposed matrix.
+
+## Summary
+
+Comprehensions provide expressive syntax for creating and transforming collections:
+
+- **List comprehensions** create lists with `[expr for item in iterable if condition]`, supporting filtering and transformation in a single expression.
+- **Set comprehensions** create sets with `{expr for item in iterable if condition}`, automatically ensuring unique values.
+- **Dictionary comprehensions** create dictionaries with `{key: value for item in iterable if condition}`, enabling lookup table construction.
+- **Generator expressions** use parentheses and produce values lazily, conserving memory for large sequences.
+- **Nested comprehensions** handle flattening and multi-dimensional creation but should remain readable.
+
+We choose comprehensions for simple transformations where the intent remains clear. For complex logic with multiple conditions, transforms, or side effects, explicit loops provide better readability.

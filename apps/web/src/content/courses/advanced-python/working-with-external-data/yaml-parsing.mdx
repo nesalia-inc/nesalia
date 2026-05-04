@@ -1,0 +1,478 @@
+---
+title: "YAML Parsing"
+description: "Learn to read and write YAML files for configuration and data exchange using the PyYAML library."
+order: 2
+---
+
+# YAML Parsing
+
+**YAML** (YAML Ain't Markup Language) is a human-readable data serialization format designed for configuration files and data exchange. Unlike JSON, YAML uses indentation instead of brackets and braces, making it feel natural and readable. YAML is commonly used for application configuration (like Docker Compose files, GitHub Actions workflows, and Ansible playbooks), and it supports features that JSON does not, such as comments, multi-line strings, and complex key types.
+
+The `yaml` module (PyYAML) is not part of Python's standard library. We install it with `pip install pyyaml` and import it with `import yaml`.
+
+## YAML Syntax Basics
+
+YAML documents use indentation to represent structure, similar to how Python uses indentation for code blocks. This makes YAML files feel familiar to Python developers.
+
+A simple YAML document looks like this:
+
+```yaml
+# Application configuration
+app_name: my_application
+version: "2.0"
+debug_mode: false
+
+database:
+  host: localhost
+  port: 5432
+  name: production_db
+  options:
+    pool_size: 10
+    timeout: 30
+
+features:
+  - authentication
+  - caching
+  - logging
+```
+
+This represents a dictionary containing strings, booleans, numbers, nested dictionaries, and a list. The indentation (two spaces per level) determines the nesting structure.
+
+### Key Features of YAML
+
+YAML supports several features that JSON does not:
+
+- **Comments** — Lines starting with `#` are ignored
+- **Multi-line strings** — Using the pipe `|` or fold `>` operators
+- **Anchors and aliases** — Reusing identical values without duplication
+- **Explicit types** — Tags like `!!str` or `!!int` force type conversion
+- **Empty values** — Represented as `null` or `~`
+
+## Reading YAML Files
+
+The `yaml.safe_load()` function parses a YAML file and returns Python objects. We use `safe_load()` instead of `load()` because `safe_load()` only constructs basic Python objects and prevents code execution from malicious YAML content.
+
+```python
+import yaml
+
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+print(config["app_name"])
+print(config["database"]["host"])
+print(config["features"])
+```
+
+Assuming the YAML example above, the output would be:
+
+```
+my_application
+localhost
+['authentication', 'caching', 'logging']
+```
+
+The `safe_load()` function converts YAML structures to their Python equivalents: mappings become dictionaries, sequences become lists, and scalar values become strings, integers, floats, or booleans.
+
+### Parsing YAML Strings
+
+The `yaml.safe_load()` function also accepts a string directly, which is useful when YAML content comes from a variable or an API response:
+
+```python
+import yaml
+
+yaml_content = """
+server:
+  host: 0.0.0.0
+  port: 8080
+  paths:
+    - /api/v1/users
+    - /api/v1/products
+  rate_limit: true
+"""
+
+data = yaml.safe_load(yaml_content)
+print(f"Server on {data['server']['host']}:{data['server']['port']}")
+```
+
+Output:
+
+```
+Server on 0.0.0.0:8080
+```
+
+This pattern is useful when we receive YAML-formatted data over a network or retrieve it from a database.
+
+## Writing YAML Files
+
+The `yaml.safe_dump()` function serializes Python objects to a YAML-formatted string. We use `safe_dump()` (not `dump()`) to ensure the output does not include Python-specific objects that other languages cannot parse:
+
+```python
+import yaml
+
+deployment_config = {
+    "version": "1.0",
+    "services": {
+        "web": {
+            "image": "myapp/web:latest",
+            "ports": ["80:8080"],
+            "environment": {
+                "DEBUG": "false",
+                "LOG_LEVEL": "info"
+            },
+            "restart": "unless-stopped"
+        },
+        "database": {
+            "image": "postgres:15",
+            "ports": ["5432:5432"],
+            "volumes": ["db_data:/var/lib/postgresql/data"],
+            "environment": {
+                "POSTGRES_DB": "myapp",
+                "POSTGRES_USER": "admin"
+            },
+            "restart": "unless-stopped"
+        }
+    },
+    "networks": ["app_network"]
+}
+
+yaml_output = yaml.safe_dump(deployment_config, sort_keys=False, indent=2)
+print(yaml_output)
+```
+
+Output:
+
+```yaml
+version: '1.0'
+services:
+  web:
+    image: myapp/web:latest
+    ports: [80:8080]
+    environment:
+      DEBUG: 'false'
+      LOG_LEVEL: info
+    restart: unless-stopped
+  database:
+    image: postgres:15
+    ports: [5432:5432]
+    volumes: [db_data:/var/lib/postgresql/data]
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: admin
+    restart: unless-stopped
+networks:
+- app_network
+```
+
+The `sort_keys=False` argument preserves the original dictionary order (Python 3.7+ dictionaries maintain insertion order). The `indent=2` argument sets the indentation level for readability.
+
+### Writing YAML to a File
+
+To write directly to a file, we use `yaml.safe_dump()` with a file object:
+
+```python
+import yaml
+
+settings = {
+    "application": {
+        "name": "TaskManager",
+        "version": "3.2.1",
+        "features": ["projects", "tasks", "collaboration"]
+    },
+    "security": {
+        "require_mfa": True,
+        "session_timeout_minutes": 30,
+        "password_min_length": 12
+    },
+    "logging": {
+        "level": "WARNING",
+        "file": "/var/log/taskmanager/app.log",
+        "rotate": True,
+        "max_size_mb": 100
+    }
+}
+
+with open("settings.yaml", "w") as f:
+    yaml.safe_dump(settings, f, sort_keys=False, indent=2)
+```
+
+The resulting file is human-readable and can be edited manually if needed.
+
+## Multi-Document YAML Files
+
+YAML supports multiple documents separated by `---`. Each document is parsed separately, and `yaml.safe_load_all()` returns all documents as a generator:
+
+```python
+import yaml
+
+multi_doc_yaml = """
+# Document 1: Application settings
+---
+application:
+  name: myapp
+  mode: production
+
+---
+# Document 2: Database configuration
+---
+database:
+  host: db.example.com
+  port: 5432
+  name: myapp_production
+
+---
+# Document 3: Feature flags
+---
+features:
+  new_ui: true
+  beta_api: false
+"""
+
+documents = list(yaml.safe_load_all(multi_doc_yaml))
+
+print(f"Total documents: {len(documents)}")
+print(f"App name: {documents[0]['application']['name']}")
+print(f"DB host: {documents[1]['database']['host']}")
+print(f"Features: {documents[2]['features']}")
+```
+
+Output:
+
+```
+Total documents: 3
+App name: myapp
+DB host: db.example.com
+Features: {'new_ui': True, 'beta_api': False}
+```
+
+Multi-document YAML files are common in Kubernetes manifests, where each resource (Service, Deployment, ConfigMap) is a separate document in a single file.
+
+## YAML Anchors and Aliases
+
+YAML anchors (`&`) let us define a value once, and aliases (`*`) let us reference that value multiple times. This reduces duplication in configuration files:
+
+```python
+import yaml
+
+yaml_with_anchors = """
+development:
+  host: &db_host localhost
+  port: &db_port 5432
+  name: dev_db
+
+production:
+  host: *db_host
+  port: *db_port
+  name: prod_db
+
+staging:
+  host: *db_host
+  port: 5433
+  name: staging_db
+"""
+
+config = yaml.safe_load(yaml_with_anchors)
+
+print(f"Dev: {config['development']['host']}:{config['development']['port']}")
+print(f"Prod: {config['production']['host']}:{config['production']['port']}")
+print(f"Staging: {config['staging']['host']}:{config['staging']['port']}")
+```
+
+Output:
+
+```
+Dev: localhost:5432
+Prod: localhost:5432
+Staging: localhost:5433
+```
+
+The anchors `&db_host` and `&db_port` define the values, and the aliases `*db_host` and `*db_port` reference them. The staging environment overrides the port to 5433, showing that aliases can be combined with per-document overrides.
+
+## Handling Complex YAML Structures
+
+### Multi-line Strings
+
+YAML's pipe operator preserves newlines in multi-line strings, while the fold operator (`>`) folds lines into a single line with spaces:
+
+```python
+import yaml
+
+yaml_multi_line = """
+email_template:
+  subject: "Important: Action Required"
+  body: |
+    Dear Customer,
+
+    Thank you for your purchase.
+
+    Your order number is: {{order_id}}
+    Order date: {{order_date}}
+
+    Best regards,
+    The Team
+
+  signature: >
+    This is an automated message.
+    Please do not reply directly.
+"""
+
+template = yaml.safe_load(yaml_multi_line)
+
+print("Subject:", template["email_template"]["subject"])
+print("Body:")
+print(template["email_template"]["body"])
+print("Signature:")
+print(template["email_template"]["signature"])
+```
+
+Output:
+
+```
+Subject: Important: Action Required
+Body:
+Dear Customer,
+
+Thank you for your purchase.
+
+Your order number is: {{order_id}}
+Order date: {{order_date}}
+
+Best regards,
+The Team
+
+Signature:
+This is an automated message. Please do not reply directly.
+```
+
+The `|` operator preserves exact newlines and indentation. The `>` operator converts newlines to spaces, creating a paragraph-style string.
+
+### Explicit Type Tags
+
+YAML can force specific types using tags. Without tags, YAML infers types (for example, `yes` becomes a boolean, but `!!str yes` becomes a string):
+
+```python
+import yaml
+
+yaml_explicit_types = """
+string_number: !!str 42
+actual_number: !!int "42"
+boolean_text: !!bool yes
+binary_data: !!binary "SGVsbG8gV29ybGQ="
+"""
+
+data = yaml.safe_load(yaml_explicit_types)
+
+print(f"string_number: {data['string_number']!r} (type: {type(data['string_number']).__name__})")
+print(f"actual_number: {data['actual_number']!r} (type: {type(data['actual_number']).__name__})")
+print(f"boolean_text: {data['boolean_text']!r} (type: {type(data['boolean_text']).__name__})")
+print(f"binary_data: {data['binary_data']!r} (decoded: {data['binary_data'].decode('utf-8')})")
+```
+
+Output:
+
+```
+string_number: '42' (type: str)
+actual_number: 42 (type: int)
+boolean_text: True (type: bool)
+binary_data: b'Hello World' (decoded: Hello World)
+```
+
+Explicit type tags give us precise control over type conversion during parsing.
+
+## Practical Example: Loading Application Configuration
+
+Here is a real-world example that loads configuration from a YAML file and handles missing optional values gracefully:
+
+```python
+import yaml
+from pathlib import Path
+from typing import Any
+
+def load_app_config(config_path: str = "app_config.yaml") -> dict[str, Any]:
+    """Load application configuration with defaults for missing values."""
+    defaults = {
+        "application": {
+            "host": "0.0.0.0",
+            "port": 8000,
+            "workers": 4
+        },
+        "database": {
+            "pool_size": 5,
+            "timeout": 30,
+            "ssl": False
+        },
+        "logging": {
+            "level": "INFO",
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        },
+        "features": {
+            "debug": False,
+            "profiling": False,
+            "metrics": True
+        }
+    }
+
+    path = Path(config_path)
+
+    if not path.exists():
+        print(f"Config file not found, using defaults")
+        return defaults
+
+    with open(path, "r") as f:
+        user_config = yaml.safe_load(f)
+
+    if user_config is None:
+        return defaults
+
+    for section, values in defaults.items():
+        if section not in user_config:
+            user_config[section] = values
+        else:
+            for key, default_value in values.items():
+                if key not in user_config[section]:
+                    user_config[section][key] = default_value
+
+    return user_config
+
+config = load_app_config()
+print(f"Server: {config['application']['host']}:{config['application']['port']}")
+print(f"Workers: {config['application']['workers']}")
+print(f"Log level: {config['logging']['level']}")
+print(f"Profiling: {config['features']['profiling']}")
+```
+
+Output:
+
+```
+Server: 0.0.0.0:8000
+Workers: 4
+Log level: INFO
+Profiling: False
+```
+
+This function loads user configuration but falls back to sensible defaults for any missing keys. The configuration is structured in sections, making it easy to override specific values without redefining the entire configuration.
+
+## YAML vs JSON vs Pickle
+
+| Aspect | YAML | JSON | Pickle |
+|--------|------|------|--------|
+| Human-readable | Yes | Yes | No |
+| Comments | Yes | No | No |
+| Python library | PyYAML (external) | Built-in | Built-in |
+| Complex types | Yes (with tags) | Basic types only | Almost all |
+| Cross-language | Yes | Yes | No |
+| Security | Safe with safe_load | Safe | Unsafe with untrusted data |
+
+We use YAML for configuration files that humans will read and edit, especially when the configuration has comments or complex structures. We use JSON for web APIs and configuration that programs generate and consume. We use Pickle for internal Python caching when security is not a concern.
+
+For structured data storage in databases and analysis, see the [CSV and Pandas Basics](./csv-pandas.mdx) section. For another text-based format, see the [JSON and Pickle Serialization](./json-pickle.mdx) section which covers the built-in serialization modules.
+
+## Summary
+
+- YAML is a human-readable data serialization format ideal for configuration files
+- PyYAML (installed via `pip install pyyaml`) provides the `yaml` module for parsing and generating YAML
+- `yaml.safe_load()` parses YAML content into Python dictionaries, lists, and primitive types
+- `yaml.safe_dump()` serializes Python objects to YAML-formatted strings
+- YAML supports comments, multi-line strings, anchors, aliases, and explicit type tags
+- Multi-document YAML files use `---` separators and `yaml.safe_load_all()` to parse all documents
+- We use `safe_load()` and `safe_dump()` to prevent code execution from untrusted YAML sources
+- YAML is preferred over JSON for configuration files that humans edit; JSON is preferred for data exchange with other systems

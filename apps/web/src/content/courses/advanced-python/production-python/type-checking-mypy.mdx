@@ -1,0 +1,334 @@
+---
+title: "Type Checking with mypy"
+description: "Learn how to use mypy to catch type errors before runtime, add type annotations to functions, and configure strict type checking for production code."
+order: 4
+---
+
+# Type Checking with mypy
+
+Python's dynamic typing makes code flexible, but it also means errors like passing a string where an integer is expected only surface at runtime. A **type checker** is a tool that analyzes code without running it to find type mismatches based on type annotations you provide. `mypy` is the most widely used Python type checker, developed by the Python core team and integrated into many editors and CI pipelines.
+
+## Why Add Type Annotations?
+
+Type annotations serve as documentation that tools can verify. They catch bugs before runtime, enable better IDE support (autocomplete, refactoring), and make code intent clearer. In production code, type annotations help teams understand function expectations without reading the implementation.
+
+```python
+# Without type annotations - error only caught at runtime
+def calculate_discount(price, discount_rate):
+    return price * discount_rate
+
+calculate_discount("100", 0.1)  # Passes type check at runtime but produces wrong result
+```
+
+With annotations, mypy catches the mistake:
+
+```python
+def calculate_discount(price: float, discount_rate: float) -> float:
+    return price * discount_rate
+
+calculate_discount("100", 0.1)  # mypy error: Argument 1 to "calculate_discount" has type "str", expected "float"
+```
+
+## Installing and Running mypy
+
+Install mypy via pip:
+
+```bash
+pip install mypy
+```
+
+Run it on a Python file:
+
+```bash
+mypy my_module.py
+```
+
+Run it recursively on a directory:
+
+```bash
+mypy src/
+```
+
+Mypy reports errors without modifying your code, making it safe to experiment with.
+
+## Annotating Functions
+
+Add type hints using colon syntax for arguments and arrow syntax for return types:
+
+```python
+def greet(name: str, times: int = 1) -> str:
+    return (f"Hello, {name}! " * times).strip()
+
+result: str = greet("Alice")
+print(greet("Bob", times=3))
+```
+
+Running mypy on this code produces no errors:
+
+```bash
+$ mypy example.py
+# No output means no errors
+```
+
+If we introduce a type error:
+
+```python
+def add_numbers(a: int, b: int) -> int:
+    return a + b
+
+result: str = add_numbers(1, 2)  # Error: "str" cannot be assigned to "int"
+```
+
+Mypy reports:
+
+```
+example.py:4: error: Incompatible types in assignment (expression has type "int", variable has type "str")
+```
+
+## Common Type Patterns
+
+### Optional Values
+
+Use `Optional[Type]` for values that might be `None`:
+
+```python
+from typing import Optional
+
+def find_user(user_id: int) -> Optional[str]:
+    """Find a username by ID, returning None if not found."""
+    users = {1: "alice", 2: "bob"}
+    return users.get(user_id)  # Returns None if key not found
+
+# Usage
+user = find_user(1)
+if user is not None:
+    print(f"Found: {user}")
+else:
+    print("User not found")
+```
+
+The `Optional[str]` annotation tells mypy that the function can return either a string or `None`, requiring callers to handle the `None` case.
+
+### Lists, Dicts, and Tuples
+
+Use types from the `typing` module for collection annotations:
+
+```python
+from typing import List, Dict, Tuple
+
+def process_scores(scores: List[int]) -> Tuple[int, float]:
+    """Calculate sum and average of scores."""
+    total = sum(scores)
+    average = total / len(scores) if scores else 0.0
+    return total, average
+
+def get_grades(students: List[str], scores: List[int]) -> Dict[str, int]:
+    """Map students to their scores."""
+    return dict(zip(students, scores))
+
+# Usage
+scores = [85, 92, 78, 95]
+total, avg = process_scores(scores)
+print(f"Total: {total}, Average: {avg:.1f}")
+
+students = ["Alice", "Bob", "Charlie"]
+grades = get_grades(students, scores)
+print(f"Grades: {grades}")
+```
+
+The `Dict[str, int]` annotation indicates keys are strings and values are integers.
+
+### Union Types
+
+Use `Union` when a value can be one of several types:
+
+```python
+from typing import Union
+
+def format_value(value: Union[int, float, str]) -> str:
+    """Format a numeric or string value for display."""
+    if isinstance(value, (int, float)):
+        return f"{value:.2f}"
+    return str(value)
+
+print(format_value(42))       # "42.00"
+print(format_value(3.14159))  # "3.14"
+print(format_value("hello"))  # "hello"
+```
+
+### Callable Types
+
+Annotate functions that accept other functions as arguments:
+
+```python
+from typing import Callable
+
+def apply_operation(
+    numbers: List[int],
+    operation: Callable[[int, int], int]
+) -> List[int]:
+    """Apply an operation to pairs of consecutive numbers."""
+    results = []
+    for i in range(len(numbers) - 1):
+        results.append(operation(numbers[i], numbers[i + 1]))
+    return results
+
+def add(a: int, b: int) -> int:
+    return a + b
+
+def multiply(a: int, b: int) -> int:
+    return a * b
+
+numbers = [1, 2, 3, 4, 5]
+print(apply_operation(numbers, add))      # [3, 5, 7, 9]
+print(apply_operation(numbers, multiply)) # [2, 6, 12, 20]
+```
+
+The `Callable[[int, int], int]` annotation says the operation is a function that takes two integers and returns an integer.
+
+## Configuring mypy
+
+Create a `mypy.ini` or `pyproject.toml` section to configure mypy behavior:
+
+```ini
+[mypy]
+python_version = 3.10
+warn_return_any = True
+warn_unused_configs = True
+disallow_untyped_defs = True
+ignore_missing_imports = True
+
+[mypy-tests.*]
+disallow_untyped_defs = False
+```
+
+The `python_version` setting ensures consistent checking across all developers. `disallow_untyped_defs = True` requires all functions to have type annotations, enforcing consistency.
+
+## Using Stub Files for Missing Types
+
+Some packages lack type annotations. Stub files (`.pyi`) provide type information without modifying the original package:
+
+```python
+# my_package_stub.pyi (stub file)
+def get_config() -> dict[str, str]: ...
+def set_debug_mode(enabled: bool) -> None: ...
+```
+
+Alternatively, mark untyped code to ignore it:
+
+```python
+# my_module.py
+import some_old_library  # type: ignore[import]
+```
+
+The `# type: ignore` comment tells mypy to skip checking that line.
+
+## Type Checking in CI Pipelines
+
+Add mypy to your continuous integration to catch type errors before merging:
+
+```yaml
+# .github/workflows/type-check.yml
+name: Type Check
+
+on: [push, pull_request]
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install mypy
+      - run: mypy src/
+```
+
+This workflow runs on every push and pull request, ensuring type errors never reach the main branch.
+
+## Real Example: Validating Configuration Loading
+
+Here's a realistic example showing how type checking catches errors in configuration management:
+
+```python
+from typing import Optional
+from dataclasses import dataclass
+
+@dataclass
+class DatabaseConfig:
+    host: str
+    port: int
+    name: str
+    ssl_enabled: bool
+
+@dataclass
+class AppConfig:
+    debug: bool
+    log_level: str
+    database: DatabaseConfig
+
+def load_database_config(env: dict[str, str]) -> DatabaseConfig:
+    """Load and validate database configuration from environment."""
+    host = env.get("DB_HOST")
+    if not host:
+        raise ValueError("DB_HOST is required")
+
+    port_str = env.get("DB_PORT", "5432")
+    try:
+        port = int(port_str)
+    except ValueError:
+        raise ValueError(f"DB_PORT must be an integer, got: {port_str}")
+
+    name = env.get("DB_NAME", "appdb")
+    ssl_str = env.get("DB_SSL", "false")
+
+    return DatabaseConfig(
+        host=host,
+        port=port,
+        name=name,
+        ssl_enabled=ssl_str.lower() == "true",
+    )
+
+def load_app_config(env: dict[str, str]) -> AppConfig:
+    """Load application configuration."""
+    db_config = load_database_config(env)
+
+    return AppConfig(
+        debug=env.get("DEBUG", "false").lower() == "true",
+        log_level=env.get("LOG_LEVEL", "INFO"),
+        database=db_config,
+    )
+
+# Test configuration loading
+test_env = {
+    "DB_HOST": "localhost",
+    "DB_PORT": "5432",
+    "DB_NAME": "testdb",
+    "DEBUG": "true",
+}
+
+config = load_app_config(test_env)
+print(f"Loaded config: {config}")
+```
+
+Mypy verifies that all environment variable accesses and dataclass construction are type-consistent. The return types explicitly declare what each function produces, making the code self-documenting.
+
+## Best Practices for Type Annotations
+
+- **Annotate all public functions** — Type annotations serve as documentation for callers
+- **Use `Optional` for nullable values** — Be explicit about what can be `None`
+- **Prefer specific types over generic ones** — Use `list[int]` over `List` in modern Python
+- **Let mypy catch inconsistencies** — Trust the tool to find real bugs
+- **Add stubs for untyped libraries** — Keep type coverage high across your codebase
+
+## Summary
+
+- A type checker analyzes code statically to find type mismatches without running the code
+- `mypy` is the standard Python type checker, developed by the Python core team
+- Add type annotations using colon syntax for arguments and arrow syntax for return types
+- Common patterns include `Optional`, `List`, `Dict`, `Tuple`, `Union`, and `Callable`
+- Configure mypy in `mypy.ini` or `pyproject.toml` for consistent project-wide checking
+- Add mypy to CI pipelines to prevent type errors from reaching production
+
+For automating code formatting alongside type checking, see [Code Formatting with Black and Ruff](./code-formatting-black-ruff.mdx). For more on ensuring your code style is consistent, see [Virtual Environments and Dependency Management](./venv-dependency-management.mdx).

@@ -1,0 +1,194 @@
+---
+title: "Multiprocessing for CPU-Bound Tasks"
+description: "Bypass the GIL and achieve true parallelism with multiprocessing, using separate Python processes for CPU-intensive work."
+order: 2
+---
+
+# Multiprocessing for CPU-Bound Tasks
+
+Python's Global Interpreter Lock (GIL) prevents threads within a single process from executing Python bytecode in parallel. For CPU-bound tasks that need true parallelism, the `multiprocessing` module spawns separate Python processes, each with its own Python interpreter and memory space. Since each process has its own GIL, processes run truly concurrently.
+
+## Creating Processes with multiprocessing.Process
+
+A `Process` is similar to a `Thread` but runs in a separate process. Each process has its own Python interpreter, so the GIL does not block parallelism:
+
+```python
+import multiprocessing
+import time
+
+def cpu_bound_task(n):
+    """Compute the sum of squares, a genuinely CPU-intensive operation."""
+    total = sum(i ** 2 for i in range(10_000_000))
+    return n, total
+
+if __name__ == "__main__":
+    start = time.time()
+    with multiprocessing.Pool(processes=4) as pool:
+        results = pool.map(cpu_bound_task, range(4))
+    elapsed = time.time() - start
+
+    for result in results:
+        print(f"Task {result[0]} completed")
+    print(f"Total time: {elapsed:.2f}s with {multiprocessing.cpu_count()} CPUs")
+```
+
+`multiprocessing.Pool` creates a pool of worker processes. `pool.map()` distributes the work across the processes and collects results. With 4 processes running on a 4-core machine, the tasks run in parallel, completing much faster than a single-threaded or even a multi-threaded version.
+
+## The Process Pool Pattern
+
+Using `Pool` directly with a function is the most common pattern. The function must be picklable so that Python can serialize arguments and send them to worker processes:
+
+```python
+import multiprocessing
+
+def find_primes(limit):
+    """Find all primes up to a limit."""
+    primes = []
+    for num in range(2, limit):
+        is_prime = all(num % i != 0 for i in range(2, int(num ** 0.5) + 1))
+        if is_prime:
+            primes.append(num)
+    return len(primes)
+
+if __name__ == "__main__":
+    with multiprocessing.Pool(4) as pool:
+        counts = pool.map(find_primes, [100000, 100000, 100000, 100000])
+
+    print(f"Prime counts: {counts}")
+```
+
+Each process independently searches for primes in its assigned range. The `pool.map` call returns a list of results in the order submitted. Since each process has its own GIL, they all compute simultaneously.
+
+## Sharing Data Between Processes
+
+Processes do not share memory by default. However, `multiprocessing` provides several mechanisms for inter-process communication:
+
+`multiprocessing.Queue` passes data between processes safely:
+
+```python
+import multiprocessing
+
+def producer(queue, items):
+    for item in items:
+        queue.put(item)
+    queue.put(None)  # Sentinel to signal end
+
+def consumer(queue):
+    while True:
+        item = queue.get()
+        if item is None:
+            break
+        print(f"Got: {item}")
+
+if __name__ == "__main__":
+    queue = multiprocessing.Queue()
+    items = ["a", "b", "c", "d"]
+
+    producer_proc = multiprocessing.Process(target=producer, args=(queue, items))
+    consumer_proc = multiprocessing.Process(target=consumer, args=(queue,))
+
+    producer_proc.start()
+    consumer_proc.start()
+
+    producer_proc.join()
+    consumer_proc.join()
+```
+
+The producer puts items into the queue, and the consumer retrieves them. The `None` sentinel signals the consumer to exit. The queue is process-safe and handles synchronization internally.
+
+## Manager Objects for Shared State
+
+When you need shared mutable state across processes, use a `Manager`. It creates a server process that holds the shared object and provides proxies for other processes to access it:
+
+```python
+import multiprocessing
+
+def worker(shared_dict, shared_list, counter):
+    shared_dict["pid"] = multiprocessing.current_process().pid
+    shared_list.append(multiprocessing.current_process().pid)
+    counter.value += 1
+
+if __name__ == "__main__":
+    with multiprocessing.Manager() as manager:
+        shared_dict = manager.dict()
+        shared_list = manager.list()
+        counter = manager.Value("i", 0)
+
+        processes = [
+            multiprocessing.Process(target=worker, args=(shared_dict, shared_list, counter))
+            for _ in range(4)
+        ]
+
+        for p in processes:
+            p.start()
+        for p in processes:
+            p.join()
+
+        print(f"Shared dict: {dict(shared_dict)}")
+        print(f"Shared list: {list(shared_list)}")
+        print(f"Counter: {counter.value}")
+```
+
+`manager.dict()`, `manager.list()`, and `manager.Value()` create shared objects that all processes can read and write. Changes propagate through the manager process. Note that access is slower than normal Python objects due to inter-process communication overhead.
+
+## Using Pool.apply for Single Tasks
+
+For one-off tasks that should run in a subprocess, `pool.apply()` blocks until the result is ready:
+
+```python
+import multiprocessing
+import time
+
+def slow_computation(x):
+    time.sleep(1)
+    return x * x
+
+if __name__ == "__main__":
+    with multiprocessing.Pool(4) as pool:
+        result = pool.apply(slow_computation, (10,))
+        print(f"Result: {result}")
+```
+
+Since `apply` is synchronous, it is useful when you need the result before continuing. For concurrent execution of multiple tasks, use `apply_async` or `map`.
+
+## Process vs Thread: When to Choose
+
+Choose **multiprocessing** when:
+
+- Your task is CPU-bound and would benefit from multiple cores
+- You need to bypass the GIL for true parallelism
+- You have long-running computations that can be split into independent chunks
+- You are running on a machine with multiple CPU cores
+
+Choose **threading** (see [Threading and the GIL](/courses/advanced-python/concurrency-and-parallelism/threading-gil)) when:
+
+- Your task is I/O-bound (waiting on network, disk, or database)
+- You need simple background tasks with shared memory
+- You want lower overhead than spawning processes
+
+Choose **asyncio** (see [AsyncIO Fundamentals](/courses/advanced-python/concurrency-and-parallelism/asyncio-fundamentals)) when:
+
+- You are handling thousands of concurrent I/O operations
+- You want a single-threaded, event-loop-based approach
+- You prefer explicit async/await syntax over callback-based code
+
+## Common Pitfalls
+
+Never call `pool.map()` on a function defined at module top level in an interactive session or a script that might be imported. Always guard `pool.map()` with `if __name__ == "__main__"` to avoid spawning infinite child processes:
+
+```python
+# Correct pattern: guard the pool usage
+if __name__ == "__main__":
+    with multiprocessing.Pool(4) as pool:
+        results = pool.map(compute, data)
+```
+
+The `if __name__ == "__main__"` guard is required on Windows because Windows lacks the `fork` system call and uses `spawn` instead. On Unix, the guard is still good practice for consistent behavior.
+
+## Summary
+
+- `multiprocessing.Process` spawns separate Python processes, each with its own GIL, enabling true CPU parallelism
+- `multiprocessing.Pool` provides a convenient way to distribute work across multiple processes
+- `Queue`, `Manager.dict()`, and `Manager.Value()` enable inter-process communication and shared state
+- Multiprocessing is the right choice for CPU-bound tasks that need multiple cores
+- The `if __name__ == "__main__"` guard is required on Windows and recommended on all platforms to prevent infinite process spawning

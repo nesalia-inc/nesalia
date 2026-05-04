@@ -1,0 +1,331 @@
+---
+title: "Class Creation Patterns"
+description: "Learn class decorators, __init_subclass__, __set_name__, and best practices for metaprogramming in Python."
+order: 4
+---
+
+# Class Creation Patterns
+
+Beyond metaclasses, Python provides other hooks for controlling class creation and behavior. Class decorators, `__init_subclass__`, and `__set_name__` offer different levels of control for different scenarios. Understanding these tools and when to use each one will make you more effective at writing flexible, reusable code.
+
+## Class Decorators for Modifying Class Behavior
+
+A class decorator is a function that receives a class as an argument and returns a class (usually a modified version of the original). Decorators are applied after the class is created (after `__new__` and `__init__` in the metaclass), making them a lighter-weight alternative to metaclasses for many use cases.
+
+Here is a decorator that adds a `created` timestamp to any class:
+
+```python
+import datetime
+
+
+def timestamped(cls):
+    original_init = cls.__init__
+
+    def new_init(self, *args, **kwargs):
+        self.created_at = datetime.datetime.now()
+        original_init(self, *args, **kwargs)
+
+    cls.__init__ = new_init
+    return cls
+
+
+@timestamped
+class Person:
+    def __init__(self, name):
+        self.name = name
+
+
+person = Person("Alice")
+print(f"Person created at: {person.created_at}")
+print(f"Person name: {person.name}")
+```
+
+Output:
+
+```
+Person created at: 2024-01-15 10:30:45.123456
+Person name: Alice
+```
+
+The `timestamped` decorator wraps the original `__init__` method, adding a timestamp before calling the original init. Notice how we only needed to add `@timestamped` above the class definition to enable this feature. This is cleaner than using a metaclass for the same purpose.
+
+## Adding Multiple Features with Decorators
+
+Decorators can compose together, allowing you to combine multiple behaviors. Here is a decorator that adds validation to class methods:
+
+```python
+def validate_positive(attr_name):
+    def decorator(cls):
+        original_setattr = cls.__setattr__
+
+        def new_setattr(self, name, value):
+            if name == attr_name and value < 0:
+                raise ValueError(f"{attr_name} must be positive, got {value}")
+            original_setattr(self, name, value)
+
+        cls.__setattr__ = new_setattr
+        return cls
+    return decorator
+
+
+@validate_positive('amount')
+class Transaction:
+    def __init__(self, amount):
+        self.amount = amount
+
+
+t = Transaction(100)
+print(f"Transaction amount: {t.amount}")
+
+t.amount = 50
+print(f"Updated amount: {t.amount}")
+
+try:
+    t.amount = -10
+except ValueError as e:
+    print(f"Validation error: {e}")
+```
+
+Output:
+
+```
+Transaction amount: 100
+Updated amount: 50
+Validation error: amount must be positive, got -10
+```
+
+The `validate_positive` decorator factory takes an attribute name and returns a decorator that wraps `__setattr__` to validate that the attribute is never set to a negative value. This allows validation to be added declaratively with just `@validate_positive('amount')`.
+
+## Combining Decorators and Metaclasses
+
+Sometimes a problem calls for both metaclasses and decorators. When you use both, the metaclass creates the class first, then the decorator modifies it. This layering lets you use metaclasses for class-level configuration (like registry management) and decorators for instance-level modifications.
+
+```python
+class RegistryMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        cls = super().__new__(mcs, name, bases, namespace)
+        if hasattr(cls, '_registry'):
+            cls._registry[name.lower()] = cls
+        return cls
+
+
+def log_creation(cls):
+    original_init = cls.__init__
+
+    def logged_init(self, *args, **kwargs):
+        print(f"Creating instance of {cls.__name__}")
+        return original_init(self, *args, **kwargs)
+
+    cls.__init__ = logged_init
+    return cls
+
+
+class RegisteredClass(metaclass=RegistryMeta):
+    _registry = {}
+
+
+@log_creation
+class User(RegisteredClass):
+    pass
+
+
+@log_creation
+class Product(RegisteredClass):
+    pass
+
+
+user = User()
+product = Product()
+print(f"Registry keys: {list(RegisteredClass._registry.keys())}")
+```
+
+Output:
+
+```
+Creating instance of User
+Creating instance of Product
+Registry keys: ['user', 'product']
+```
+
+The `RegistryMeta` metaclass automatically registers classes in a registry as they are created. The `log_creation` decorator then wraps `__init__` to print a message each time an instance is created. Both mechanisms work together, with the metaclass running first to register the class, then the decorator modifying the class for instance logging.
+
+## `__init_subclass__` for Automatic Subclass Registration
+
+The `__init_subclass__` method is called automatically when a class becomes a subclass of your class. It receives the new subclass as its first argument, allowing you to register or modify subclasses automatically without a metaclass. This method is simpler than metaclasses for many common patterns.
+
+Here is how you can use `__init_subclass__` to automatically register subclasses:
+
+```python
+class Plugin:
+    _plugins = {}
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if hasattr(cls, 'name'):
+            Plugin._plugins[cls.name] = cls
+            print(f"Registered plugin: {cls.name}")
+
+    @classmethod
+    def get_plugin(cls, name):
+        return cls._plugins.get(name)
+
+
+class TextPlugin(Plugin):
+    name = "text"
+
+    def process(self, data):
+        return data.upper()
+
+
+class JSONPlugin(Plugin):
+    name = "json"
+
+    def process(self, data):
+        return f'{{"data": "{data}"}}'
+
+
+print(f"Available plugins: {list(Plugin._plugins.keys())}")
+text = Plugin.get_plugin("text")
+print(f"Text plugin: {text.__name__}")
+```
+
+Output:
+
+```
+Registered plugin: text
+Registered plugin: json
+Available plugins: ['text', 'json']
+Text plugin: TextPlugin
+```
+
+When `class TextPlugin(Plugin)` is defined, Python automatically calls `Plugin.__init_subclass__(TextPlugin)`. This happens as part of the class creation process, before the class body finishes executing. This lets `__init_subclass__` capture the subclass and register it in the `_plugins` dictionary.
+
+The `__init_subclass__` method is preferred over metaclass for registration patterns because it is simpler, more readable, and does not require creating a metaclass. It runs automatically whenever a class inherits from your class.
+
+## Using `__init_subclass__` with Configuration Options
+
+You can pass keyword arguments through the class definition to configure subclasses:
+
+```python
+class TableColumn:
+    def __init__(self, column_type, nullable=True):
+        self.column_type = column_type
+        self.nullable = nullable
+
+
+class TableMeta(type):
+    def __new__(mcs, name, bases, namespace):
+        columns = {}
+        for attr_name, attr_value in namespace.items():
+            if isinstance(attr_value, TableColumn):
+                columns[attr_name] = attr_value
+        namespace['_columns'] = columns
+        return super().__new__(mcs, name, bases, namespace)
+
+
+class DatabaseTable(metaclass=TableMeta):
+    pass
+
+
+class User(DatabaseTable):
+    id = TableColumn("INTEGER", nullable=False)
+    name = TableColumn("VARCHAR(100)")
+    email = TableColumn("VARCHAR(255)")
+
+
+print(f"Table: User")
+for col_name, col_def in User._columns.items():
+    nullable_str = "" if col_def.nullable else " NOT NULL"
+    print(f"  {col_name}: {col_def.column_type}{nullable_str}")
+```
+
+Output:
+
+```
+Table: User
+  id: INTEGER NOT NULL
+  name: VARCHAR(100)
+  email: VARCHAR(255)
+```
+
+This example combines a metaclass with a helper class to create a simple declarative schema definition. The `TableColumn` class holds column metadata, and the `TableMeta` metaclass collects them into a `_columns` dictionary. When defining `User`, each column is just a class attribute with the right configuration.
+
+## `__set_name__` for Descriptor Initialization
+
+A descriptor is an object that implements one or more of the `__get__`, `__set__`, or `__delete__` special methods. Descriptors allow you to customize how attribute access works. The `__set_name__` method is called automatically when a descriptor is assigned to a class attribute, passing the owner class and the attribute name.
+
+Here is a descriptor that validates a value range:
+
+```python
+class RangeValidator:
+    def __init__(self, min_value=None, max_value=None):
+        self.min_value = min_value
+        self.max_value = max_value
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return getattr(obj, f'_{self.name}', None)
+
+    def __set__(self, obj, value):
+        if self.min_value is not None and value < self.min_value:
+            raise ValueError(f"{self.name} must be >= {self.min_value}, got {value}")
+        if self.max_value is not None and value > self.max_value:
+            raise ValueError(f"{self.name} must be <= {self.max_value}, got {value}")
+        setattr(obj, f'_{self.name}', value)
+
+
+class Temperature:
+    celsius = RangeValidator(min_value=-273.15)
+
+    def __init__(self, celsius):
+        self.celsius = celsius
+
+    def to_fahrenheit(self):
+        return self.celsius * 9 / 5 + 32
+
+
+temp = Temperature(25)
+print(f"Temperature: {temp.celsius}°C = {temp.to_fahrenheit()}°F")
+
+try:
+    temp.celsius = -300
+except ValueError as e:
+    print(f"Error: {e}")
+```
+
+Output:
+
+```
+Temperature: 25°C = 77°F
+Error: celsius must be >= -273.15, got -300
+```
+
+The `RangeValidator` descriptor implements `__set_name__` to receive the attribute name ("celsius") when the class is created. When any code tries to set `temp.celsius = -300`, the descriptor's `__set__` method validates against the minimum and raises a ValueError if the value is out of range. This lets you attach validation logic directly to class attributes.
+
+## Best Practices for Metaprogramming
+
+Metaprogramming in Python is powerful but can also make code harder to understand. Here are guidelines for using these techniques effectively:
+
+**Prefer simpler solutions first.** If a regular class, function, or decorator can solve your problem, use that instead of metaclasses. Metaclasses add complexity and should be reserved for cases where you genuinely need to control class creation itself.
+
+**Document metaclass usage clearly.** When a class uses a custom metaclass, mention it in the docstring. Readers of your code may not expect class creation to have side effects.
+
+**Avoid relying on complex metaclass chains.** Multiple metaclasses can interact in unexpected ways. If you find yourself needing more than one metaclass, consider whether a simpler pattern would work better.
+
+**Use `__init_subclass__` for registration when possible.** It is easier to understand than a full metaclass and works well for most subclass registration scenarios.
+
+**Be careful with descriptor validation.** Descriptors like `__set_name__` work at the class level, so their behavior can surprise readers who are not familiar with descriptors. Add clear documentation when using them.
+
+**Test metaprogramming code thoroughly.** Side effects from metaclasses, decorators, and descriptors can be hard to predict. Write tests that cover the generated classes and behaviors.
+
+## This Connects To
+
+- `__init__` and `__new__` (covered earlier in this chapter) provide instance-level control, while these patterns work at the class level
+- The descriptors section of this course covers `__get__`, `__set__`, and `__delete__` in more detail
+- Metaclasses (the previous section) are the most powerful but also the most complex option, and `__init_subclass__` often serves as a simpler alternative
+
+These class creation patterns give you different levels of control: decorators modify classes after creation, `__init_subclass__` responds to subclassing, `__set_name__` helps descriptors know themselves, and metaclasses control the very creation of class objects.
