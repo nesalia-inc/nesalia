@@ -55,12 +55,12 @@ export default async function HomePage() {
             </div>
             <CardTitle>Advanced Python</CardTitle>
             <CardDescription>
-              Master advanced Python concepts and patterns.
+              Master advanced Python programming techniques including decorators, metaclasses, type annotations, concurrency patterns, and production best practices.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link href="/courses/advanced-python">
+              <Link href="/courses/advanced-python/advanced-functions/decorators">
                 Start Course
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
