@@ -68,7 +68,7 @@ const Hero1 = (props: Props) => {
 
   return (
     <section className={cn("py-32", className)}>
-      <div className="container mx-auto">
+      <div className="container mx-auto border-x border-border px-2">
         <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
             {badge && (
@@ -119,7 +119,7 @@ export { Hero1 };
 
 export default function ModernPythonArchitect() {
   return (
-    <div className="flex flex-1 flex-col border-x border-border px-2">
+    <div className="flex flex-1 flex-col">
       <Hero1 />
     </div>
   );
