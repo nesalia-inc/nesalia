@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,15 +8,6 @@ interface Image {
   src: string;
   alt: string;
   srcDark?: string;
-}
-interface Button {
-  text: string;
-  url: string;
-  icon?: React.ReactNode;
-}
-interface Buttons {
-  primary?: Button;
-  secondary?: Button;
 }
 interface Badge {
   text: string;
@@ -28,7 +19,6 @@ interface HeroBasicProps {
   badge?: Badge;
   heading: string;
   description: string;
-  buttons?: Buttons;
   image?: Image;
   className?: string;
 }
@@ -44,16 +34,6 @@ const defaultProps: Hero1Props = {
   heading: "Modern Python Architect",
   description:
     "A comprehensive guide to building scalable, maintainable, and robust Python applications. Learn advanced patterns, architectural best practices, and production-ready techniques.",
-  buttons: {
-    primary: {
-      text: "Get Early Access",
-      url: "/signup",
-    },
-    secondary: {
-      text: "Sign In to Continue",
-      url: "/login",
-    },
-  },
   image: {
     src: "",
     alt: "Hero image placeholder",
@@ -83,24 +63,17 @@ const Hero1 = (props: Props) => {
             {description}
           </p>
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
-            {buttons?.primary && (
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <a href={buttons.primary.url}>
-                  {buttons.primary.text}
-                  <ArrowRight className="size-4" />
-                </a>
-              </Button>
-            )}
-            {buttons?.secondary && (
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                <a href={buttons.secondary.url}>{buttons.secondary.text}</a>
-              </Button>
-            )}
+            <Button size="lg" className="w-full sm:w-auto" disabled>
+              Coming Soon
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled
+            >
+              Coming Soon
+            </Button>
           </div>
         </div>
         {image && (
