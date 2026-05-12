@@ -104,7 +104,7 @@ export default function Articles() {
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
               {article.excerpt}
             </p>
-            <div className="mt-4 -mr-8 -mb-8 ml-4 aspect-video -rotate-3 overflow-hidden transition-transform duration-300 group-hover:-rotate-1 group-hover:scale-105">
+            <div className="mt-4 -mr-8 -mb-8 ml-4 aspect-video -rotate-3 overflow-hidden transition-transform rounded-md border duration-300 group-hover:-rotate-1 group-hover:scale-105">
               <CodeBlock code={article.code} />
             </div>
           </Link>
