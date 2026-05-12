@@ -8,7 +8,7 @@ export default function UnprotectedLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
-      <div className="border border-border px-2 py-24 mx-auto w-full max-w-6xl flex-1 flex items-center">
+      <div className="border border-border px-2 my-24 mx-auto w-full max-w-6xl flex-1 flex items-center">
         {children}
       </div>
     </div>
