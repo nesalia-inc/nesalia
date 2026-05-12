@@ -9,7 +9,7 @@ export default function UnprotectedLayout({
     <>
       <AppHeader />
       <div className="border-x border-border px-2">
-        <div className="max-w-5xl">
+        <div className="mx-auto w-full max-w-5xl">
           {children}
         </div>
       </div>
