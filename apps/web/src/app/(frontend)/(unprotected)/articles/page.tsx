@@ -84,7 +84,7 @@ export default function Articles() {
       <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 lg:gap-16">
         <img
           alt={featuredArticle.title}
-          className="aspect-video rounded-lg object-cover"
+          className="aspect-[2/1] w-full rounded-lg object-cover"
           src={featuredArticle.image}
         />
         <div className="flex flex-col items-start gap-4">
@@ -98,7 +98,7 @@ export default function Articles() {
         </div>
       </div>
 
-      <p className="text-xl font-medium md:text-2xl">Popular Posts</p>
+      <p className="border-t pt-8 text-xl font-medium md:text-2xl">Popular Posts</p>
 
       <div className="grid grid-cols-1 divide-x divide-y md:grid-cols-2 lg:grid-cols-3">
         {articles.map((article) => (
