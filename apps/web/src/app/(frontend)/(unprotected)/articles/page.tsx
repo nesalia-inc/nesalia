@@ -76,7 +76,7 @@ export default function Articles() {
         </p>
       </div>
 
-      <div className="grid gap-6 border-t px-6 py-10 sm:px-10 sm:py-12 md:grid-cols-3">
+      <div className="grid border-t px-6 py-10 divide-x divide-y sm:px-10 sm:py-12 md:grid-cols-3">
         {articles.map((article) => (
           <Link
             key={article.slug}
