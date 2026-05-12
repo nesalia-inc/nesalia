@@ -46,11 +46,11 @@ const defaultProps: Hero1Props = {
     "A comprehensive guide to building scalable, maintainable, and robust Python applications. Learn advanced patterns, architectural best practices, and production-ready techniques.",
   buttons: {
     primary: {
-      text: "Sign Up",
+      text: "Get Early Access",
       url: "/signup",
     },
     secondary: {
-      text: "Login",
+      text: "Sign In to Continue",
       url: "/login",
     },
   },
@@ -67,7 +67,7 @@ const Hero1 = (props: Props) => {
   };
 
   return (
-    <section className={cn("flex h-full items-center justify-center", className)}>
+    <section className={cn("flex h-full items-center justify-center px-4", className)}>
       <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
         <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
           {badge && (
@@ -76,10 +76,10 @@ const Hero1 = (props: Props) => {
               <ArrowUpRight className="size-4" />
             </Badge>
           )}
-          <h1 className="max-w-xl lg:max-w-3xl text-4xl font-semibold tracking-tight text-pretty md:text-5xl lg:text-6xl">
+          <h1 className="max-w-xl lg:max-w-3xl text-3xl font-semibold tracking-tight text-pretty md:text-4xl lg:text-5xl">
             {heading}
           </h1>
-          <p className="max-w-5xl text-balance text-muted-foreground lg:text-xl">
+          <p className="max-w-5xl text-balance text-sm text-muted-foreground md:text-base lg:text-lg">
             {description}
           </p>
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
