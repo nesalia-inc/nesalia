@@ -1,150 +1,57 @@
 ---
-title: "What is Python? History and Use Cases"
-description: "Learn about Python's origins, philosophy, and the wide range of applications it powers today."
+title: "What is Python?"
+description: "Learn what Python is and why it is a great language for beginners."
 order: 1
 ---
 
 # What is Python?
 
-Python is a high-level, interpreted programming language that prioritizes code readability and simplicity. Guido van Rossum created Python and released it in 1991, designing it around a philosophy that makes programming accessible and enjoyable.
+Python is a programming language that lets you write instructions for your computer. When you learn Python, you can tell the computer to solve problems, automate tasks, and build applications.
 
-## The Zen of Python
+## Why We Use Python
 
-Python's design philosophy appears in 19 guiding principles called "The Zen of Python." We access these principles by running `import this` in any Python interpreter:
+Python exists because we needed a language that humans could read easily. Unlike languages designed for computers to process quickly, Python prioritizes being understandable by people.
 
-```python
-import this
-```
-
-This outputs principles including:
-- Beautiful is better than ugly
-- Explicit is better than implicit
-- Simple is better than complex
-- Readability counts
+When you write Python code, it looks similar to plain English. This makes it easier to learn programming concepts without fighting complicated syntax.
 
 ## What We Build with Python
 
-Python powers applications across the industry:
+Python handles many different tasks:
 
-- **Google** — Core infrastructure, automation, and AI research
-- **Spotify** — Backend services and data analysis
-- **Netflix** — Content delivery and recommendation systems
-- **Instagram** — Web framework backend
-- **NASA** — Scientific computing and space exploration
-- **Dropbox** — Desktop client and server infrastructure
+**Web applications** — Websites and online services run on Python. Companies use it to process data, handle user requests, and manage databases.
 
-## Primary Use Cases
+**Automation scripts** — Python can perform repetitive tasks automatically. You can write a script to rename hundreds of files, extract information from documents, or send scheduled emails.
 
-### Web Development
+**Data analysis** — Python processes and analyzes data. Scientists, analysts, and researchers use it to find patterns and make decisions from large datasets.
 
-We build robust web applications using frameworks like Django, Flask, and FastAPI:
+**Simple programs** — Python builds tools, games, and utilities. You can create anything from a calculator to a small game.
 
-```python
-from flask import Flask
+## Python Feels Natural
 
-app = Flask(__name__)
-
-@app.route("/")
-def hello():
-    return "Hello, World!"
-
-app.run(debug=True)
-```
-
-### Data Science and Machine Learning
-
-Python dominates data analysis through libraries like pandas, NumPy, and scikit-learn:
+Python reads like instructions rather than code. Compare how we tell a computer to display a message:
 
 ```python
-import pandas as pd
-
-data = pd.DataFrame({
-    "product": ["Widget A", "Widget B", "Widget C"],
-    "sales": [150, 230, 89],
-    "price": [29.99, 49.99, 19.99]
-})
-
-total_revenue = (data["sales"] * data["price"]).sum()
-print(f"Total revenue: ${total_revenue:.2f}")
+print("Hello, World!")
 ```
 
-### Automation and Scripting
+The word `print` means "display on screen." The quotes around "Hello, World!" mark the text we want to show. You do not need special symbols or complex structure.
 
-We use Python to automate repetitive tasks efficiently:
+## Your First Line of Code
+
+You already saw a Python instruction above. The `print` function displays text. We use quotes to mark text as a string, which means a sequence of characters.
 
 ```python
-import shutil
-import os
-from datetime import datetime
-
-def backup_file(source_path, destination_folder):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_name = f"backup_{timestamp}"
-    shutil.copy2(source_path, f"{destination_folder}/{backup_name}")
-    print(f"Backed up {source_path} to {destination_folder}")
+print("Hello, World!")
 ```
 
-### Software Testing
+This outputs:
 
-We write automated tests using frameworks like pytest:
-
-```python
-import pytest
-
-def add_numbers(a, b):
-    return a + b
-
-def test_add_positive_numbers():
-    assert add_numbers(2, 3) == 5
-
-def test_add_negative_numbers():
-    assert add_numbers(-1, -1) == -2
-
-def test_add_mixed_numbers():
-    assert add_numbers(5, -3) == 2
+```
+Hello, World!
 ```
 
-### Game Development
+You run this instruction, and the computer responds by showing the text.
 
-We create games using libraries like Pygame:
+## What Comes Next
 
-```python
-import pygame
-
-pygame.init()
-screen = pygame.display.set_mode((400, 300))
-pygame.display.set_caption("My First Game")
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    screen.fill((100, 149, 237))  # Cornflower blue
-    pygame.display.flip()
-
-pygame.quit()
-```
-
-## Why Python Works Well
-
-| Feature | Benefit |
-|---------|---------|
-| **Readable syntax** | Code stays easy to read and maintain |
-| **Gentle learning curve** | We learn programming concepts without syntax overload |
-| **Large community** | Extensive documentation and support exist |
-| **Versatile ecosystem** | Libraries handle almost any task |
-| **High demand** | Strong job market for Python developers |
-
-## Our First Python Code
-
-Python lets us express ideas directly:
-
-```python
-print("Welcome to Python!")
-
-message = "Python makes programming fun!"
-print(message)
-```
-
-We write minimal boilerplate compared to other languages, letting us focus on solving problems rather than managing syntax.
+Now that you understand what Python is, you will set up your computer to write Python code. Then you will write your first script and see how Python processes your instructions.
