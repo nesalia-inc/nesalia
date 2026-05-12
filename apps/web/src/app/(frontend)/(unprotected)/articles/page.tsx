@@ -7,7 +7,7 @@ const articles = [
 
 export default function Articles() {
   return (
-    <div className="flex flex-1 flex-col gap-4 py-12">
+    <div className="flex flex-1 flex-col gap-4 py-12 w-full">
       <h1 className="text-3xl font-bold">Articles</h1>
       <ul className="flex flex-col gap-2">
         {articles.map((article) => (

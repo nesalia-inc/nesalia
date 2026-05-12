@@ -40,7 +40,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center py-12">
+    <div className="flex flex-1 justify-center py-12">
       <div className="mx-auto w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
