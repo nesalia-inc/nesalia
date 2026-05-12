@@ -8,7 +8,7 @@ export default function UnprotectedLayout({
   return (
     <>
       <AppHeader />
-      <div className="max-w-5xl mx-auto flex flex-1 items-center border-x border-border px-2">
+      <div className="max-w-5xl mx-auto flex flex-1 items-stretch border-x border-border px-2">
         {children}
       </div>
     </>
