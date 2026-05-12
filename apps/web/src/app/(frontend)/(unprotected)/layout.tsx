@@ -1,6 +1,5 @@
 import { AppHeader } from '@/components/headers';
 
-
 export default function UnprotectedLayout({
   children,
 }: Readonly<{
@@ -9,8 +8,9 @@ export default function UnprotectedLayout({
   return (
     <>
       <AppHeader />
-
-          {children}
+      <div className="max-w-5xl mx-auto flex flex-1 items-center border-x border-border px-2">
+        {children}
+      </div>
     </>
   );
 }
