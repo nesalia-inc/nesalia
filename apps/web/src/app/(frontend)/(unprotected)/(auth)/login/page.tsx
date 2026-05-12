@@ -40,7 +40,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex items-center justify-center py-12 w-full">
+    <div className="flex h-full items-center justify-center py-12 w-full">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
@@ -86,7 +86,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="flex flex-1 items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+    <Suspense fallback={<div className="flex h-full items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
       <LoginForm />
     </Suspense>
   )
