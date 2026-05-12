@@ -81,7 +81,7 @@ export default function Articles() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 lg:gap-16">
+      <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 lg:gap-16">
         <img
           alt={featuredArticle.title}
           className="aspect-[2/1] w-full rounded-lg object-cover"
@@ -96,7 +96,7 @@ export default function Articles() {
             {featuredArticle.excerpt}
           </p>
         </div>
-      </div>
+      </Link>
 
       <p className="border-t pt-8 text-xl font-medium md:text-2xl">Popular Posts</p>
 
