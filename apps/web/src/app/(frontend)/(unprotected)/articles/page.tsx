@@ -70,7 +70,7 @@ const articles = [
 
 export default function Articles() {
   return (
-    <div className="flex flex-1 flex-col gap-16 py-12">
+    <div className="flex flex-1 flex-col gap-12 py-12">
       <div className="text-center">
         <h1 className="text-3xl font-medium md:text-4xl lg:text-5xl">
           Insights and Trends Blog
@@ -81,46 +81,46 @@ export default function Articles() {
         </p>
       </div>
 
-      <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 lg:gap-16">
-        <img
-          alt={featuredArticle.title}
-          className="aspect-[2/1] w-full rounded-lg object-cover"
-          src={featuredArticle.image}
-        />
-        <div className="flex flex-col items-start gap-4">
-          <Badge variant="secondary">{featuredArticle.category}</Badge>
-          <h2 className="text-xl font-semibold text-balance md:max-w-lg lg:text-2xl">
-            {featuredArticle.title}
-          </h2>
-          <p className="text-sm text-muted-foreground md:max-w-lg">
-            {featuredArticle.excerpt}
-          </p>
-        </div>
-      </Link>
-
-      <p className="border-t pt-8 text-xl font-medium md:text-2xl">Popular Posts</p>
-
-      <div className="grid grid-cols-1 divide-x divide-y md:grid-cols-2 lg:grid-cols-3">
-        {articles.map((article) => (
-          <Link
-            key={article.slug}
-            href={`/articles/${article.slug}`}
-            className="flex flex-col items-start gap-3 p-4 transition-colors hover:bg-muted/50"
-          >
-            <img
-              alt={article.title}
-              className="aspect-[2/1] w-full rounded-lg object-cover"
-              src={article.image}
-            />
-            <Badge variant="secondary">{article.category}</Badge>
-            <h3 className="text-base font-semibold text-balance md:max-w-md">
-              {article.title}
-            </h3>
-            <p className="text-sm text-muted-foreground md:max-w-md">
-              {article.excerpt}
+      <div className="grid grid-cols-1 divide-y">
+        <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 p-4 md:grid-cols-2 lg:gap-16">
+          <img
+            alt={featuredArticle.title}
+            className="aspect-[2/1] w-full rounded-lg object-cover"
+            src={featuredArticle.image}
+          />
+          <div className="flex flex-col items-start gap-4">
+            <Badge variant="secondary">{featuredArticle.category}</Badge>
+            <h2 className="text-xl font-semibold text-balance md:max-w-lg lg:text-2xl">
+              {featuredArticle.title}
+            </h2>
+            <p className="text-sm text-muted-foreground md:max-w-lg">
+              {featuredArticle.excerpt}
             </p>
-          </Link>
-        ))}
+          </div>
+        </Link>
+
+        <div className="grid grid-cols-1 divide-x divide-y md:grid-cols-2 lg:grid-cols-3">
+          {articles.map((article) => (
+            <Link
+              key={article.slug}
+              href={`/articles/${article.slug}`}
+              className="flex flex-col items-start gap-3 p-4 transition-colors hover:bg-muted/50"
+            >
+              <img
+                alt={article.title}
+                className="aspect-[2/1] w-full rounded-lg object-cover"
+                src={article.image}
+              />
+              <Badge variant="secondary">{article.category}</Badge>
+              <h3 className="text-base font-semibold text-balance md:max-w-md">
+                {article.title}
+              </h3>
+              <p className="text-sm text-muted-foreground md:max-w-md">
+                {article.excerpt}
+              </p>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
