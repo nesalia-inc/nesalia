@@ -1,67 +1,84 @@
 "use client"
 
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "@/components/code-block";
-
-const featuredArticle = {
-  slug: "ai-future-tech",
-  title: "Exploring the Future of AI in Modern Technology Trends",
-  excerpt:
-    "Discover how AI is transforming industries and learn about the latest advancements in artificial intelligence.",
-  category: "Technology",
-  date: "2026-05-01",
-  image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
-};
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { CodeBlock } from "@/components/code-block"
 
 const articles = [
   {
     slug: "slack-agent",
-    title: "Slack Agent Guide",
+    title: "Slack Bot with Python",
     excerpt:
-      "Stream agent responses and tool calls into Slack threads.",
-    category: "AI Agents",
+      "Build AI agents that stream responses to Slack channels.",
+    category: "Python",
     date: "2026-05-10",
-    code: `bot.onNewMention(async (thread, msg) => {
-  await thread.subscribe();
-  const result = await agent.stream({
-    prompt: msg.text,
-  });
-  await thread.post(result.fullStream);
-});`,
+    code: `async def on_mention(thread, msg):
+    await thread.subscribe()
+    result = await agent.stream(prompt=msg.text)
+    await thread.post(result.full_stream)`,
   },
   {
     slug: "knowledge-agent",
-    title: "Knowledge Agent Template",
+    title: "RAG Knowledge Base Agent",
     excerpt:
-      "Answer questions from synced docs and repos with file-system search.",
-    category: "AI Agents",
+      "Build a retrieval-augmented generation system for document Q&A.",
+    category: "Python",
     date: "2026-05-08",
-    code: `const { text } = await generateText({
-  model,
-  tools: savoir.tools,
-  maxSteps: 10,
-  prompt: "How do I configure auth?",
-});`,
+    code: `response = await generate_text(
+    model=model,
+    tools=savoir.tools,
+    max_steps=10,
+    prompt=user_query,
+)`,
   },
   {
     slug: "code-review",
-    title: "Code Review Bot Guide",
+    title: "GitHub PR Review Bot",
     excerpt:
-      "Review pull requests with sandboxed AI analysis on GitHub.",
-    category: "AI Agents",
+      "Automate code reviews with AI using GitHub API and LangChain.",
+    category: "Python",
     date: "2026-05-06",
-    code: `const { data: pr } = await octokit.pulls.get({
-  owner, repo, pull_number,
-});
-await thread.post("Starting code review...");
-const review = await reviewPullRequest({
-  owner, repo,
-  prBranch: pr.head.ref,
-});
-await thread.post(review);`,
+    code: `pr_data = await octokit.pulls.get(owner=owner, repo=repo, pull_number=pull_number)
+review = await review_pull_request(pr=pr_data.head.ref)
+await thread.post(review)`,
   },
-];
+  {
+    slug: "fastapi-auth",
+    title: "FastAPI Authentication Guide",
+    excerpt:
+      "Implement secure authentication with FastAPI and JWT tokens.",
+    category: "Python",
+    date: "2026-05-04",
+    code: `async def verify_token(token: str) -> User:
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = payload.get("sub")
+    return await get_user(user_id)`,
+  },
+  {
+    slug: "django-rest",
+    title: "Django REST Framework Patterns",
+    excerpt:
+      "Master serializer patterns and viewset customization in Django.",
+    category: "Python",
+    date: "2026-05-02",
+    code: `class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']`,
+  },
+  {
+    slug: "microservices",
+    title: "Building Python Microservices",
+    excerpt:
+      "Create scalable microservices with FastAPI and Redis.",
+    category: "Python",
+    date: "2026-04-30",
+    code: `@app.post("/process")
+async def process_item(item: Item, background_tasks: BackgroundTasks):
+    background_tasks.add_task(process, item.id)
+    return {"task_id": item.id}`,
+  },
+]
 
 export default function Articles() {
   return (
@@ -94,5 +111,5 @@ export default function Articles() {
         ))}
       </div>
     </div>
-  );
+  )
 }
