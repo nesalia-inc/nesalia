@@ -119,7 +119,7 @@ export { Hero1 };
 
 export default function ModernPythonArchitect() {
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col border-x border-border px-2">
       <Hero1 />
     </div>
   );
