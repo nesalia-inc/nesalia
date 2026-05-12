@@ -67,8 +67,11 @@ export function AppHeader() {
               loading="eager"
             />
           </Link>
-          <Link href="/courses" className="text-sm text-muted-foreground hover:text-foreground">
-            Courses
+          <Link href="/articles" className="text-sm text-muted-foreground hover:text-foreground">
+            Articles
+          </Link>
+          <Link href="/modern-python-architect" className="text-sm text-muted-foreground hover:text-foreground">
+            Book
           </Link>
         </div>
         <nav className="flex items-center gap-2">
