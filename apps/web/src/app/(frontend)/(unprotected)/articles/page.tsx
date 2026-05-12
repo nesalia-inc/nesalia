@@ -82,7 +82,7 @@ export default function Articles() {
       </div>
 
       <div className="grid grid-cols-1 divide-y">
-        <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 p-4 md:grid-cols-2 lg:gap-16">
+        <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 border-t p-4 md:grid-cols-2 lg:gap-16">
           <img
             alt={featuredArticle.title}
             className="aspect-[2/1] w-full rounded-lg object-cover"
