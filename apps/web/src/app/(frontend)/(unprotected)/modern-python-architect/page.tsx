@@ -67,8 +67,8 @@ const Hero1 = (props: Props) => {
   };
 
   return (
-    <section className={cn("flex flex-1 border-x border-border px-2", className)}>
-      <div className="container mx-auto flex flex-1 items-center">
+    <section className={cn("flex flex-1", className)}>
+      <div className="container mx-auto flex flex-1 items-center border-x border-border px-2">
         <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
             {badge && (
