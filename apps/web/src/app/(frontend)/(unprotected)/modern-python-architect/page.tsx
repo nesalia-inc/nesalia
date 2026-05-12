@@ -52,7 +52,7 @@ const Hero1 = (props: Props) => {
         <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
           {badge && (
             <Badge variant="outline">
-              <span className="mr-1.5 inline-block size-2 rounded-full bg-orange-500" />
+              <span className="mr-1.5 inline-block size-2 rounded-full bg-amber-500" />
               {badge.text}
               <ArrowUpRight className="ml-1 size-4" />
             </Badge>
