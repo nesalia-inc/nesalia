@@ -41,7 +41,7 @@ const defaultProps: Hero1Props = {
 };
 
 const Hero1 = (props: Props) => {
-  const { badge, heading, description, buttons, image, className } = {
+  const { badge, heading, description, image, className } = {
     ...defaultProps,
     ...props,
   };
