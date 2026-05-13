@@ -1,6 +1,5 @@
-"use client"
-
 import { ArticleSidebar } from "@/components/sidebar/article-sidebar"
+import 
 import {
   SidebarInset,
   SidebarProvider,
@@ -21,6 +20,7 @@ export default async function ArticlePage({ params }: ArticleProps) {
       <div className="flex flex-1">
         <ArticleSidebar topicSlug={topic_slug} articleSlug={article_slug} />
         <SidebarInset>
+          <AppHeader />
           <div className="flex flex-1 flex-col py-12 px-8">
             <h1 className="text-3xl font-bold">Article: {article_slug}</h1>
             <p className="text-muted-foreground">Topic: {topic_slug}</p>
