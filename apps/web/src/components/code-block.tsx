@@ -14,7 +14,6 @@ export async function CodeBlock({ code, language = "python" }: CodeBlockProps) {
       light: "github-light",
       dark: "github-dark",
     },
-    defaultColor: false,
   });
 
   return (
