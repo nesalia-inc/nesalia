@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 
-type BadgeColor = "violet" | "pink" | "yellow" | "blue" | "orange" | "cyan"
+type BadgeColor = "violet" | "pink" | "yellow" | "blue" | "orange" | "cyan" | "green" | "red"
 
 interface ColoredBadgeProps {
   color: BadgeColor
@@ -15,7 +15,11 @@ const colorClasses: Record<BadgeColor, { text: string; bg: string; border: strin
   blue: { text: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20" },
   orange: { text: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20" },
   cyan: { text: "text-cyan-500", bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
+  green: { text: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/20" },
+  red: { text: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20" },
 }
+
+export type { BadgeColor }
 
 export function ColoredBadge({ color, children, className = "" }: ColoredBadgeProps) {
   const classes = colorClasses[color] ?? colorClasses.violet

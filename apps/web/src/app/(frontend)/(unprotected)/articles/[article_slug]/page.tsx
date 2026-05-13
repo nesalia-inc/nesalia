@@ -2,7 +2,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { MDXContent } from "@/components/markdown/mdx-content";
 import { ChapterNavigation } from "@/components/markdown/chapter-navigation";
-import { ColoredBadge } from "@/components/colored-badge";
+import { ColoredBadge, type BadgeColor } from "@/components/colored-badge";
 import { Button } from "@/components/ui/button";
 import { CodeBlock } from "@/components/code-block";
 
@@ -141,7 +141,7 @@ AI agents represent a powerful paradigm for building autonomous systems. By comb
 const prevArticle = null;
 const nextArticle = { title: "RAG Knowledge Base Agent", href: "/articles/knowledge-agent" };
 
-const categoryColors: Record<string, "violet" | "pink" | "yellow" | "blue" | "orange" | "cyan" | "green" | "red"> = {
+const categoryColors: Record<string, BadgeColor> = {
   LangChain: "yellow",
   FastAPI: "violet",
   Django: "pink",
