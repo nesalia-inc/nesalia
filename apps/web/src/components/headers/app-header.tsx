@@ -67,7 +67,7 @@ export function AppHeader() {
               loading="eager"
             />
           </Link>
-          <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/articles" className="text-sm text-muted-foreground hover:text-foreground">
             Articles
           </Link>
           <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
