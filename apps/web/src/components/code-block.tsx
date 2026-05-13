@@ -10,16 +10,12 @@ interface CodeBlockProps {
 export async function CodeBlock({ code, language = "python" }: CodeBlockProps) {
   const html = await codeToHtml(code, {
     lang: language,
-    themes: {
-      light: "github-light",
-      dark: "github-dark",
-    },
-    defaultColor: false,
+    theme: "github-dark",
   });
 
   return (
     <div
-      className="h-full w-full overflow-hidden bg-background p-3 text-xs leading-relaxed"
+      className="h-full w-full overflow-hidden p-3 text-xs leading-relaxed"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
