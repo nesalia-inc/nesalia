@@ -1,8 +1,6 @@
 import Link from "next/link"
 import { CodeBlock } from "@/components/code-block"
-import { ColoredBadge } from "@/components/colored-badge"
-
-type BadgeColor = "violet" | "pink" | "yellow" | "blue" | "orange" | "cyan"
+import { ColoredBadge, type BadgeColor } from "@/components/colored-badge"
 
 interface Article {
   slug: string

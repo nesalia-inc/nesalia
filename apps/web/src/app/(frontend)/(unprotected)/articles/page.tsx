@@ -2,9 +2,7 @@ import { ArticleCard } from "@/components/article-card"
 import { CodeBlock } from "@/components/code-block"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ColoredBadge } from "@/components/colored-badge"
-
-type BadgeColor = "violet" | "pink" | "yellow" | "blue" | "orange" | "cyan" | "green" | "red"
+import { ColoredBadge, type BadgeColor } from "@/components/colored-badge"
 
 const categoryColors: Record<string, BadgeColor> = {
   FastAPI: "violet",
