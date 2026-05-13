@@ -127,13 +127,13 @@ async def process_item(item: Item, background_tasks: BackgroundTasks):
   },
 ]
 
-export default function Articles() {
+export default function Blog() {
   const featuredBadgeColor = categoryColors[featuredArticle.category] ?? "violet"
 
   return (
     <div className="flex flex-1 flex-col py-2">
       <Link
-        href={`/articles/${featuredArticle.slug}`}
+        href={`/blog/${featuredArticle.slug}`}
         className="group grid border-t border-x gap-8 p-4 md:grid-cols-2"
       >
         <div className="aspect-video -rotate-3 rounded-md border overflow-hidden transition-transform duration-300 group-hover:-rotate-1 group-hover:scale-105">

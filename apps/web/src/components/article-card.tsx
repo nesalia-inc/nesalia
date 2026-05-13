@@ -31,7 +31,7 @@ export function ArticleCard({ article }: ArticleCardProps) {
 
   return (
     <Link
-      href={`/articles/${article.slug}`}
+      href={`/blog/${article.slug}`}
       className="group flex flex-col overflow-hidden border-y last:border-r bg-background p-4 transition-colors hover:bg-muted/40"
     >
       <div className="flex items-center justify-between gap-2">

@@ -139,7 +139,7 @@ AI agents represent a powerful paradigm for building autonomous systems. By comb
 };
 
 const prevArticle = null;
-const nextArticle = { title: "RAG Knowledge Base Agent", href: "/articles/knowledge-agent" };
+const nextArticle = { title: "RAG Knowledge Base Agent", href: "/blog/knowledge-agent" };
 
 const categoryColors: Record<string, BadgeColor> = {
   LangChain: "yellow",
@@ -154,9 +154,9 @@ export default async function ArticlePage({ params }: ArticleProps) {
 
   return (
     <div className="flex flex-1 flex-col py-12 mx-auto max-w-3xl">
-      <Link href="/articles" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-1">
+      <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground mb-8 inline-flex items-center gap-1">
         <ArrowLeft className="h-4 w-4" />
-        Back to Articles
+        Back to Blog
       </Link>
 
       <div className="mb-12 pb-12 border-b text-center">
