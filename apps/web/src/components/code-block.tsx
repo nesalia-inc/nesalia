@@ -7,7 +7,7 @@ interface CodeBlockProps {
   language?: string;
 }
 
-export async function CodeBlock({ code, language = "typescript" }: CodeBlockProps) {
+export async function CodeBlock({ code, language = "python" }: CodeBlockProps) {
   const html = await codeToHtml(code, {
     lang: language,
     themes: {
