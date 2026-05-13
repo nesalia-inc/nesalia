@@ -25,11 +25,8 @@ export default function Home() {
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
             <Button asChild size="lg">
               <Link href="/login">
-                Start Learning <ArrowRight className="size-4" />
+                Start Now <ArrowRight className="size-4" />
               </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/articles">View Courses</Link>
             </Button>
           </div>
         </div>
