@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,15 +8,6 @@ interface Image {
   src: string;
   alt: string;
   srcDark?: string;
-}
-interface Button {
-  text: string;
-  url: string;
-  icon?: React.ReactNode;
-}
-interface Buttons {
-  primary?: Button;
-  secondary?: Button;
 }
 interface Badge {
   text: string;
@@ -28,7 +19,6 @@ interface HeroBasicProps {
   badge?: Badge;
   heading: string;
   description: string;
-  buttons?: Buttons;
   image?: Image;
   className?: string;
 }
@@ -44,16 +34,6 @@ const defaultProps: Hero1Props = {
   heading: "Modern Python Architect",
   description:
     "A comprehensive guide to building scalable, maintainable, and robust Python applications. Learn advanced patterns, architectural best practices, and production-ready techniques.",
-  buttons: {
-    primary: {
-      text: "Sign Up",
-      url: "/signup",
-    },
-    secondary: {
-      text: "Login",
-      url: "/login",
-    },
-  },
   image: {
     src: "",
     alt: "Hero image placeholder",
@@ -61,46 +41,40 @@ const defaultProps: Hero1Props = {
 };
 
 const Hero1 = (props: Props) => {
-  const { badge, heading, description, buttons, image, className } = {
+  const { badge, heading, description, image, className } = {
     ...defaultProps,
     ...props,
   };
 
   return (
-    <section className={cn("flex h-full items-center justify-center", className)}>
+    <section className={cn("flex h-full items-center justify-center px-4", className)}>
       <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
         <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
           {badge && (
             <Badge variant="outline">
+              <span className="mr-1.5 inline-block size-2 rounded-full bg-amber-500" />
               {badge.text}
-              <ArrowUpRight className="size-4" />
+              <ArrowUpRight className="ml-1 size-4" />
             </Badge>
           )}
-          <h1 className="max-w-xl lg:max-w-3xl text-4xl font-semibold tracking-tight text-pretty md:text-5xl lg:text-6xl">
+          <h1 className="max-w-xl lg:max-w-3xl text-3xl font-semibold tracking-tight text-pretty md:text-4xl lg:text-5xl">
             {heading}
           </h1>
-          <p className="max-w-5xl text-balance text-muted-foreground lg:text-xl">
+          <p className="max-w-5xl text-balance text-sm text-muted-foreground md:text-base lg:text-lg">
             {description}
           </p>
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
-            {buttons?.primary && (
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <a href={buttons.primary.url}>
-                  {buttons.primary.text}
-                  <ArrowRight className="size-4" />
-                </a>
-              </Button>
-            )}
-            {buttons?.secondary && (
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                <a href={buttons.secondary.url}>{buttons.secondary.text}</a>
-              </Button>
-            )}
+            <Button size="lg" className="w-full sm:w-auto" disabled>
+              Coming Soon
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled
+            >
+              Coming Soon
+            </Button>
           </div>
         </div>
         {image && (
@@ -113,8 +87,35 @@ const Hero1 = (props: Props) => {
   );
 };
 
-export { Hero1 };
-
 export default function ModernPythonArchitect() {
-  return <Hero1 />;
+  return (
+    <section className="flex h-full items-center justify-center px-4">
+      <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
+        <div className="flex flex-col items-center gap-5 text-center lg:items-start lg:text-left">
+          <Badge variant="outline">
+            <span className="mr-1.5 inline-block size-2 rounded-full bg-amber-500" />
+            Coming Soon
+          </Badge>
+          <h1 className="max-w-xl lg:max-w-3xl text-3xl font-semibold tracking-tight text-pretty md:text-4xl lg:text-5xl">
+            Modern Python Architect
+          </h1>
+          <p className="max-w-5xl text-balance text-sm text-muted-foreground md:text-base lg:text-lg">
+            A comprehensive guide to building scalable, maintainable, and robust Python applications.
+            Learn advanced patterns, architectural best practices, and production-ready techniques.
+          </p>
+          <div className="flex w-full flex-col justify-center gap-2 sm:flex-row lg:justify-start">
+            <Button size="lg" className="w-full sm:w-auto" disabled>
+              Coming Soon
+            </Button>
+            <Button variant="outline" size="lg" className="w-full sm:w-auto" disabled>
+              Coming Soon
+            </Button>
+          </div>
+        </div>
+        <div className="aspect-video w-full rounded-md border border-border bg-muted flex items-center justify-center">
+          <span className="text-muted-foreground text-sm">Image coming soon</span>
+        </div>
+      </div>
+    </section>
+  );
 }

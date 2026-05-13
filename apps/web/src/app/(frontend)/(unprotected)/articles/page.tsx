@@ -1,127 +1,163 @@
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { ArticleCard } from "@/components/article-card"
+import { CodeBlock } from "@/components/code-block"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { ColoredBadge, type BadgeColor } from "@/components/colored-badge"
+
+const categoryColors: Record<string, BadgeColor> = {
+  FastAPI: "violet",
+  Django: "pink",
+  AsyncIO: "cyan",
+  LangChain: "yellow",
+  DataScience: "orange",
+  Testing: "blue",
+  CLI: "green",
+  Database: "red",
+}
 
 const featuredArticle = {
-  slug: "ai-future-tech",
-  title: "Exploring the Future of AI in Modern Technology Trends",
+  slug: "python-agents",
+  title: "Building AI Agents with Python",
   excerpt:
-    "Discover how AI is transforming industries and learn about the latest advancements in artificial intelligence.",
-  category: "Technology",
-  date: "2026-05-01",
-  image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-1.svg",
-};
+    "A comprehensive guide to building autonomous AI agents that can reason, plan, and execute tasks using LangChain and modern Python async patterns.",
+  category: "LangChain",
+  code: `from agents import Agent, Tool
+from pydantic import BaseModel
+from typing import Optional
+
+class WeatherInput(BaseModel):
+    city: str
+    unit: Optional[str] = "celsius"
+
+class WeatherAgent(Agent):
+    def __init__(self):
+        super().__init__(
+            name="Weather Agent",
+            model="claude-opus",
+            tools=[
+                Tool.search(),
+                Tool.calculate(),
+            ],
+            system_prompt="You are a weather forecasting agent."
+        )
+
+    async def get_forecast(self, city: str, unit: str = "celsius"):
+        prompt = f"What's the weather in {city} in {unit}?"
+        response = await self.run(prompt)
+        return response.content
+
+agent = WeatherAgent()
+forecast = await agent.get_forecast("Paris", "celsius")
+print(forecast)`,
+}
 
 const articles = [
   {
-    slug: "business-growth",
-    title: "Strategies for Effective Business Growth in 2025",
+    slug: "slack-agent",
+    title: "Slack Bot with Python",
     excerpt:
-      "Learn proven strategies to grow your business and stay competitive in the ever-evolving market landscape.",
-    category: "Business",
-    date: "2026-04-28",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-2.svg",
+      "Build AI agents that stream responses to Slack channels.",
+    category: "AsyncIO",
+    date: "2026-05-10",
+    code: `async def on_mention(thread, msg):
+    await thread.subscribe()
+    result = await agent.stream(prompt=msg.text)
+    await thread.post(result.full_stream)`,
   },
   {
-    slug: "wellness-trends",
-    title: "Top Wellness Trends to Improve Your Health in 2025",
+    slug: "knowledge-agent",
+    title: "RAG Knowledge Base Agent",
     excerpt:
-      "Explore the top wellness trends that can help you achieve a healthier and more balanced lifestyle.",
-    category: "Health & Wellness",
-    date: "2026-04-25",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-3.svg",
+      "Build a retrieval-augmented generation system for document Q&A.",
+    category: "LangChain",
+    date: "2026-05-08",
+    code: `response = await generate_text(
+    model=model,
+    tools=savoir.tools,
+    max_steps=10,
+    prompt=user_query,
+)`,
   },
   {
-    slug: "productivity-tools",
-    title: "Boosting Productivity with Smart Tools and Techniques",
+    slug: "code-review",
+    title: "GitHub PR Review Bot",
     excerpt:
-      "Find out how to enhance your productivity using the latest tools and techniques for better time management.",
-    category: "Productivity",
-    date: "2026-04-22",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-4.svg",
+      "Automate code reviews with AI using GitHub API and LangChain.",
+    category: "LangChain",
+    date: "2026-05-06",
+    code: `pr_data = await octokit.pulls.get(owner=owner, repo=repo, pull_number=pull_number)
+review = await review_pull_request(pr=pr_data.head.ref)
+await thread.post(review)`,
   },
   {
-    slug: "remote-work",
-    title: "Mastering Remote Work: Tips for Success",
+    slug: "fastapi-auth",
+    title: "FastAPI Authentication Guide",
     excerpt:
-      "Discover best practices for working from home and staying productive in a remote environment.",
-    category: "Work",
-    date: "2026-04-20",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-5.svg",
+      "Implement secure authentication with FastAPI and JWT tokens.",
+    category: "FastAPI",
+    date: "2026-05-04",
+    code: `async def verify_token(token: str) -> User:
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    user_id = payload.get("sub")
+    return await get_user(user_id)`,
   },
   {
-    slug: "design-systems",
-    title: "Building Scalable Design Systems",
+    slug: "django-rest",
+    title: "Django REST Framework Patterns",
     excerpt:
-      "Learn how to create and maintain design systems that scale across your organization.",
-    category: "Design",
-    date: "2026-04-18",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-6.svg",
+      "Master serializer patterns and viewset customization in Django.",
+    category: "Django",
+    date: "2026-05-02",
+    code: `class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']`,
   },
   {
-    slug: "cloud-computing",
-    title: "The Evolution of Cloud Computing",
+    slug: "microservices",
+    title: "Building Python Microservices",
     excerpt:
-      "Explore the latest trends in cloud computing and how they are reshaping enterprise infrastructure.",
-    category: "Technology",
-    date: "2026-04-15",
-    image: "https://deifkwefumgah.cloudfront.net/shadcnblocks/block/placeholder-7.svg",
+      "Create scalable microservices with FastAPI and Redis.",
+    category: "FastAPI",
+    date: "2026-04-30",
+    code: `@app.post("/process")
+async def process_item(item: Item, background_tasks: BackgroundTasks):
+    background_tasks.add_task(process, item.id)
+    return {"task_id": item.id}`,
   },
-];
+]
 
 export default function Articles() {
-  return (
-    <div className="flex flex-1 flex-col gap-12 py-12">
-      <div className="text-center">
-        <h1 className="text-3xl font-medium md:text-4xl lg:text-5xl">
-          Insights and Trends Blog
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
-          Stay updated with the latest insights, trends, and tips across various
-          topics to keep ahead of the curve.
-        </p>
-      </div>
+  const featuredBadgeColor = categoryColors[featuredArticle.category] ?? "violet"
 
-      <div className="grid grid-cols-1 divide-y">
-        <Link href={`/articles/${featuredArticle.slug}`} className="grid grid-cols-1 items-center gap-8 border-t p-4 md:grid-cols-2 lg:gap-16">
-          <img
-            alt={featuredArticle.title}
-            className="aspect-[2/1] w-full rounded-lg object-cover"
-            src={featuredArticle.image}
-          />
-          <div className="flex flex-col items-start gap-4">
-            <Badge variant="secondary">{featuredArticle.category}</Badge>
-            <h2 className="text-xl font-semibold text-balance md:max-w-lg lg:text-2xl">
+  return (
+    <div className="flex flex-1 flex-col py-2">
+      <Link
+        href={`/articles/${featuredArticle.slug}`}
+        className="group grid border-t border-x gap-8 p-4 md:grid-cols-2"
+      >
+        <div className="aspect-video -rotate-3 rounded-md border overflow-hidden transition-transform duration-300 group-hover:-rotate-1 group-hover:scale-105">
+          <CodeBlock code={featuredArticle.code} size="lg" />
+        </div>
+        <div className="flex flex-col items-start gap-4 flex-1">
+          <div className="flex w-full items-center justify-between gap-2">
+            <h2 className="font-semibold tracking-tight lg:text-2xl">
               {featuredArticle.title}
             </h2>
-            <p className="text-sm text-muted-foreground md:max-w-lg">
-              {featuredArticle.excerpt}
-            </p>
+            <ColoredBadge color={featuredBadgeColor}>
+              {featuredArticle.category}
+            </ColoredBadge>
           </div>
-        </Link>
-
-        <div className="grid grid-cols-1 divide-x divide-y md:grid-cols-2 lg:grid-cols-3">
-          {articles.map((article) => (
-            <Link
-              key={article.slug}
-              href={`/articles/${article.slug}`}
-              className="flex flex-col items-start gap-3 p-4 transition-colors hover:bg-muted/50"
-            >
-              <img
-                alt={article.title}
-                className="aspect-[2/1] w-full rounded-lg object-cover"
-                src={article.image}
-              />
-              <Badge variant="secondary">{article.category}</Badge>
-              <h3 className="text-base font-semibold text-balance md:max-w-md">
-                {article.title}
-              </h3>
-              <p className="text-sm text-muted-foreground md:max-w-md">
-                {article.excerpt}
-              </p>
-            </Link>
-          ))}
+          <p className="text-muted-foreground">{featuredArticle.excerpt}</p>
+          <Button className="mt-auto w-full">Read Now</Button>
         </div>
+      </Link>
+
+      <div className="grid border-t border-l divide-x divide-y md:grid-cols-3 -mt-px">
+        {articles.map((article) => (
+          <ArticleCard key={article.slug} article={article} />
+        ))}
       </div>
     </div>
-  );
+  )
 }
