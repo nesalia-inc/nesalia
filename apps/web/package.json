@@ -24,6 +24,7 @@
     "deesse": "^0.2.12",
     "drizzle-orm": "^0.45.2",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.38.0",
     "gray-matter": "^4.0.3",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.8.0",
