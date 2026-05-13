@@ -132,11 +132,11 @@
 @media (prefers-color-scheme: dark) {
   .shiki,
   .shiki span {
-    background-color: var(--shiki-dark-bg) !important;
+    background-color: #000 !important;
   }
 }
 
 html.dark .shiki,
 html.dark .shiki span {
-  background-color: var(--shiki-dark-bg) !important;
+  background-color: #000 !important;
 }
