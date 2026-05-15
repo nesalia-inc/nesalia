@@ -1,0 +1,118 @@
+---
+title: "Building Python Microservices"
+description: "Create scalable microservices architecture with FastAPI, Redis, message queues, and Docker containerization."
+category: "FastAPI"
+date: "2026-04-30"
+code: |
+  @app.post("/process")
+  async def process_item(item: Item, background_tasks: BackgroundTasks):
+      background_tasks.add_task(process, item.id)
+      return {"task_id": item.id}
+---
+
+## Microservices Architecture
+
+Breaking down applications into smaller, independent services enables scaling, deployment flexibility, and technology diversity.
+
+## Service Structure
+
+```
+service/
+├── app/
+│   ├── main.py
+│   ├── api/
+│   │   └── routes.py
+│   ├── core/
+│   │   ├── config.py
+│   │   └── security.py
+│   └── models/
+├── tests/
+├── Dockerfile
+└── docker-compose.yml
+```
+
+## API with Redis Caching
+
+```python
+from fastapi import FastAPI
+from fastapi.cache import Cache
+import redis.asyncio as redis
+
+app = FastAPI()
+cache = Cache(redis_url="redis://localhost:6379")
+
+@app.get("/items/{item_id}")
+async def get_item(item_id: str):
+    cached = await cache.get(f"item:{item_id}")
+    if cached:
+        return cached
+
+    item = await db.items.get(item_id)
+    await cache.set(f"item:{item_id}", item, expire=300)
+    return item
+```
+
+## Background Tasks
+
+```python
+from fastapi import BackgroundTasks
+
+@app.post("/process")
+async def process_item(
+    item: Item,
+    background_tasks: BackgroundTasks
+):
+    task_id = uuid4().hex
+    background_tasks.add_task(process_item_task, item.id, task_id)
+    return {"task_id": task_id}
+
+async def process_item_task(item_id: str, task_id: str):
+    result = await long_running_process(item_id)
+    await cache.set(f"task:{task_id}", result)
+    await publish_completion_event(task_id)
+```
+
+## Message Queue Integration
+
+```python
+import aio_pika
+
+async def publish_event(queue_name: str, message: dict):
+    connection = await aio_pika.connect_robust("amqp://guest:guest@localhost/")
+    async with connection:
+        channel = await connection.channel()
+        exchange = channel.default_exchange
+
+        await exchange.publish(
+            aio_pika.Message(body=json.dumps(message).encode()),
+            routing_key=queue_name
+        )
+
+@app.post("/checkout")
+async def checkout(cart: Cart):
+    await publish_event("checkout", {"cart_id": cart.id, "user": cart.user_id})
+    return {"status": "queued"}
+```
+
+## Docker Deployment
+
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+## Best Practices
+
+1. **Single responsibility** - Each service does one thing well
+2. **Health checks** - Implement `/health` endpoints
+3. **Graceful shutdown** - Handle SIGTERM properly
+4. **Structured logging** - JSON logs for aggregation
+
+---
+
+*Microservices enable teams to ship independently.*

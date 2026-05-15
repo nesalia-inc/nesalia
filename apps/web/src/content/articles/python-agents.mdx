@@ -1,0 +1,144 @@
+---
+title: "Building AI Agents with Python"
+description: "A comprehensive guide to building autonomous AI agents that can reason, plan, and execute tasks using LangChain and modern Python async patterns."
+category: "LangChain"
+date: "2026-05-15"
+code: |
+  from agents import Agent, Tool
+  from pydantic import BaseModel
+  from typing import Optional
+
+  class WeatherAgent(Agent):
+      def __init__(self):
+          super().__init__(
+              name="Weather Agent",
+              model="claude-opus",
+              tools=[Tool.search(), Tool.calculate()],
+              system_prompt="You are a weather forecasting agent."
+          )
+
+      async def get_forecast(self, city: str, unit: str = "celsius"):
+          prompt = f"What's the weather in {city}?"
+          return await self.run(prompt)
+---
+
+An autonomous AI agent is a system that can independently perceive, think, plan, and act to accomplish specific goals. Unlike traditional programs that follow rigid instructions, AI agents can reason and adapt their behavior based on context.
+
+<Cards>
+  <Card href="/signup" title="Start Building Today" badge="Free" badgeColor="violet">
+    Join thousands of developers learning Python with our interactive guides and tutorials.
+  </Card>
+</Cards>
+
+## Getting Started
+
+First, let's install the necessary dependencies:
+
+```bash
+pip install langchain-openai langchain-community pydantic
+```
+
+## Creating Your First Agent
+
+Here's a basic example of an AI agent that can use tools:
+
+```python
+from langchain.agents import Agent, Tool, initialize_agent
+from langchain_openai import ChatOpenAI
+
+# Initialize the language model
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+
+# Define a simple tool
+def search_wikipedia(query: str) -> str:
+    """Search Wikipedia for information."""
+    return f"Results for: {query}"
+
+tools = [Tool(name="Search", func=search_wikipedia, description="Search Wikipedia")]
+
+# Create the agent
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent="zero-shot-react-description",
+    verbose=True
+)
+
+# Run the agent
+result = agent.run("Search Wikipedia for Python programming language")
+print(result)
+```
+
+## Understanding Tools and Actions
+
+Tools extend an agent's capabilities beyond text generation. Common tool types include:
+
+- **Search tools** - Web, Wikipedia, or database search
+- **Calculation tools** - Mathematical computations
+- **API tools** - External service integrations
+- **File tools** - Reading or writing to filesystem
+
+## Adding Memory to Agents
+
+Agents can maintain conversation history using memory:
+
+```python
+from langchain.agents import Agent
+from langchain.memory import ConversationBufferMemory
+
+memory = ConversationBufferMemory(memory_key="chat_history")
+
+agent = Agent(
+    llm=llm,
+    tools=tools,
+    memory=memory,
+    verbose=True
+)
+```
+
+## Advanced Patterns
+
+### Planning with ReAct
+
+The ReAct (Reason + Act) pattern combines reasoning and action in a loop:
+
+1. **Thought** - Agent analyzes the current situation
+2. **Action** - Agent decides what tool to use
+3. **Observation** - Agent processes the tool's response
+4. Repeat until task is complete
+
+### Multi-Agent Systems
+
+For complex tasks, you can coordinate multiple agents:
+
+```python
+class SupervisorAgent(Agent):
+    def __init__(self):
+        super().__init__(
+            name="Supervisor",
+            tools=[tool_planner, tool_executor],
+            system_prompt="You coordinate a team of specialized agents."
+        )
+
+    async def delegate(self, task: str):
+        subtasks = await self.plan(task)
+        results = await asyncio.gather(*[
+            agent.execute(subtask) for agent in self.agents
+        ])
+        return self.synthesize(results)
+```
+
+## Best Practices
+
+1. **Start Simple** - Begin with basic tools before adding complexity
+2. **Handle Errors** - Always implement error boundaries around tool calls
+3. **Monitor Tokens** - Track LLM usage to manage costs
+4. **Test Incrementally** - Test each tool independently before full integration
+
+## Conclusion
+
+AI agents represent a powerful paradigm for building autonomous systems. By combining LLMs with tools and memory, you can create agents that handle complex, multi-step tasks intelligently.
+
+---
+
+*This guide is part of our series on building production AI applications with Python.*

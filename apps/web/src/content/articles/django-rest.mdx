@@ -1,0 +1,102 @@
+---
+title: "Django REST Framework Patterns"
+description: "Master serializer patterns, viewset customization, and advanced Django REST Framework techniques for building robust APIs."
+category: "Django"
+date: "2026-05-04"
+code: |
+  class UserSerializer(serializers.ModelSerializer):
+      class Meta:
+          model = User
+          fields = ['id', 'username', 'email']
+---
+
+## Why DRF?
+
+Django REST Framework provides a powerful, flexible toolkit for building Web APIs. This guide covers patterns used in production applications.
+
+## Serializer Patterns
+
+### Nested Serializers
+
+```python
+class CommentSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'author', 'created_at']
+
+class ArticleSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Article
+        fields = ['id', 'title', 'content', 'author', 'comments']
+```
+
+### Dynamic Serialization
+
+```python
+class ArticleSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Article
+        fields = ['id', 'title', 'content', 'author', 'published_at']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and request.user != instance.author:
+            data.pop('content', None)
+        return data
+```
+
+## ViewSet Patterns
+
+### Custom Actions
+
+```python
+class ArticleViewSet(ModelViewSet):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+
+    @action(detail=True, methods=['post'])
+    def publish(self, request, pk=None):
+        article = self.get_object()
+        article.publish()
+        return Response({'status': 'published'})
+
+    @action(detail=False, methods=['get'])
+    def by_author(self, request):
+        author_id = request.query_params.get('author_id')
+        articles = self.queryset.filter(author_id=author_id)
+        serializer = self.get_serializer(articles, many=True)
+        return Response(serializer.data)
+```
+
+## Filtering and Ordering
+
+```python
+from django_filters.rest_framework import DjangoFilterBackend
+
+class ArticleViewSet(ModelViewSet):
+    queryset = Article.objects.all()
+    serializer_class = ArticleSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ['author', 'published']
+    ordering_fields = ['published_at', 'created_at']
+    ordering = ['-published_at']
+```
+
+## Best Practices
+
+1. **Use ModelSerializer** - Reduces boilerplate
+2. **Separate read/write serializers** - Different validation rules
+3. **Implement permissions properly** - Per-object access control
+4. **Use select_related/prefetch_related** - Avoid N+1 queries
+
+---
+
+*These patterns scale from startup to enterprise.*

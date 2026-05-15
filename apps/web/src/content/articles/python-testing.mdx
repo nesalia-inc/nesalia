@@ -1,0 +1,133 @@
+---
+title: "Python Testing Mastery"
+description: "Comprehensive guide to testing Python applications with pytest, fixtures, mocking, and test-driven development."
+category: "Testing"
+date: "2026-04-28"
+code: |
+  def test_user_registration(self):
+      response = self.client.post('/api/register', {
+          'username': 'testuser',
+          'email': 'test@example.com',
+          'password': 'secure123'
+      })
+      self.assertEqual(response.status_code, 201)
+      self.assertIn('token', response.json())
+---
+
+## Why Testing Matters
+
+Automated tests are the safety net that enables confident refactoring and deployment. This guide covers pytest and modern testing patterns.
+
+## pytest Setup
+
+```bash
+pip install pytest pytest-asyncio pytest-cov pytest-mock
+```
+
+## Basic Test Structure
+
+```python
+# tests/test_users.py
+import pytest
+from users.models import User
+from users.services import UserService
+
+class TestUserService:
+    @pytest.fixture
+    def user_service(self):
+        return UserService()
+
+    @pytest.fixture
+    def sample_user_data(self):
+        return {
+            "username": "testuser",
+            "email": "test@example.com",
+            "password": "secure123"
+        }
+
+    def test_create_user(self, user_service, sample_user_data):
+        user = user_service.create_user(**sample_user_data)
+        assert user.username == "testuser"
+        assert user.email == "test@example.com"
+
+    def test_create_user_duplicate_email(self, user_service, sample_user_data):
+        user_service.create_user(**sample_user_data)
+        with pytest.raises(ValueError, match="Email already exists"):
+            user_service.create_user(**sample_user_data)
+```
+
+## Fixtures and Factories
+
+```python
+import factory
+from factory import Faker
+
+class UserFactory(factory.Factory):
+    class Meta:
+        model = User
+
+    username = Faker("user_name")
+    email = Faker("email")
+    password = factory.LazyFunction(lambda: "hashed_password")
+
+@pytest.fixture
+def user(db):
+    return UserFactory.create()
+
+@pytest.fixture
+def user_with_posts(user):
+    PostFactory.create_batch(3, author=user)
+    return user
+```
+
+## Async Testing
+
+```python
+import pytest
+
+@pytest.fixture
+def event_loop():
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+@pytest.mark.asyncio
+async def test_async_user_fetch():
+    user = await UserService().get_user(1)
+    assert user.id == 1
+```
+
+## Mocking External Services
+
+```python
+from unittest.mock import patch, AsyncMock
+
+@pytest.fixture
+def mock_redis():
+    with patch("redis.asyncio.Redis") as mock:
+        mock.get = AsyncMock(return_value=b"cached_data")
+        yield mock
+
+@pytest.mark.asyncio
+async def test_cached_user(mock_redis):
+    result = await get_user_cached(1)
+    assert result == "cached_data"
+    mock_redis.get.assert_called_once_with("user:1")
+```
+
+## Test Coverage
+
+```bash
+pytest --cov=src --cov-report=html --cov-report=term-missing
+```
+
+## Best Practices
+
+1. **Test behavior, not implementation** - Test what, not how
+2. **Arrange-Act-Assert** - Clear test structure
+3. **One assertion per test** - Focused, readable tests
+4. **Meaningful names** - `test_user_cannot_register_with_duplicate_email`
+
+---
+
+*Good tests are an investment in your codebase's future.*
