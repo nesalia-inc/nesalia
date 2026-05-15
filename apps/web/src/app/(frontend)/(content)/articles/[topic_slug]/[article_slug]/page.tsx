@@ -1,8 +1,4 @@
-import Link from "next/link"
 import { MDXContent } from "@/components/markdown/mdx-content";
-import { ColoredBadge } from "@/components/colored-badge";
-import { Button } from "@/components/ui/button";
-import { CodeBlock } from "@/components/code-block";
 import { ArticleSidebar } from "@/components/sidebar/article-sidebar"
 import { CollapsedSidebarTrigger } from "@/components/sidebar/collapsed-sidebar-trigger"
 import { AppHeader } from '@/components/headers';
@@ -29,6 +25,12 @@ const dummyArticle = {
   content: `## Building AI Agents with Python
 
 An autonomous AI agent is a system that can independently perceive, think, plan, and act to accomplish specific goals. Unlike traditional programs that follow rigid instructions, AI agents can reason and adapt their behavior based on context.
+
+<Cards>
+  <Card href="/signup" title="Start Building Today" badge="Free" badgeColor="violet">
+    Join thousands of developers learning Python with our interactive guides and tutorials.
+  </Card>
+</Cards>
 
 ## Getting Started
 
@@ -172,40 +174,6 @@ export default async function ArticlePage({ params }: ArticleProps) {
 
               <div className="flex-1">
                 <MDXContent source={dummyArticle.content} />
-              </div>
-
-              <div className="mt-12 group border rounded-md overflow-hidden transition-transform duration-300 group-hover:-rotate-1 group-hover:scale-105 md:grid md:grid-cols-2">
-                <div className="aspect-video -rotate-3 rounded-md border">
-                  <CodeBlock
-                    code={`from nsa import Agent
-
-agent = Agent(
-    model="claude-opus",
-    tools=[search, calculate],
-    system_prompt="You are a Python expert"
-)
-
-# Start building
-result = await agent.run("Help me learn Python")
-print(result)`}
-                    size="lg"
-                  />
-                </div>
-                <div className="flex flex-col items-start gap-4 flex-1 p-4">
-                  <div className="flex w-full items-center justify-between gap-2">
-                    <h2 className="font-semibold tracking-tight lg:text-2xl">
-                      Start Building Today
-                    </h2>
-                    <ColoredBadge color="violet">Get Started</ColoredBadge>
-                  </div>
-                  <p className="text-muted-foreground">
-                    Join thousands of developers learning Python with our interactive
-                    guides and tutorials.
-                  </p>
-                  <Button asChild className="w-full mt-auto">
-                    <Link href="/signup">Get Started Free</Link>
-                  </Button>
-                </div>
               </div>
             </div>
           </SidebarInset>
