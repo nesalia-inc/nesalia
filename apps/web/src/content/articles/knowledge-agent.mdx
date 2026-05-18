@@ -1,0 +1,82 @@
+---
+title: "RAG Knowledge Base Agent"
+description: "Build a retrieval-augmented generation system for document Q&A using vector embeddings, ChromaDB, and LangChain."
+category: "LangChain"
+date: "2026-05-08"
+code: |
+  response = await generate_text(
+      model=model,
+      tools=savoir.tools,
+      max_steps=10,
+      prompt=user_query,
+  )
+---
+
+## What is RAG?
+
+Retrieval-Augmented Generation (RAG) combines the power of large language models with external knowledge bases. Instead of relying solely on training data, RAG retrieves relevant documents at query time.
+
+## Architecture Overview
+
+1. **Document Ingestion** - Load and chunk documents
+2. **Embedding Generation** - Convert text to vectors
+3. **Vector Storage** - Store in a vector database
+4. **Retrieval** - Find relevant context
+5. **Generation** - LLM generates answer with context
+
+## Implementing RAG
+
+```python
+from langchain.document_loaders import PDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import Chroma
+
+# Load and chunk documents
+loader = PDFLoader("document.pdf")
+documents = loader.load()
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000,
+    chunk_overlap=200
+)
+chunks = splitter.split_documents(documents)
+
+# Create vector store
+embeddings = OpenAIEmbeddings()
+vectorstore = Chroma.from_documents(
+    chunks,
+    embeddings,
+    persist_directory="vectorstore"
+)
+```
+
+## Retrieval Chain
+
+```python
+from langchain.chains import RetrievalQA
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=retriever
+)
+
+# Query
+result = qa_chain.run("What are the main findings in the report?")
+```
+
+## Best Practices
+
+1. **Chunk size matters** - 500-1000 tokens typically optimal
+2. **Overlap for context** - 10-20% overlap preserves meaning
+3. **Metadata filtering** - Enable filtering by source/date
+4. **Hybrid search** - Combine dense and sparse retrieval
+
+---
+
+*RAG is essential for production AI applications.*

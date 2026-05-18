@@ -1,0 +1,172 @@
+---
+title: "Python's For-Else: The Most Misunderstood Feature You're Not Using"
+description: "Python's for loop can have an else clause that runs only when the loop completes without hitting break — here's how to use it correctly."
+category: "control-flow"
+date: "2026-05-15"
+code: |
+  for item in items:
+      if item == target:
+          print("found")
+          break
+  else:
+      print("not found")
+---
+
+Most Python developers write thousands of `for` loops and never encounter the `else` clause. Some have seen it and assumed it works like `else` in an `if` statement — running after every loop iteration. Neither assumption is correct.
+
+Python's `for` loop can have an `else` clause, and it runs in exactly one situation: when the iterator is exhausted **and** no `break` statement terminated the loop early.
+
+## The Rule
+
+The `else` clause on a `for` loop executes only when the iterator is exhausted **and** no `break` statement terminated the loop early.
+
+```python
+for item in items:
+    if item == target:
+        print("found")
+        break
+else:
+    print("not found")
+```
+
+This prints "not found" only if the loop finishes iterating through every item without finding the target. If `break` is hit, the `else` is skipped entirely.
+
+That's it. No magic, no surprises — once you understand the rule.
+
+## Why It Matters
+
+The `for-else` pattern expresses a specific mental model: "search for something, then handle the case where nothing was found." Without it, you'd write something like this:
+
+```python
+found = False
+for item in items:
+    if item == target:
+        found = True
+        print("found")
+        break
+
+if not found:
+    print("not found")
+```
+
+The flag variable `found` is noise. It doesn't express intent — it just tracks state. The `for-else` pattern makes the intent explicit: the `else` block is the "not found" handler.
+
+## How Each Flow Hits the Else Clause
+
+**No `break` — the iterator exhausts normally:**
+```python
+for x in [1, 2, 3]:
+    if x == 99:
+        break
+else:
+    print("else runs")  # This prints
+# Output: else runs
+```
+
+**`break` is hit — loop terminates early:**
+```python
+for x in [1, 2, 3]:
+    if x == 2:
+        break
+    print(x)
+else:
+    print("else runs")  # This does NOT print
+# Output: 1
+```
+
+**`continue` does NOT skip the else:**
+```python
+for x in [1, 2, 3]:
+    if x == 2:
+        continue
+    print(x)
+else:
+    print("else runs")  # This prints — continue doesn't prevent it
+# Output: 1, 3, else runs
+```
+
+**Exception propagates out — else does NOT run:**
+```python
+for x in [1, 2, 3]:
+    if x == 2:
+        raise ValueError("boom")
+    print(x)
+else:
+    print("else runs")  # This does NOT print
+# Output: 1, then ValueError propagates
+```
+
+**Empty iterator — else still runs:**
+```python
+for x in []:
+    print("loop body")
+else:
+    print("else runs")  # This prints — empty iterator, no break
+# Output: else runs
+```
+
+## The Search Pattern in Practice
+
+The most natural use of `for-else` is the search pattern:
+
+```python
+def find_user(users, name):
+    for user in users:
+        if user.name == name:
+            return user
+    else:
+        raise ValueError(f"User {name} not found")
+```
+
+The `return` inside the loop exits the function, so the `else` only runs if the loop exhausts without returning. This is cleaner than a flag variable and makes the "not found" case impossible to miss when reading the code.
+
+Here's a validation pattern:
+
+```python
+def validate_positive(numbers):
+    for n in numbers:
+        if n <= 0:
+            print(f"Invalid: {n}")
+            break
+    else:
+        print("All numbers are valid")
+```
+
+If any number is not positive, we print and exit via `break`. If the loop completes without breaking, all numbers were positive.
+
+## The Mistake Everyone Makes
+
+The most common bug with `for-else` is writing the `else` without a `break`:
+
+```python
+# WRONG — else always runs
+for item in items:
+    if item == target:
+        print("found")
+else:
+    print("not found")  # ALWAYS prints, even when found!
+```
+
+The `else` here is unreachable code — it will run every time regardless of whether the item was found. This is why many developers assume `for-else` is broken and never use it again.
+
+The correct version puts `break` after the "found" case so the `else` is only reached when the loop exhausts without finding anything.
+
+## When to Use It
+
+The `for-else` pattern shines when:
+
+1. **You're searching for something** — iterate and check, then handle "not found"
+2. **You're validating a collection** — check all items, then report success/failure
+3. **You'd otherwise use a flag variable** — if you find yourself initializing `found = False` before a loop, `for-else` is probably cleaner
+
+Don't use it when:
+- The loop body is empty and you're just checking if an iterator is non-empty — use `if item in items` instead
+- You're doing something more complex than search or validate — a flag variable or explicit state machine may be clearer
+
+## The Bottom Line
+
+Python's `for-else` is a tool, not a trick. Once you understand the rule — `else` runs only when the loop completes without `break` — you have an elegant way to express "search and handle not-found" logic.
+
+The confusion around it comes from two sources: most languages don't have this feature, so developers never encounter it, and the most common mistake (forgetting `break`) makes it look broken when it's working exactly as designed.
+
+Give it a try next time you're searching through a collection. Your future self, reading the code, will appreciate it.
