@@ -5,7 +5,7 @@ import { ColoredBadge, type BadgeColor } from "@/components/colored-badge"
 interface Article {
   slug: string
   title: string
-  excerpt: string
+  description: string
   category: string
   date: string
   code: string
@@ -41,10 +41,10 @@ export function ArticleCard({ article }: ArticleCardProps) {
         </ColoredBadge>
       </div>
       <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-        {article.excerpt}
+        {article.description}
       </p>
       <div className="mt-4 -mr-8 -mb-8 ml-4 aspect-video -rotate-3 rounded-md border overflow-hidden transition-transform duration-300 group-hover:-rotate-1 group-hover:scale-105">
-        <CodeBlock code={article.code} />
+        <CodeBlock code={article.code} tabs={false} />
       </div>
     </Link>
   )

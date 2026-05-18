@@ -4,6 +4,7 @@ interface CodeBlockProps {
   code: string
   language?: string
   size?: "sm" | "lg"
+  tabs?: boolean
 }
 
 const sizeClasses = {
@@ -11,7 +12,7 @@ const sizeClasses = {
   lg: "p-6 text-sm",
 }
 
-export async function CodeBlock({ code, language = "python", size = "sm" }: CodeBlockProps) {
+export async function CodeBlock({ code, language = "python", size = "sm", tabs = true }: CodeBlockProps) {
   const html = await codeToHtml(code, {
     lang: language,
     themes: {
@@ -22,11 +23,13 @@ export async function CodeBlock({ code, language = "python", size = "sm" }: Code
 
   return (
     <div className="h-full w-full overflow-hidden rounded-md border">
-      <div className="flex items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
-        <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-        <div className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-        <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-      </div>
+      {tabs && (
+        <div className="flex items-center gap-1.5 px-3 py-2 border-b bg-muted/30">
+          <div className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        </div>
+      )}
       <div className={`${sizeClasses[size]}`} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   )

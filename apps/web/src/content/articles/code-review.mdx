@@ -1,0 +1,91 @@
+---
+title: "GitHub PR Review Bot"
+description: "Automate code reviews with AI using GitHub API, LangChain agents, and continuous integration workflows."
+category: "LangChain"
+date: "2026-05-06"
+code: |
+  pr_data = await octokit.pulls.get(owner=owner, repo=repo, pull_number=pull_number)
+  review = await review_pull_request(pr=pr_data.head.ref)
+  await thread.post(review)
+---
+
+## Automating Code Reviews
+
+AI-powered code review bots can analyze pull requests, suggest improvements, and catch bugs before they reach production.
+
+## GitHub App Setup
+
+```bash
+pip install PyGithub aiohttp
+```
+
+## Creating the Review Agent
+
+```python
+from langchain.agents import Agent, Tool
+from langchain_openai import ChatOpenAI
+from github import Github
+import subprocess
+
+llm = ChatOpenAI(model="gpt-4")
+
+def get_pr_diff(pr_number: int) -> str:
+    """Get the diff of a pull request."""
+    pr = github.get_repo(f"{owner}/{repo}").get_pull(pr_number)
+    return pr.get_diff()
+
+def run_linter(file_path: str) -> str:
+    """Run linter on a specific file."""
+    result = subprocess.run(
+        ["ruff", "check", file_path],
+        capture_output=True,
+        text=True
+    )
+    return result.stdout or "No issues found"
+
+tools = [
+    Tool(name="get_diff", func=get_pr_diff, description="Get PR diff"),
+    Tool(name="lint", func=run_linter, description="Run linter on file"),
+]
+
+agent = Agent(llm=llm, tools=tools)
+```
+
+## Review Workflow
+
+```python
+@app.handle("pull_request.opened")
+async def review_pr(event, client):
+    pr = event.payload["pull_request"]
+    diff = await get_pr_diff(pr["number"])
+
+    review_prompt = f"""
+    Review this pull request for:
+    1. Code quality and style
+    2. Potential bugs or security issues
+    3. Test coverage
+    4. Documentation updates
+
+    Diff:
+    {diff}
+    """
+
+    review = await agent.run(review_prompt)
+
+    await client.post_comment(
+        repo=repo,
+        issue_number=pr["number"],
+        body=review
+    )
+```
+
+## Best Practices
+
+1. **Focus on actionable feedback** - Be specific about issues
+2. **Balance automated and manual review** - AI assists, humans decide
+3. **Set clear guidelines** - What should the bot flag vs ignore
+4. **Track false positives** - Continuously improve the prompt
+
+---
+
+*Automate tedious code reviews while maintaining quality.*

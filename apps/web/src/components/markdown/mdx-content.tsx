@@ -6,11 +6,14 @@ import { useState, useEffect } from "react";
 
 import { Code } from "./code";
 import { cn } from "@/lib/utils";
+import { Cards, Card } from "@/components/cards/cards";
 
 import React from "react";
 import Image from "next/image";
 
 const sharedComponents = {
+  Cards,
+  Card,
   pre: ({ children }: { children: React.ReactNode }) =>
     children as React.ReactElement,
   code: ({
