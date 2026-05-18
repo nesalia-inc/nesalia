@@ -10,7 +10,7 @@ interface CourseFooterProps {
 export function CourseFooter({ courseSlug, chapterSlug }: CourseFooterProps) {
   return (
     <footer className="border-t h-14">
-      <div className="flex items-center justify-between w-full px-4 py-4">
+      <div className="flex items-center justify-between px-4 py-4">
         <Button asChild>
           <Link href={`/courses/${courseSlug}/${chapterSlug}/previous`}>
             <ChevronLeft className="h-4 w-4" />
