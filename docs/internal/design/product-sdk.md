@@ -1,4 +1,4 @@
-# SDK / CLI — nesalia.com/sdk
+# SDK — nesalia.com/sdk
 
 > **Status:** Draft
 > **Last Updated:** 2026-06-09
@@ -10,12 +10,11 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│   SDK / CLI                                                     │
+│   SDK                                                            │
 │                                                                 │
-│   Build with Nesalia anywhere.                                  │
+│   Build with Nesalia anywhere.                                   │
 │                                                                 │
 │   Isomorphic TypeScript SDK for web, Node.js, and edge.        │
-│   CLI for local development and scripts.                        │
 │                                                                 │
 │   [Get Started]  [Read the Docs]  [View on GitHub]             │
 │                                                                 │
@@ -27,7 +26,7 @@
 **Subheadline:**
 ```
 Isomorphic TypeScript SDK for web, Node.js, and edge.
-CLI for local development, scripts, and CI/CD.
+Works in browsers, servers, and edge runtimes.
 ```
 
 **CTAs:**
@@ -37,7 +36,7 @@ CLI for local development, scripts, and CI/CD.
 
 ---
 
-## SDK Overview
+## What is the SDK?
 
 The Nesalia SDK is a **universal TypeScript library** that works everywhere JavaScript runs.
 
@@ -173,7 +172,7 @@ import { createClient } from '@nesalia/sdk';
 
 const client = createClient({
   apiKey: string;
-  baseUrl?: string; // Default: https://api.nesalia.com
+  baseUrl?: string;  // Default: https://api.nesalia.com
   timeout?: number;  // Default: 60000ms
   retry?: number;    // Default: 3
 });
@@ -257,110 +256,6 @@ const run = await client.workflows.getRun('my-workflow', 'run_id');
 
 // Stream logs
 const logs = client.workflows.streamLogs('my-workflow', 'run_id');
-```
-
----
-
-## CLI Overview
-
-The Nesalia CLI provides command-line access to all platform features.
-
-### Installation
-
-```bash
-npm install -g @nesalia/cli
-# or
-npx nesalia <command>
-```
-
-### Authentication
-
-```bash
-# Login
-nesalia auth login
-
-# Logout
-nesalia auth logout
-
-# Check status
-nesalia auth status
-```
-
----
-
-## CLI Commands
-
-### Agents
-
-```bash
-# List agents
-nesalia agents list
-
-# Create agent
-nesalia agents create \
-  --name "code-reviewer" \
-  --model "anthropic/claude-sonnet-4-6"
-
-# Invoke agent
-nesalia agents invoke code-reviewer \
-  --prompt "Review PR #123"
-
-# Stream response
-nesalia agents stream code-reviewer \
-  --prompt "Explain this code"
-
-# Delete agent
-nesalia agents delete code-reviewer
-```
-
-### Workflows
-
-```bash
-# Deploy workflow
-nesalia workflows deploy ./release.ts
-
-# Run workflow
-nesalia workflows run release-automation
-
-# List runs
-nesalia workflows runs release-automation
-
-# Watch run
-nesalia workflows run release-automation --watch
-
-# Cancel run
-nesalia workflows cancel release-automation --run run_123
-```
-
-### Contexts
-
-```bash
-# List contexts
-nesalia contexts list --agent code-reviewer
-
-# Create context
-nesalia contexts create --agent code-reviewer --name "PR #456"
-
-# Switch context
-nesalia contexts switch --agent code-reviewer --context pr-456
-
-# View history
-nesalia contexts history --agent code-reviewer --context pr-456
-```
-
-### General
-
-```bash
-# Help
-nesalia help
-nesalia agents --help
-
-# Version
-nesalia version
-
-# Config
-nesalia config list
-nesalia config set default-agent "my-agent"
 ```
 
 ---

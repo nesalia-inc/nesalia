@@ -40,7 +40,8 @@ Products ▾          Solutions ▾          Learn ▾          Pricing    Blog 
 | **Workflows** | Automate any process | /workflows | 🔴 MVP |
 | **LLM Gateway** | One endpoint, all your models | /llm-gateway | 🟡 Future |
 | **Sandbox** | Isolated, safe code execution | /sandbox | 🟡 Future |
-| **SDK / CLI** | Build with Nesalia | /sdk | 🔴 MVP |
+| **SDK** | Build with Nesalia anywhere | /sdk | 🔴 MVP |
+| **CLI** | Control from terminal | /cli | 🔴 MVP |
 | **Marty Bot** | Your AI code reviewer | /marty | 🟡 Post-MVP |
 | **GitHub Action** | Trigger agents from CI/CD | /github-action | 🟡 Post-MVP |
 | **Fluid Compute** | Servers in serverless form | /fluid | 🟢 Future |
@@ -83,7 +84,8 @@ Products ▾          Solutions ▾          Learn ▾          Pricing    Blog 
 
 | Page | URL | Type | Purpose |
 |------|-----|------|---------|
-| **SDK / CLI** | /sdk | Product | Developer tools landing |
+| **SDK** | /sdk | Product | TypeScript SDK |
+| **CLI** | /cli | Product | Command-line tool |
 | **Marty Bot** | /marty | Product | GitHub bot landing |
 | **GitHub Action** | /github-action | Product | CI/CD integration |
 
@@ -130,8 +132,9 @@ Products ▾          Solutions ▾          Learn ▾          Pricing    Blog 
 nesalia.com/
 ├── /                        (Homepage)
 ├── /agents                   (Product: Agent platform)
-├── /workflows                 (Product: Workflow engine)
-├── /sdk                      (Product: SDK / CLI)
+├── /workflows                (Product: Workflow engine)
+├── /sdk                      (Product: TypeScript SDK)
+├── /cli                      (Product: Command-line tool)
 ├── /marty                    (Product: GitHub bot)
 ├── /github-action            (Product: GitHub Action)
 ├── /llm-gateway              (Product: LLM gateway) [Future]
@@ -215,12 +218,13 @@ Each product page follows Vercel's pattern:
 |---------|--------|----------|
 | **Agents** | Existing spec | 🔴 High |
 | **Workflows** | Existing spec | 🔴 High |
-| **SDK / CLI** | Existing spec | 🔴 High |
+| **SDK** | Existing spec | 🔴 High |
+| **CLI** | Existing spec | 🔴 High |
 | **Marty Bot** | Existing spec | 🟡 Medium |
-| **LLM Gateway** | New spec needed | 🟡 Medium |
-| **Sandbox** | New spec needed | 🟢 Low |
-| **Fluid Compute** | New spec needed | 🟢 Low |
-| **GitHub Action** | New spec needed | 🟡 Medium |
+| **LLM Gateway** | Existing spec | 🟡 Medium |
+| **Sandbox** | Existing spec | 🟢 Low |
+| **Fluid Compute** | Existing spec | 🟢 Low |
+| **GitHub Action** | Existing spec | 🟡 Medium |
 
 ---
 
@@ -273,8 +277,9 @@ Solutions are customer-centric, showing use cases:
 1. **Homepage** — Landing page with all products overview
 2. **/agents** — Detailed product page for agent platform
 3. **/workflows** — Detailed product page for workflows
-4. **/sdk** — Detailed product page for SDK/CLI
-5. **/pricing** — Pricing page
+4. **/sdk** — Detailed product page for SDK
+5. **/cli** — Detailed product page for CLI
+6. **/pricing** — Pricing page
 
 ### Phase 2: Growth (Next sprint)
 
@@ -306,4 +311,5 @@ Solutions are customer-centric, showing use cases:
 3. [ ] Design /agents page (start here)
 4. [ ] Design /workflows page
 5. [ ] Design /sdk page
-6. [ ] Create /solutions structure
+6. [ ] Design /cli page
+7. [ ] Create /solutions structure
