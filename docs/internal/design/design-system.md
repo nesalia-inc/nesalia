@@ -7,201 +7,302 @@
 
 ## Overview
 
-Following Vercel's design philosophy:
-- **Grid-first** — Content flows in grid, not margin-based
-- **Max-width containers** — `max-w-*` for content boundaries
-- **Border-x separators** — Horizontal dividers instead of margins
-- **No external margins** — Elements stack without gaps
-- **Dense layout** — Compact, information-rich pages
+Using **shadcn/ui** components with theme-based colors:
+- Colors via **CSS variables** (theme system)
+- **No hardcoded colors** — use semantic tokens
+- Components from shadcn/ui library
+- Tailwind utility classes for layout
 
 ---
 
-## Container System
+## shadcn/ui Setup
 
-### Max-Width Scale
+### Theme Configuration
+
+```json
+// components.json
+{
+  "style": "default",
+  "rounded": "rounded-lg",
+  "baseColor": "neutral",
+  "cssVariables": true,
+  "theme": {
+    "default": {
+      "background": "0 0 100%",
+      "foreground": "0 0 100%",
+      "primary": "262 83% 58%",
+      "primary-foreground": "0 0 100%",
+      "secondary": "217 91% 60%",
+      "secondary-foreground": "0 0 100%"
+    }
+  }
+}
+```
+
+### CSS Variables (Theme)
 
 ```css
-/* Tailwind max-width scale */
-max-w-none        /* Full width */
-max-w-xs    320px /* Narrow text */
-max-w-sm    384px /* Card width */
-max-w-md    448px /* Form inputs */
-max-w-lg    512px /* Content blocks */
-max-w-xl    576px /* Feature descriptions */
-max-w-2xl   672px /* Article text */
-max-w-3xl   768px /* Wide content */
-max-w-4xl   896px /* Section content */
-max-w-5xl  1024px /* Standard section */
-max-w-6xl  1152px /* Wide section */
-max-w-7xl  1280px /* Container max */
-max-w-full 100%  /* Full width */
-```
+/* Light mode */
+:root {
+  --background: 0 0 100%;
+  --foreground: 0 0 100%;
 
-### Usage Pattern
+  --card: 0 0 100%;
+  --card-foreground: 0 0 100%;
 
-```html
-<!-- Centered container with max-width -->
-<div class="max-w-7xl mx-auto">
-  <!-- Content here -->
-</div>
+  --popover: 0 0 100%;
+  --popover-foreground: 0 0 100%;
 
-<!-- Full-bleed sections with inner max-width -->
-<section class="border-x border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6">
-    <!-- Section content -->
-  </div>
-</section>
-```
+  --primary: 262 83% 58%;      /* Purple */
+  --primary-foreground: 0 0 100%;
 
----
+  --secondary: 217 91% 60%;    /* Blue */
+  --secondary-foreground: 0 0 100%;
 
-## Grid System
+  --muted: 0 0 100%;
+  --muted-foreground: 0 0 100%;
 
-### Page Grid
+  --accent: 0 0 100%;
+  --accent-foreground: 0 0 100%;
 
-```html
-<div class="max-w-7xl mx-auto">
-  <div class="grid grid-cols-1 gap-0 lg:grid-cols-12 lg:gap-8">
-    <!-- Sidebar -->
-    <aside class="lg:col-span-3">...</aside>
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0 100%;
 
-    <!-- Main content -->
-    <main class="lg:col-span-9">...</main>
-  </div>
-</div>
-```
+  --border: 0 0 90%;
+  --input: 0 0 90%;
+  --ring: 262 83% 58%;
 
-### Feature Grid (3-column)
+  --radius: 0.5rem;
+}
 
-```html
-<div class="grid grid-cols-1 gap-0 md:grid-cols-3">
-  <div class="border-x border-b border-neutral-200 p-8">
-    Feature 1
-  </div>
-  <div class="border-x border-b border-neutral-200 p-8">
-    Feature 2
-  </div>
-  <div class="border-x border-b border-neutral-200 p-8">
-    Feature 3
-  </div>
-</div>
-```
+/* Dark mode */
+.dark {
+  --background: 0 0 100%;
+  --foreground: 0 0 100%;
 
-### Product Grid (2x2)
+  --card: 0 0 100%;
+  --card-foreground: 0 0 100%;
 
-```html
-<div class="grid grid-cols-1 gap-0 md:grid-cols-2">
-  <div class="border-x border-b border-neutral-200 p-12">
-    Product 1
-  </div>
-  <div class="border-x border-b border-neutral-200 p-12">
-    Product 2
-  </div>
-  <div class="border-x border-b border-neutral-200 p-12">
-    Product 3
-  </div>
-  <div class="border-x border-b border-neutral-200 p-12">
-    Product 4
-  </div>
-</div>
+  --primary: 263 70% 58%;
+  --primary-foreground: 0 0 100%;
+
+  --secondary: 217 91% 60%;
+  --secondary-foreground: 0 0 100%;
+
+  --muted: 0 0 100%;
+  --muted-foreground: 0 0 100%;
+
+  --accent: 0 0 100%;
+  --accent-foreground: 0 0 100%;
+
+  --border: 0 0 90%;
+  --input: 0 0 90%;
+  --ring: 263 70% 58%;
+}
 ```
 
 ---
 
-## Border-x Pattern
+## Color Usage
 
-### Section Separators
-
-Instead of margins, use `border-x` for visual separation:
+### Semantic Tokens
 
 ```html
-<!-- ❌ Don't use margins -->
-<section class="mt-16 mb-16">
-  Content
-</section>
+<!-- Background -->
+<div class="bg-background">...</div>
 
-<!-- ✅ Use border-x -->
-<section class="border-x border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6">
-    Content
-  </div>
-</section>
+<!-- Foreground (text) -->
+<p class="text-foreground">...</p>
+
+<!-- Primary (brand color) -->
+<button class="bg-primary text-primary-foreground">...</button>
+
+<!-- Secondary -->
+<button class="bg-secondary text-secondary-foreground">...</button>
+
+<!-- Muted (subtle) -->
+<p class="text-muted-foreground">Subtitle text</p>
+
+<!-- Border -->
+<div class="border-border">...</div>
 ```
 
-### Grid with Borders
+### Never Hardcode Colors
 
 ```html
-<!-- 3-column grid with vertical borders -->
+<!-- ❌ Don't use hardcoded colors -->
+<div class="text-neutral-950">...</div>
+<div class="bg-white border-neutral-200">...</div>
+
+<!-- ✅ Use theme tokens -->
+<div class="text-foreground">...</div>
+<div class="bg-background border-border">...</div>
+```
+
+---
+
+## Component Library (shadcn/ui)
+
+### Install Components
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add input
+npx shadcn@latest add badge
+npx shadcn@latest add separator
+npx shadcn@latest add accordion
+npx shadcn@latest add tabs
+npx shadcn@latest add dialog
+npx shadcn@latest add sheet
+npx shadcn@latest add dropdown-menu
+npx shadcn@latest add sonner
+```
+
+### Available Components
+
+| Component | Use Case |
+|-----------|----------|
+| `Button` | CTAs, actions |
+| `Card` | Content containers |
+| `Input` | Form fields |
+| `Badge` | Labels, tags |
+| `Separator` | Section dividers |
+| `Accordion` | FAQ, collapsible |
+| `Tabs` | Content switching |
+| `Dialog` | Modals |
+| `Sheet` | Mobile menu |
+| `DropdownMenu` | Navigation menus |
+| `Sonner` | Toast notifications |
+
+---
+
+## Layout System
+
+### Container
+
+```html
+<div class="max-w-7xl mx-auto px-6">
+  <!-- Content -->
+</div>
+```
+
+### Grid
+
+```html
+<!-- 3-column features -->
 <div class="grid grid-cols-1 gap-0 md:grid-cols-3">
-  <div class="border-x border-b border-neutral-200 p-8 first:border-l-0 last:border-r-0">
-    Column 1
+  <div class="border-x border-b md:border-b-0 border-border p-8 first:border-l-0 last:border-r-0">
+    Feature
   </div>
-  <div class="border-x border-b border-neutral-200 p-8">
-    Column 2
+  <div class="border-x border-b md:border-b-0 border-border p-8">
+    Feature
   </div>
-  <div class="border-x border-b border-neutral-200 p-8 last:border-r-0">
-    Column 3
+  <div class="border-x border-b md:border-b-0 border-border p-8 last:border-r-0">
+    Feature
   </div>
 </div>
 ```
 
-### Full-Bleed with Border
+### Sections
 
 ```html
-<!-- Dark section -->
-<section class="border-x border-white/10 bg-neutral-950">
-  <div class="max-w-7xl mx-auto px-6 py-24">
-    Content
-  </div>
-</section>
-
 <!-- Light section -->
-<section class="border-x border-neutral-200">
+<section class="border-x border-b border-border">
   <div class="max-w-7xl mx-auto px-6 py-24">
-    Content
+    <h2 class="text-3xl font-semibold text-foreground">Title</h2>
+    <p class="mt-4 text-muted-foreground">Description</p>
+  </div>
+</section>
+
+<!-- Dark section -->
+<section class="border-x border-b border-border bg-card">
+  <div class="max-w-7xl mx-auto px-6 py-24">
+    <h2 class="text-3xl font-semibold text-foreground">Title</h2>
+    <p class="mt-4 text-muted-foreground">Description</p>
   </div>
 </section>
 ```
 
 ---
 
-## No External Margins
+## Component Usage
 
-### Stack Elements Vertically
+### Button
 
-```html
-<!-- ❌ Don't add top/bottom margins -->
-<div class="mt-16 mb-8">
-  <h2>Title</h2>
-  <p class="mt-4">Description</p>
-</div>
+```tsx
+import { Button } from "@/components/ui/button"
 
-<!-- ✅ Stack without external margins -->
-<div>
-  <h2 class="text-3xl font-semibold text-white">Title</h2>
-  <p class="mt-4 text-neutral-400">Description</p>
-</div>
+// Primary CTA
+<Button>Get Started</Button>
+
+// Secondary
+<Button variant="secondary">Read the Docs</Button>
+
+// Outline
+<Button variant="outline">Learn More</Button>
+
+// Ghost
+<Button variant="ghost">Cancel</Button>
+
+// Sizes
+<Button size="sm">Small</Button>
+<Button size="lg">Large</Button>
 ```
 
-### Section Spacing with Border
+### Card
 
-```html
-<!-- Border creates visual separation instead of margin -->
-<section class="border-x border-b border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6 py-24">
-    <!-- No margin-top here, border from previous section creates separation -->
-    <h2>Section Title</h2>
-    <p>Section content</p>
-  </div>
-</section>
+```tsx
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-<section class="border-x border-b border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6 py-24">
-    <!-- Same py-24 creates consistent internal spacing -->
-    <h2>Next Section</h2>
-    <p>More content</p>
-  </div>
-</section>
+<Card>
+  <CardHeader>
+    <CardTitle>Feature Title</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <p class="text-muted-foreground">Feature description</p>
+  </CardContent>
+</Card>
+```
+
+### Input
+
+```tsx
+import { Input } from "@/components/ui/input"
+
+<Input placeholder="Search..." />
+<Input type="email" placeholder="Email" />
+```
+
+### Badge
+
+```tsx
+import { Badge } from "@/components/ui/badge"
+
+<Badge>New</Badge>
+<Badge variant="secondary">Beta</Badge>
+<Badge variant="outline">Coming Soon</Badge>
+```
+
+### Separator
+
+```tsx
+import { Separator } from "@/components/ui/separator"
+
+<Separator />
+```
+
+### Accordion
+
+```tsx
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+
+<Accordion type="single" collapsible>
+  <AccordionItem value="item-1">
+    <AccordionTrigger>Is it accessible?</AccordionTrigger>
+    <AccordionContent>Yes. It uses Radix UI...</AccordionContent>
+  </AccordionItem>
+</Accordion>
 ```
 
 ---
@@ -210,312 +311,138 @@ Instead of margins, use `border-x` for visual separation:
 
 ### Hero Section
 
-```html
-<section class="border-x border-b border-neutral-200 bg-white">
+```tsx
+<section class="border-x border-b border-border">
   <div class="max-w-7xl mx-auto px-6 py-24 lg:py-32">
-    <div class="max-w-3xl">
-      <p class="text-sm font-medium text-neutral-500 uppercase tracking-wider">Products</p>
-      <h1 class="mt-4 text-5xl font-semibold text-neutral-950">
-        AI agents that work for you.
-      </h1>
-      <p class="mt-6 text-xl text-neutral-600">
-        Deploy agents with personalities. Give them memory. Trigger them from anywhere.
-      </p>
+    <p class="text-sm font-medium text-muted-foreground uppercase tracking-wider">Products</p>
+    <h1 class="mt-4 text-4xl lg:text-5xl font-semibold text-foreground">
+      AI agents that work for you.
+    </h1>
+    <p class="mt-6 text-lg text-muted-foreground max-w-2xl">
+      Deploy agents with personalities. Give them memory. Trigger them from anywhere.
+    </p>
+    <div class="mt-8 flex gap-4">
+      <Button size="lg">Get Started</Button>
+      <Button variant="secondary" size="lg">Read the Docs</Button>
     </div>
   </div>
 </section>
 ```
 
-### Feature Grid (3 columns)
+### Features Grid (3 columns)
 
-```html
-<section class="border-x border-b border-neutral-200">
+```tsx
+<section class="border-x border-b border-border">
   <div class="max-w-7xl mx-auto px-6">
     <div class="grid grid-cols-1 gap-0 md:grid-cols-3">
-      <div class="border-x border-b md:border-b-0 border-neutral-200 p-8 lg:p-12 first:border-l-0 last:border-r-0">
-        <!-- Feature 1 -->
+      <div class="border-x border-b md:border-b-0 border-border p-8 lg:p-12 first:border-l-0 last:border-r-0">
+        <div class="h-10 w-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+          <Bot className="h-5 w-5" />
+        </div>
+        <h3 class="mt-6 text-lg font-semibold text-foreground">Agent Memory</h3>
+        <p class="mt-2 text-muted-foreground">
+          Agents remember context across sessions.
+        </p>
       </div>
-      <div class="border-x border-b md:border-b-0 border-neutral-200 p-8 lg:p-12">
-        <!-- Feature 2 -->
+      <div class="border-x border-b md:border-b-0 border-border p-8 lg:p-12">
+        <div class="h-10 w-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+          <Workflow className="h-5 w-5" />
+        </div>
+        <h3 class="mt-6 text-lg font-semibold text-foreground">Workflows</h3>
+        <p class="mt-2 text-muted-foreground">
+          Chain agents into powerful automations.
+        </p>
       </div>
-      <div class="border-x border-b md:border-b-0 border-neutral-200 p-8 lg:p-12 last:border-r-0">
-        <!-- Feature 3 -->
+      <div class="border-x border-b md:border-b-0 border-border p-8 lg:p-12 last:border-r-0">
+        <div class="h-10 w-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
+          <Zap className="h-5 w-5" />
+        </div>
+        <h3 class="mt-6 text-lg font-semibold text-foreground">Any Trigger</h3>
+        <p class="mt-2 text-muted-foreground">
+          GitHub, CLI, SDK, webhooks, and more.
+        </p>
       </div>
     </div>
   </div>
 </section>
 ```
 
-### Code Example Section
+### Code Section (Dark)
 
-```html
-<section class="border-x border-b border-neutral-200 bg-neutral-950">
+```tsx
+<section class="border-x border-b border-border bg-card">
   <div class="max-w-7xl mx-auto px-6 py-24">
-    <div class="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:gap-16">
+    <div class="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
       <div>
-        <h2 class="text-2xl font-semibold text-white">Simple to use</h2>
-        <p class="mt-4 text-neutral-400">
+        <h2 class="text-2xl font-semibold text-foreground">Simple to use</h2>
+        <p class="mt-4 text-muted-foreground">
           Just a few lines of code to get started.
         </p>
       </div>
-      <div class="border-x border-neutral-800 rounded-lg overflow-hidden">
-        <pre class="p-6 text-sm text-green-400 bg-black/50"><code>...</code></pre>
+      <div class="border border-border rounded-lg overflow-hidden">
+        <pre class="p-6 text-sm bg-muted overflow-x-auto">
+          <code>{`import { createClient } from '@nesalia/sdk';
+
+const client = createClient({ apiKey: '...' });
+
+const response = await client.agents.invoke('my-agent', {
+  prompt: 'Hello!'
+});`}</code>
+        </pre>
       </div>
     </div>
   </div>
 </section>
 ```
 
-### CTA Section
+### FAQ (Accordion)
 
-```html
-<section class="border-x border-b border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6 py-24 text-center">
-    <h2 class="text-3xl font-semibold text-neutral-950">
-      Start building today.
-    </h2>
-    <p class="mt-4 text-neutral-600">
-      Get started for free. No credit card required.
-    </p>
-    <div class="mt-8 flex justify-center gap-4">
-      <a href="/get-started" class="...">Get Started</a>
-      <a href="/docs" class="...">Read the Docs</a>
-    </div>
-  </div>
-</section>
+```tsx
+<Accordion type="single" collapsible className="max-w-2xl">
+  <AccordionItem value="item-1">
+    <AccordionTrigger>How is this different from just calling an LLM?</AccordionTrigger>
+    <AccordionContent>
+      <p class="text-muted-foreground">
+        Agents have memory and state. Each agent maintains context
+        across sessions, unlike stateless API calls.
+      </p>
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
 ```
 
 ---
 
-## Responsive Breakpoints
+## Typography
 
-```css
-/* Mobile first */
-/* Default: single column */
+### Scale
 
-/* Tablet */
-@media (min-width: 768px) {
-  .md\:grid-cols-2  /* 2 columns */
-  .md\:grid-cols-3  /* 3 columns */
-  .md\:flex-row    /* Horizontal layout */
-}
+```tsx
+// Display
+<h1 className="text-4xl lg:text-5xl font-semibold">Title</h1>
 
-/* Desktop */
-@media (min-width: 1024px) {
-  .lg\:grid-cols-12  /* 12-column grid */
-  .lg\:col-span-3   /* Sidebar */
-  .lg\:col-span-9   /* Main content */
-  .lg\:gap-16       /* Larger gaps */
-}
+// Section Title
+<h2 className="text-3xl font-semibold">Section</h2>
 
-/* Wide */
-@media (min-width: 1280px) {
-  /* Use max-width containers */
-}
-```
+// Feature Title
+<h3 className="text-lg font-semibold">Feature</h3>
 
----
+// Body
+<p className="text-base">Body text</p>
 
-## Color Palette
+// Muted
+<p className="text-muted-foreground">Subtitle</p>
 
-```css
-/* Neutral scale (for text, borders) */
---neutral-50:  #fafafa
---neutral-100: #f5f5f5
---neutral-200: #e5e5e5
---neutral-300: #d4d4d4
---neutral-400: #a3a3a3
---neutral-500: #737373
---neutral-600: #525252
---neutral-700: #404040
---neutral-800: #262626
---neutral-900: #171717
---neutral-950: #0a0a0a
-
-/* Brand colors */
---brand-purple: #7c3aed  /* Primary */
---brand-blue:  #2563eb  /* Secondary */
-
-/* Dark mode */
-.bg-neutral-950   /* Dark backgrounds */
-.text-white       /* Light text on dark */
-.border-white/10  /* Subtle borders */
-```
-
----
-
-## Typography Scale
-
-```css
-/* Font sizes */
-text-xs    12px /* Labels, captions */
-text-sm    14px /* Secondary text */
-text-base  16px /* Body text */
-text-lg    18px /* Lead paragraphs */
-text-xl    20px /* Feature titles */
-text-2xl   24px /* Section titles */
-text-3xl   30px /* Page titles */
-text-4xl   36px /* Hero headlines */
-text-5xl   48px /* Hero display */
-text-6xl   60px /* Landing hero */
-
-/* Font weights */
-font-normal    400
-font-medium    500
-font-semibold  600
-font-bold      700
-```
-
----
-
-## Component Patterns
-
-### Button
-
-```html
-<!-- Primary -->
-<button class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium text-white bg-neutral-950 rounded-lg hover:bg-neutral-800">
-  Get Started
-</button>
-
-<!-- Secondary -->
-<button class="inline-flex items-center justify-center h-10 px-5 text-sm font-medium text-neutral-950 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50">
-  Read the Docs
-</button>
-```
-
-### Card
-
-```html
-<!-- No card styling - use border-x grid instead -->
-<div class="border-x border-b border-neutral-200 p-8">
-  Content
-</div>
-```
-
-### Input
-
-```html
-<input
-  type="text"
-  placeholder="Search..."
-  class="h-10 px-4 text-sm bg-transparent border border-neutral-200 rounded-lg placeholder:text-neutral-400 focus:outline-none focus:border-neutral-400"
-/>
-```
-
----
-
-## Dark Mode
-
-```html
-<!-- Dark section -->
-<section class="border-x border-b border-white/10 bg-neutral-950">
-  <div class="max-w-7xl mx-auto px-6 py-24">
-    <h2 class="text-3xl font-semibold text-white">Headline</h2>
-    <p class="mt-4 text-neutral-400">Description</p>
-  </div>
-</section>
-
-<!-- Light section -->
-<section class="border-x border-b border-neutral-200">
-  <div class="max-w-7xl mx-auto px-6 py-24">
-    <h2 class="text-3xl font-semibold text-neutral-950">Headline</h2>
-    <p class="mt-4 text-neutral-600">Description</p>
-  </div>
-</section>
-```
-
----
-
-## Layout Examples
-
-### Homepage Layout
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ HEADER (sticky, transparent → solid)                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ HERO (border-b)                                                 │
-│ max-w-7xl, py-24 lg:py-32                                       │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ SOCIAL PROOF (border-b)                                         │
-│ Grid 3-col stats                                                │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ FEATURES (border-b)                                             │
-│ Grid 3-col with border-x separators                            │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ CODE EXAMPLE (bg-neutral-950, border-b)                         │
-│ Grid 2-col: text + code block                                  │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ CTA (border-b)                                                  │
-│ Centered text                                                    │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│ FOOTER                                                          │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Product Page Layout
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ HEADER                                                          │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ HERO (border-b)                                                 │
-│ max-w-3xl                                                        │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ WHAT IT IS (border-b)                                           │
-│ 2-col grid: text + visual                                       │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ FEATURES (border-b)                                             │
-│ 3-col grid with border-x                                        │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ HOW IT WORKS (border-b)                                         │
-│ Step-by-step with code                                          │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ INTEGRATIONS (border-b)                                         │
-│ Logo grid                                                       │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ FAQ (border-b)                                                  │
-│ Accordion or simple list                                        │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│ CTA (border-b)                                                  │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│ FOOTER                                                          │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+// Small
+<p className="text-sm">Caption</p>
 ```
 
 ---
 
 ## Next Steps
 
-1. [ ] Create Tailwind config with design tokens
-2. [ ] Build reusable components
-3. [ ] Create page templates
-4. [ ] Implement Homepage
-5. [ ] Implement product pages
+1. [ ] Initialize shadcn/ui in project
+2. [ ] Configure theme (purple/blue brand colors)
+3. [ ] Install required components
+4. [ ] Build homepage with shadcn components
+5. [ ] Build product pages
