@@ -1,64 +1,95 @@
-# Nesalia — Product Specification
+# Nesalia — Product Ecosystem
 
-> **Status:** POC (Internal Use Only)
+> **Status:** Active Development
 > **Last Updated:** 2026-06-09
+
+---
+
+## Mission
+
+**Make software development a commodity.**
+
+Just like Vercel made deployment commodity, we make AI agent infrastructure commodity.
 
 ---
 
 ## Vision
 
-**Nesalia = A globally hosted, extensible version of Flue.**
-
-A managed Flue service where agents can be triggered from anywhere — GitHub Actions, GitHub bots, CLI, mobile, web, or any HTTP client. The platform handles orchestration, isolation, and persistence while users bring their own LLM providers.
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Nesalia Platform                              │
-│ (Hosted Flue Service)                             │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│   ┌─────────┐ ┌─────────┐   ┌─────────┐   ┌─────────┐           │
-│   │  GH │   │  GitHub │   │   CLI   │   │  Mobile │ │
-│   │ Actions │   │   Bot   │   │         │   │   App   │           │
-│   └────┬────┘   └────┬────┘   └────┬────┘   └────┬────┘           │
-│        │             │             │             │                  │
-│        └─────────────┴──────┬──────┴─────────────┘                  │
-│                             │                                       │
-│                      ┌─────▼─────┐                                 │
-│                      │   API     │                                 │
-│                      └─────┬─────┘                                 │
-│                            │                                       │
-│              ┌─────────────┼─────────────┐                         │
-│              ▼             ▼             ▼                         │
-│         ┌─────────┐  ┌─────────┐  ┌─────────┐                     │
-│         │ Agent A │  │ Agent B │  │ Agent C │                     │
-│         │(sandbox)│  │(sandbox)│  │(sandbox)│                     │
-│         └─────────┘  └─────────┘  └─────────┘                     │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Core principles:**
-- **Extensible by default** — Anyone can build integrations (SDK, CLI, GH Action, bot)
-- **Trigger from anywhere** — HTTP API is the universal interface
-- **User-provided LLM** — Users bring their own provider
-- **Managed infrastructure** — No setup required, just API keys
+Build the ecosystem that powers the next generation of software development. From frameworks to platforms to learning, we create the standard tools that every TypeScript developer uses.
 
 ---
 
-## Core Differentiator
+## Product Family
 
-| Aspect | OpenClaw | PicoClaw | **Nesalia** |
-|--------|----------|----------|-------------|
-| **Deployment** | Desktop (macOS app) | Binary ($10 hardware) | **☁️ Hosted cloud** |
-| **Access Points** | Desktop app / chat | CLI / chat | **GH Actions, Bot, CLI, Mobile, Web, HTTP** |
-| **Extensibility** | Plugins | Extensions | ✅ **Extensible by default** |
-| **Agent Identity** | Session-based | Session-based | **Agent = individual** |
-| **Infrastructure** | ❌ Managed | ❌ Managed | ✅ **Managed** |
-| **LLM Provider** | User-provided | User-provided | **User-provided** |
-| **Sandbox Isolation** | ❌ | ❌ | ✅ **Per-agent containers** |
-| **Memory Persistence** | Basic | Basic | ✅ **Long-term layer** |
-| **Multi-agent Comms** | Basic | SubTurn + Hooks | ✅ **True inter-agent** |
+| Product | Description | Status |
+|---------|-------------|--------|
+| **DeesseJS** | "Laravel for TypeScript" — OSS framework packages | 🔴 Active |
+| **Nesalia** | "Modern Agent Infrastructure" — hosted platform | 🔴 Active |
+| **Académie** | Learning platform (Codecademy for AI devs) | 🟡 Planned |
+| **Fresh** | Knowledge engine for agents | 🟡 Future |
+| **DeesseJS Cloud** | Managed DeesseJS hosting | 🟡 Future |
+
+---
+
+## Core Positioning
+
+### The Vercel/Next.js Parallel
+
+| Open Source | Managed Platform |
+|-------------|-----------------|
+| Next.js | Vercel |
+| **DeesseJS** | **Nesalia** |
+
+**DeesseJS** is free, OSS. **Nesalia** is the hosted platform you pay for.
+
+---
+
+## Products in Depth
+
+### DeesseJS — The Framework
+
+**DeesseJS is the Laravel for TypeScript.**
+
+A modular, plugin-based TypeScript framework that provides essential packages for modern development. It's not an agent framework — it's a collection of tools that make TypeScript development faster, more standardized, and more maintainable.
+
+**Packages:**
+- Collections (CMS-like)
+- RPC
+- Admin Dashboard
+- Functional utils
+- Errors handling
+- And more...
+
+**Goal:** Become the default choice for TypeScript development. Like Laravel for PHP, shadcn for UI.
+
+### Nesalia — The Platform
+
+**Nesalia is modern agent infrastructure.**
+
+A managed service where agents can be triggered from anywhere — GitHub Actions, GitHub bots, CLI, mobile, web, or any HTTP client.
+
+- Agent hosting (Flue-based)
+- Workflow engine
+- Marty bot
+- SDK/CLI
+- User brings their own LLM provider
+
+### Académie — The Learning Platform
+
+**Codecademy for AI developers.**
+
+- Courses on DeesseJS, Nesalia, agent development
+- Challenges and certifications
+- Standalone paid product
+- Funnels to platform
+
+### Fresh — The Knowledge Engine (Future)
+
+**Up-to-date knowledge for agents.**
+
+- RAG + real-time data
+- Agent training knowledge
+- Dynamic context for LLMs
 
 ---
 
@@ -68,7 +99,7 @@ A managed Flue service where agents can be triggered from anywhere — GitHub Ac
 |-------|------------|---------|
 | **Agent Framework** | [Flue](https://flueframework.com) (`@flue/runtime`) | Harness, sessions, tools, sandboxes |
 | **LLM Abstraction** | [Pi](https://pi.dev) (`@earendil-works/pi-ai`) | Multi-provider LLM API (15+ providers) |
-| **SDK** | **DeesseJS** (own) | Isomorphic TypeScript SDK |
+| **SDK** | **DeesseJS SDK** (own) | Isomorphic TypeScript SDK |
 | **Sandbox** | **Daytona** / Cloudflare | Isolated container environments |
 | **Runtime** | **Node.js** / Cloudflare Workers | Deploy targets |
 
@@ -91,7 +122,67 @@ provider/model
 
 ---
 
-## Products in Scope
+## Pricing Strategy
+
+### Model: Usage-based + Tiers (Vercel-like)
+
+| Tier | Price | Includes |
+|------|-------|----------|
+| **Free** | $0 | Limited usage, testing |
+| **Starter** | $X/mo | Basic usage, 1-2 agents |
+| **Pro** | $Y/mo | Unlimited agents, more compute |
+| **Enterprise** | Custom | SSO, SLA, dedicated infra |
+
+### Usage Components
+
+- Agent invocations
+- Compute time
+- Storage
+- (LLM costs: user pays their own provider — not included)
+
+### Academy: Separate Paid Product
+
+- Courses on DeesseJS, Nesalia, agent development
+- Challenges and certifications
+- Standalone revenue + platform funnel
+
+---
+
+## Sales Messaging
+
+### One-Liner for Each Product
+
+| Product | One-Liner |
+|---------|-----------|
+| **DeesseJS** | "The Laravel for TypeScript — modular packages for modern development." |
+| **Nesalia** | "Deploy, scale, and manage agents without managing infrastructure." |
+| **Académie** | "Learn to build with DeesseJS, certified agent developer." |
+| **Fresh** | "Give your agents up-to-date knowledge, automatically." |
+
+### Tagline
+
+> "Make software development a commodity."
+
+---
+
+## Target Audience
+
+**Primary:** TypeScript developers worldwide
+**Secondary:** Teams, startups, enterprises
+**Tertiary:** AI/LLM providers (recommend DeesseJS to users)
+
+### Audience Segments
+
+| Segment | Needs | Approach |
+|---------|-------|----------|
+| **Solo Dev** | Speed, simplicity | "Build in minutes" |
+| **Startup** | Standardization, scaling | "One stack for the team" |
+| **Enterprise** | Security, compliance, SLA | "Managed, secure, scalable" |
+| **LLM Providers** | Partner to recommend | "Default choice for TypeScript" |
+
+---
+
+## Products in Scope (Nesalia Platform)
 
 ### Core Products
 
@@ -100,11 +191,10 @@ provider/model
 | **Agent Creator** | Create agents with role, model, tools, sandbox | 🔴 In Progress |
 | **Managed Agents** | Agents as individuals with isolated sandboxes | 🔴 In Progress |
 | **HTTP API** | Universal interface for all integrations | 🔴 In Progress |
-| **SDK / CLI** | Developer consumption via DeesseJS (fork of Pi) | 🔴 In Progress |
-| **Intelligence Layer** | Inter-agent communication | 🟡 Planned |
+| **SDK / CLI** | Developer consumption via DeesseJS | 🔴 In Progress |
 | **Workflow Engine** | Agent-centric workflows (n8n-modernisé) | 🟡 Planned |
-| **GitHub Action** | Trigger agents from CI/CD | 🟡 Planned |
 | **Marty Bot** | GitHub bot (CodeRabbit/Vercel equivalent) | 🟡 Planned |
+| **GitHub Action** | Trigger agents from CI/CD | 🟡 Planned |
 | **Mobile SDK** | Native mobile access | 🟡 Planned |
 
 ### Use Cases
@@ -204,33 +294,6 @@ Think of an agent like a **human colleague**:
 - You can **return to any context** anytime
 - You **learn things in one context** that can be useful in another
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Human (Agent)                            │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  Long-term Memory:                                          │
-│  - "I know how to code review"                             │
-│  - "I prefer concise outputs"                               │
-│  - "I worked on PR #123 last week"                         │
-│                                                             │
-│  ─────────────────────────────────────────────────────     │
-│                                                             │
-│  Context "Martin"              Context "François"          │
-│  ┌────────────────────┐       ┌────────────────────┐      │
-│  │ "Let's review PR #456" │   │ "Can you write     │      │
-│  │ [active conversation] │   │ the docs for API"  │      │
-│  │                       │   │ [paused, 3 days    │      │
-│  │                       │   │  ago]              │      │
-│  └───────────────────────┘   └────────────────────┘      │
-│                                                             │
-│  Transfer learning:                                         │
-│  - Learned from Martin: "PR #456 has a bug"               │
-│  - Can use it with François: "Based on PR #456 learning..." │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
-
 **Key behaviors:**
 - **Individual contexts** — Different conversations don't interfere
 - **Selective forgetting** — Some things fade over time
@@ -269,7 +332,6 @@ The HTTP API is the universal interface. Anyone can build integrations:
   with:
     agent: my-coder
     api-key: ${{ secrets.NESALIA_API_KEY }}
-
 ```
 
 ```bash

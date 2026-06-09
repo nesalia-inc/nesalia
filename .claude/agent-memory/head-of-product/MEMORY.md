@@ -3,6 +3,8 @@
 - [Workflow Engine](workflow-engine.md) — Agent-centric workflow engine, n8n-modernisé, human-in-the-loop
 - [Marty Bot](marty-bot.md) — GitHub bot (CodeRabbit/Vercel Agent equivalent) powered by Nesalia agents
 - [DeesseJS SDK/CLI](deessejs-sdk.md) — SDK and CLI (fork of Pi) for developer experience
+- [Business Strategy](business-strategy.md) — Products, pricing, sales messaging, positioning
+- [DeesseJS Framework](deessejs-framework.md) — Laravel for TypeScript, OSS packages
 - [Flue Framework Reference](flue-framework.md) — Flue capabilities, sandbox types, API patterns, and what it doesn't provide natively
 - [Claude Managed Agents Reference](claude-managed-agents.md) — Claude's managed agent platform features, multiagent, versioning, and infrastructure
 - [Pi (pi.dev) Reference](pi-dev.md) — The AI agent toolkit Flue uses internally for LLM provider abstraction (@earendil-works/pi-ai)
