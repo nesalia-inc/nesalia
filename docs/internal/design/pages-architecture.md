@@ -5,268 +5,122 @@
 
 ---
 
-## Research Summary: What the Best Have
+## Vercel Pattern Analysis
 
-### Vercel Pages
+Vercel organizes their navigation into clear categories:
+
+| Category | Purpose | Examples |
+|----------|---------|----------|
+| **Products** | Infrastructure capabilities | AI Gateway, Sandbox, Agent, SDK, Workflow |
+| **Solutions** | Customer use cases | AI Apps, Commerce, Marketing, Web Apps |
+| **Resources** | Learning + ecosystem | Docs, Blog, Academy, Integrations |
+| **Pricing** | Commercial | Pricing page |
+
+### Key Insight: Products ≠ Solutions
+
+- **Products** = What the platform provides (infrastructure)
+- **Solutions** = How customers use it (use cases)
+
+---
+
+## Navigation Structure for Nesalia
+
+### Header Nav
+
+```
+Products ▾          Solutions ▾          Learn ▾          Pricing    Blog    Docs
+─────────────────────────────────────────────────────────────────────────────────
+```
+
+### Products Dropdown
+
+| Product | One-Liner | URL | Status |
+|---------|-----------|-----|--------|
+| **Agents** | AI agents that work for you | /agents | 🔴 MVP |
+| **Workflows** | Automate any process | /workflows | 🔴 MVP |
+| **LLM Gateway** | One endpoint, all your models | /llm-gateway | 🟡 Future |
+| **Sandbox** | Isolated, safe code execution | /sandbox | 🟡 Future |
+| **SDK / CLI** | Build with Nesalia | /sdk | 🔴 MVP |
+| **Marty Bot** | Your AI code reviewer | /marty | 🟡 Post-MVP |
+| **GitHub Action** | Trigger agents from CI/CD | /github-action | 🟡 Post-MVP |
+| **Fluid Compute** | Servers in serverless form | /fluid | 🟢 Future |
+
+### Solutions Dropdown
+
+| Solution | One-Liner | URL | Status |
+|----------|-----------|-----|--------|
+| **Autonomous Agents** | Agents that work 24/7 | /solutions/autonomous-agents | 🟡 Future |
+| **GitHub Automation** | Automate code review & tasks | /solutions/github | 🟡 Future |
+| **Content Creation** | Automated content pipelines | /solutions/content | 🟢 Future |
+| **Software Factory** | Full SDLC with AI | /solutions/factory | 🟢 Future |
+| **Workflow Automation** | Business process automation | /solutions/automation | 🟢 Future |
+
+### Learn Dropdown
+
+| Resource | URL | Status |
+|----------|-----|--------|
+| **Documentation** | /docs | 🔴 MVP |
+| **Blog** | /blog | 🟡 Post-MVP |
+| **Changelog** | /changelog | 🟡 Post-MVP |
+| **Academy** | /academy | 🟢 Future |
+| **DeesseJS** | /deessejs | 🟡 Post-MVP |
+
+---
+
+## Page Architecture by Tier
+
+### Tier 1: MVP (Build first)
+
+| Page | URL | Type | Purpose |
+|------|-----|------|---------|
+| **Homepage** | / | Landing | Main landing + mission |
+| **Agents** | /agents | Product | Agent platform deep-dive |
+| **Workflows** | /workflows | Product | Workflow engine deep-dive |
+| **Docs** | /docs | Resource | Documentation hub |
+| **Pricing** | /pricing | Commercial | Pricing page |
+
+### Tier 2: Post-MVP Products
+
+| Page | URL | Type | Purpose |
+|------|-----|------|---------|
+| **SDK / CLI** | /sdk | Product | Developer tools landing |
+| **Marty Bot** | /marty | Product | GitHub bot landing |
+| **GitHub Action** | /github-action | Product | CI/CD integration |
+
+### Tier 3: Future Products
+
+| Page | URL | Type | Purpose |
+|------|-----|------|---------|
+| **LLM Gateway** | /llm-gateway | Product | Multi-provider routing |
+| **Sandbox** | /sandbox | Product | Isolated code execution |
+| **Fluid Compute** | /fluid | Product | Serverless-like compute |
+
+### Tier 4: Solutions (Use Cases)
+
 | Page | URL | Purpose |
 |------|-----|---------|
-| Homepage | / | Main landing |
-| Solutions | /solutions | Industry/customer solutions |
-| AI Apps | /ai-apps | Specific use case |
-| Products | /products | Product overview |
-| AI SDK | /ai-sdk | Specific product |
-| AI Gateway | /ai-gateway | Specific product |
-| Docs | /docs | Documentation |
-| Blog | /blog | Content |
-| Pricing | /pricing | Pricing page |
+| **Autonomous Agents** | /solutions/autonomous-agents | Use case for autonomous agents |
+| **GitHub Automation** | /solutions/github | Use case for code review & automation |
+| **Content Creation** | /solutions/content | Use case for content pipelines |
+| **Software Factory** | /solutions/factory | Use case for full SDLC |
 
-### Supabase Pages
+### Tier 5: Ecosystem
+
 | Page | URL | Purpose |
 |------|-----|---------|
-| Homepage | / | Main landing |
-| Developers | /developers | Developer-focused content |
-| Docs | /docs | Documentation |
-| Blog | /blog | Content |
-| Pricing | /pricing | Pricing page |
-| Changelog | /changelog | Product updates |
+| **DeesseJS** | /deessejs | Framework landing (OSS) |
+| **Academy** | /academy | Learning platform |
+| **Blog** | /blog | Content marketing |
+| **Changelog** | /changelog | Product updates |
 
-### Neon Pages
+### Tier 6: Corporate
+
 | Page | URL | Purpose |
 |------|-----|---------|
-| Homepage | / | Main landing |
-| AI | /ai | AI-focused landing |
-| Docs | /docs | Documentation |
-| Blog | /blog | Content |
-| Pricing | /pricing | Pricing page |
-
-### Linear Pages
-| Page | URL | Purpose |
-|------|-----|---------|
-| Homepage | / | Main landing |
-| Agents | /agents | Agent-focused landing |
-| Docs | /docs | Documentation |
-| Blog | /blog | Content |
-| Changelog | /changelog | Product updates |
-
-### Midday Pages
-| Page | URL | Purpose |
-|------|-----|---------|
-| Homepage | / | Main landing |
-| Docs | /docs | Documentation |
-| Blog | /blog | Content |
-| Pricing | /pricing | Pricing page |
-
----
-
-## Page Architecture for Nesalia
-
-### Tier 1: Must-Have (MVP)
-
-| Page | URL | Purpose | Priority |
-|------|-----|---------|----------|
-| **Homepage** | / | Main landing | 🔴 Critical |
-| **Agents** | /agents | Agent platform landing | 🔴 Critical |
-| **Workflows** | /workflows | Workflow engine landing | 🔴 Critical |
-| **Docs** | /docs | Documentation | 🔴 Critical |
-| **Pricing** | /pricing | Pricing page | 🔴 Critical |
-
-### Tier 2: Important (Post-MVP)
-
-| Page | URL | Purpose | Priority |
-|------|-----|---------|----------|
-| **Marty Bot** | /marty | GitHub bot landing | 🟡 Important |
-| **SDK / CLI** | /sdk | Developer tools landing | 🟡 Important |
-| **DeesseJS** | /deessejs | Framework landing | 🟡 Important |
-| **Academy** | /academy | Learning platform | 🟡 Important |
-| **Blog** | /blog | Content marketing | 🟡 Important |
-| **Changelog** | /changelog | Product updates | 🟡 Important |
-
-### Tier 3: Nice-to-Have (Future)
-
-| Page | URL | Purpose | Priority |
-|------|-----|---------|----------|
-| **Use Cases** | /use-cases | Industry solutions | 🟢 Nice |
-| **Integrations** | /integrations | Third-party integrations | 🟢 Nice |
-| **Enterprise** | /enterprise | Enterprise solutions | 🟢 Nice |
-| **Fresh** | /fresh | Knowledge engine | 🟢 Nice |
-| **About** | /about | Company info | 🟢 Nice |
-| **Careers** | /careers | Job listings | 🟢 Nice |
-
----
-
-## Page Structure Breakdown
-
-### 1. Homepage (/)
-
-**Purpose:** First impression, mission statement, key features
-
-**Content:**
-- Hero: Mission headline + CTAs
-- Social proof: Stats + testimonials
-- Features: 3 columns (Agents, Workflows, Triggers)
-- Products: Ecosystem overview
-- How it works: 4-step process
-- CTA: Final push
-- Footer
-
-**Competitors参考:** Vercel, Supabase, Neon
-
----
-
-### 2. Agents (/agents)
-
-**Purpose:** Deep dive on the agent platform
-
-**Content:**
-- Hero: "AI agents that work for you"
-- What are agents: Explanation + visual
-- Features: Memory, contexts, sandbox isolation
-- Code example: Create + invoke agent
-- Use cases: Code review, documentation, etc.
-- Integrations: GitHub, CLI, SDK
-- CTA: "Start building agents"
-
-**Competitors参考:** Linear /agents, Neon /ai
-
----
-
-### 3. Workflows (/workflows)
-
-**Purpose:** Deep dive on workflow automation
-
-**Content:**
-- Hero: "Automate any process"
-- What are workflows: Explanation + visual
-- Features: Agent tasks, conditions, human-in-the-loop
-- Code example: Define + trigger workflow
-- Use cases: CI/CD, content creation, etc.
-- Integrations: Webhooks, external services
-- CTA: "Start automating"
-
-**Competitors参考:** Vercel Workflow, n8n
-
----
-
-### 4. Marty Bot (/marty)
-
-**Purpose:** GitHub bot landing page
-
-**Content:**
-- Hero: "Your AI code reviewer"
-- Features: PR review, issue triage, commands
-- Code example: @marty review command
-- Setup: Installation steps
-- Commands: List of available commands
-- CTA: "Add to GitHub"
-
-**Competitors参考:** CodeRabbit, GitHub Copilot
-
----
-
-### 5. SDK / CLI (/sdk)
-
-**Purpose:** Developer tools landing
-
-**Content:**
-- Hero: "Build with Nesalia"
-- Quick start: `npm install @nesalia/sdk`
-- Code examples: Agent invoke, streaming, workflows
-- CLI reference: Key commands
-- API reference: Link to docs
-- CTA: "Read the docs"
-
-**Competitors参考:** Supabase /developers, Vercel /ai-sdk
-
----
-
-### 6. DeesseJS (/deessejs)
-
-**Purpose:** Framework landing page
-
-**Content:**
-- Hero: "The Laravel for TypeScript"
-- Packages: List of packages with descriptions
-- Quick start: `npm create deesse@latest`
-- Code examples: Collections, RPC, Admin
-- Philosophy: Modular, OSS, own your code
-- CTA: "View packages"
-
-**Competitors参考:** N/A (unique positioning)
-
----
-
-### 7. Academy (/academy)
-
-**Purpose:** Learning platform landing
-
-**Content:**
-- Hero: "Learn to build with AI agents"
-- Courses: List of courses
-- Challenges: Practice challenges
-- Certifications: Get certified
-- Pricing: Free vs Paid tiers
-- CTA: "Start learning"
-
-**Competitors参考:** Codecademy, LeetCode
-
----
-
-### 8. Docs (/docs)
-
-**Purpose:** Documentation hub
-
-**Content:**
-- Quick start: Get started in 5 minutes
-- Guides: Step-by-step tutorials
-- API reference: Full API documentation
-- Concepts: Core concepts explained
-- Examples: Code examples
-- Integrations: How to connect external services
-
-**Competitors参考:** Supabase /docs, Neon /docs, Linear /docs
-
----
-
-### 9. Pricing (/pricing)
-
-**Purpose:** Pricing information
-
-**Content:**
-- Hero: "Simple, transparent pricing"
-- Tiers: Free, Starter, Pro, Enterprise
-- Comparison table: What's included in each tier
-- FAQ: Common questions
-- Calculator: Usage-based calculator (future)
-- CTA: "Start free" or "Contact sales"
-
-**Competitors参考:** Vercel /pricing, Supabase /pricing, Neon /pricing
-
----
-
-### 10. Blog (/blog)
-
-**Purpose:** Content marketing
-
-**Content:**
-- Categories: Product updates, tutorials, use cases
-- Featured: Latest posts
-- Newsletter: Subscribe CTA
-- Authors: Team members
-
-**Competitors参考:** All competitors have blogs
-
----
-
-### 11. Changelog (/changelog)
-
-**Purpose:** Product updates
-
-**Content:**
-- Timeline: Chronological updates
-- Categories: New features, improvements, fixes
-- Versioning: Semantic versioning
-
-**Competitors参考:** Linear /changelog, Supabase /changelog
+| **About** | /about | Company info |
+| **Careers** | /careers | Job listings |
+| **Enterprise** | /enterprise | Enterprise solutions |
+| **Integrations** | /integrations | Third-party integrations |
 
 ---
 
@@ -274,150 +128,182 @@
 
 ```
 nesalia.com/
-├── /                    (Homepage)
-├── /agents              (Agent platform)
-├── /workflows           (Workflow engine)
-├── /marty               (GitHub bot)
-├── /sdk                 (Developer tools)
-├── /deessejs            (Framework)
-├── /academy             (Learning platform)
-├── /docs                (Documentation)
+├── /                        (Homepage)
+├── /agents                   (Product: Agent platform)
+├── /workflows                 (Product: Workflow engine)
+├── /sdk                      (Product: SDK / CLI)
+├── /marty                    (Product: GitHub bot)
+├── /github-action            (Product: GitHub Action)
+├── /llm-gateway              (Product: LLM gateway) [Future]
+├── /sandbox                  (Product: Sandbox) [Future]
+├── /fluid                    (Product: Fluid compute) [Future]
+│
+├── /solutions/               (Solutions: Use cases)
+│   ├── /solutions/autonomous-agents
+│   ├── /solutions/github
+│   ├── /solutions/content
+│   └── /solutions/factory
+│
+├── /deessejs                 (Ecosystem: Framework)
+├── /academy                  (Ecosystem: Learning)
+│
+├── /docs                     (Resources: Documentation)
 │   ├── /docs/getting-started
 │   ├── /docs/agents
 │   ├── /docs/workflows
-│   ├── /docs/api
 │   └── /docs/...
-├── /pricing             (Pricing)
-├── /blog                (Blog)
+│
+├── /pricing                  (Commercial)
+├── /blog                     (Content)
 │   ├── /blog/[slug]
 │   └── /blog/category/[category]
-├── /changelog           (Product updates)
-├── /use-cases           (Use cases) [Future]
-├── /integrations        (Integrations) [Future]
-├── /enterprise          (Enterprise) [Future]
-├── /about               (About) [Future]
-└── /careers             (Careers) [Future]
+├── /changelog               (Product updates)
+│
+├── /about                    (Corporate) [Future]
+├── /careers                  (Corporate) [Future]
+├── /enterprise               (Corporate) [Future]
+└── /integrations             (Corporate) [Future]
 ```
 
 ---
 
-## Content Structure Patterns
+## Product Page Template
 
-### Landing Page Pattern
+Each product page follows Vercel's pattern:
+
+### Structure
 
 ```
 1. Hero
-   - Headline (mission or product)
-   - Subheadline (what it does)
-   - CTAs (primary + secondary)
+   - Headline (product name + benefit)
+   - One-liner description
+   - CTAs (Get Started + Read Docs)
 
-2. Social Proof
-   - Stats (numbers)
-   - Testimonials (quotes)
-   - Logos (companies)
+2. What it is
+   - Explanation paragraph
+   - Key value proposition
 
-3. Features (3 columns)
+3. Features (3-4 columns)
    - Icon + Title
    - Short description
-   - Visual/code example
+   - Code example or visual
 
-4. How It Works
-   - 3-4 steps
-   - Visual + text
+4. How it works
+   - Step-by-step with visuals
+   - Code example
 
-5. Products/Ecosystem
-   - Main product (prominent)
-   - Secondary products (links)
+5. Integrations
+   - How it connects to other products
+   - Ecosystem diagram
 
-6. CTA
-   - Headline
-   - Primary CTA
-   - Secondary CTA
+6. Use cases
+   - Real-world examples
+   - Customer quotes (when available)
 
-7. Footer
-   - Links organized by category
-   - Social links
-   - Legal
+7. FAQ
+   - Common questions
+   - Technical details
+
+8. CTA
+   - Final push
+   - Alternative: Demo for enterprise
 ```
 
-### Documentation Pattern
+### Product Pages to Create
 
-```
-1. Sidebar Navigation
-   - Getting Started
-   - Guides
-   - API Reference
-   - Concepts
-   - Examples
-
-2. Content Area
-   - Title
-   - Description
-   - Code examples
-   - Step-by-step instructions
-   - Related links
-
-3. On-page Navigation
-   - Table of contents
-   - Previous/Next links
-```
+| Product | Status | Priority |
+|---------|--------|----------|
+| **Agents** | Existing spec | 🔴 High |
+| **Workflows** | Existing spec | 🔴 High |
+| **SDK / CLI** | Existing spec | 🔴 High |
+| **Marty Bot** | Existing spec | 🟡 Medium |
+| **LLM Gateway** | New spec needed | 🟡 Medium |
+| **Sandbox** | New spec needed | 🟢 Low |
+| **Fluid Compute** | New spec needed | 🟢 Low |
+| **GitHub Action** | New spec needed | 🟡 Medium |
 
 ---
 
-## Design System Requirements
+## Solution Page Template
 
-### Global Elements
+Solutions are customer-centric, showing use cases:
 
-| Element | Specification |
-|---------|---------------|
-| **Navigation** | Sticky, transparent → solid on scroll |
-| **Footer** | 5-6 columns + bottom bar |
-| **Dark mode** | Default (similar to Linear/Neon) |
-| **Colors** | Purple/blue accents |
-| **Typography** | Inter or similar sans-serif |
-| **Icons** | Minimal outlined (Lucide/Phosphor) |
+### Structure
 
-### Responsive Breakpoints
+```
+1. Hero
+   - Industry/use case headline
+   - "Built for [audience]"
+   - Primary CTA
 
-| Breakpoint | Width | Layout |
-|------------|-------|--------|
-| Mobile | < 640px | Single column |
-| Tablet | 640-1024px | 2 columns |
-| Desktop | > 1024px | Full layout |
+2. Problem
+   - What's the pain point?
+   - Why is it hard?
+
+3. Solution
+   - How Nesalia solves it
+   - Step-by-step flow
+
+4. Features for this use case
+   - What's relevant
+   - Code examples
+
+5. Customer story
+   - Quote
+   - Results (metrics)
+
+6. Templates / Starters
+   - Pre-built examples
+   - One-click deploy
+
+7. Related products
+   - Connect to products
+   - Show ecosystem
+
+8. CTA
+   - Get started or Demo
+```
 
 ---
 
 ## Implementation Priority
 
-### Phase 1: MVP (Build these first)
+### Phase 1: Core (This sprint)
 
-1. **Homepage** — Everything starts here
-2. **Docs** — Developers need this
-3. **Pricing** — Need to convert
-4. **Agents** — Core product
-5. **Workflows** — Core product
+1. **Homepage** — Landing page with all products overview
+2. **/agents** — Detailed product page for agent platform
+3. **/workflows** — Detailed product page for workflows
+4. **/sdk** — Detailed product page for SDK/CLI
+5. **/pricing** — Pricing page
 
-### Phase 2: Growth (Build after MVP)
+### Phase 2: Growth (Next sprint)
 
-6. **Marty Bot** — Key differentiator
-7. **SDK / CLI** — Developer experience
-8. **Blog** — Content marketing
-9. **Changelog** — Community engagement
+6. **/marty** — GitHub bot product page
+7. **/github-action** — GitHub Action product page
+8. **/solutions/github** — GitHub automation solution
+9. **/blog** — Content marketing
+10. **/changelog** — Product updates
 
 ### Phase 3: Expansion (Future)
 
-10. **DeesseJS** — Framework landing
-11. **Academy** — Learning platform
-12. **Use Cases** — Industry solutions
-13. **Enterprise** — Sales enablement
+11. **/solutions/autonomous-agents** — Autonomous agents solution
+12. **/solutions/factory** — Software factory solution
+13. **/llm-gateway** — LLM gateway product
+14. **/sandbox** — Sandbox product
+
+### Phase 4: Ecosystem
+
+15. **/deessejs** — Framework landing
+16. **/academy** — Learning platform
+17. **/enterprise** — Enterprise solutions
 
 ---
 
 ## Next Steps
 
-1. [ ] Approve page architecture
-2. [ ] Prioritize Phase 1 pages
-3. [ ] Design Homepage (start here)
-4. [ ] Design Docs structure
-5. [ ] Design Pricing page
-6. [ ] Implement and iterate
+1. [ ] Review and approve navigation structure
+2. [ ] Prioritize Phase 1 product pages
+3. [ ] Design /agents page (start here)
+4. [ ] Design /workflows page
+5. [ ] Design /sdk page
+6. [ ] Create /solutions structure
