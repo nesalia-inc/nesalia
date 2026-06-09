@@ -22,6 +22,7 @@ Products ▾          Solutions ▾          Learn ▾          Pricing    Blog 
 | **CLI** | Control from terminal | /cli | 🔴 MVP |
 | **Analytics** | Monitor agent performance | /analytics | 🟡 Future |
 | **Desktop** | Native AI interface | /desktop | 🟡 Future |
+| **Mobile** | AI agents on your phone | /mobile | 🟢 Future |
 | **Marty Bot** | Your AI code reviewer | /marty | 🟡 Post-MVP |
 | **GitHub Action** | Trigger agents from CI/CD | /github-action | 🟡 Post-MVP |
 
@@ -104,6 +105,7 @@ nesalia.com/
 ├── /cli                     (Product: Command-line tool)
 ├── /analytics                (Product: Analytics) [Future]
 ├── /desktop                  (Product: Desktop app) [Future]
+├── /mobile                   (Product: Mobile app) [Future]
 ├── /marty                    (Product: GitHub bot)
 ├── /github-action            (Product: GitHub Action)
 │
@@ -145,6 +147,8 @@ nesalia.com/
 | **Marty Bot** | product-marty.md | ✅ Done |
 | **GitHub Action** | product-github-action.md | ✅ Done |
 | **Analytics** | product-analytics.md | 🟡 Future |
+| **Desktop** | product-desktop.md | 🟡 Future |
+| **Mobile** | product-mobile.md | 🟢 Future |
 | **Desktop** | product-desktop.md | 🟡 Future |
 
 ---
