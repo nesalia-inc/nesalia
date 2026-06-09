@@ -20,6 +20,7 @@ Products ▾          Solutions ▾          Learn ▾          Pricing    Blog 
 | **Workflows** | Automate any process | /workflows | 🔴 MVP |
 | **SDK** | Build with Nesalia anywhere | /sdk | 🔴 MVP |
 | **CLI** | Control from terminal | /cli | 🔴 MVP |
+| **Analytics** | Monitor agent performance | /analytics | 🟡 Future |
 | **Desktop** | Native AI interface | /desktop | 🟡 Future |
 | **Marty Bot** | Your AI code reviewer | /marty | 🟡 Post-MVP |
 | **GitHub Action** | Trigger agents from CI/CD | /github-action | 🟡 Post-MVP |
@@ -101,6 +102,7 @@ nesalia.com/
 ├── /workflows               (Product: Workflow engine)
 ├── /sdk                     (Product: TypeScript SDK)
 ├── /cli                     (Product: Command-line tool)
+├── /analytics                (Product: Analytics) [Future]
 ├── /desktop                  (Product: Desktop app) [Future]
 ├── /marty                    (Product: GitHub bot)
 ├── /github-action            (Product: GitHub Action)
@@ -142,6 +144,7 @@ nesalia.com/
 | **CLI** | product-cli.md | ✅ Done |
 | **Marty Bot** | product-marty.md | ✅ Done |
 | **GitHub Action** | product-github-action.md | ✅ Done |
+| **Analytics** | product-analytics.md | 🟡 Future |
 | **Desktop** | product-desktop.md | 🟡 Future |
 
 ---
