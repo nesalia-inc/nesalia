@@ -8,3 +8,4 @@
 - [Flue Framework Reference](flue-framework.md) — Flue capabilities, sandbox types, API patterns, and what it doesn't provide natively
 - [Claude Managed Agents Reference](claude-managed-agents.md) — Claude's managed agent platform features, multiagent, versioning, and infrastructure
 - [Pi (pi.dev) Reference](pi-dev.md) — The AI agent toolkit Flue uses internally for LLM provider abstraction (@earendil-works/pi-ai)
+- [Next.js Link legacyBehavior](nextjs-link-legacy-behavior.md) — Next.js 16 removes legacyBehavior, use asChild pattern

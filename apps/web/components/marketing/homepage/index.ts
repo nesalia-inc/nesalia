@@ -1,0 +1,7 @@
+export { HeroBadge } from "./hero-badge"
+export { NpxPill } from "./npx-pill"
+export { HeroSection } from "./hero-section"
+export { SocialProofSection } from "./social-proof-section"
+export { FeaturesSection } from "./features-section"
+export { CodeExampleSection } from "./code-example-section"
+export { CtaSection } from "./cta-section"
