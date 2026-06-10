@@ -1,7 +1,7 @@
 # Nesalia — Product Ecosystem
 
 > **Status:** Active Development
-> **Last Updated:** 2026-06-09
+> **Last Updated:** 2026-06-10
 
 ---
 
@@ -179,6 +179,119 @@ provider/model
 | **Startup** | Standardization, scaling | "One stack for the team" |
 | **Enterprise** | Security, compliance, SLA | "Managed, secure, scalable" |
 | **LLM Providers** | Partner to recommend | "Default choice for TypeScript" |
+
+---
+
+## Organization & Projects
+
+### Hierarchy
+
+```
+User
+├── Organization (team/company)
+│   ├── Members (users with roles)
+│   ├── Settings (billing, SSO, etc.)
+│   │
+│   └── Project A
+│   │   ├── Agents
+│   │   ├── Workflows
+│   │   ├── API Keys
+│   │   └── Settings
+│   │
+│   └── Project B
+│       ├── Agents
+│       ├── Workflows
+│       └── Settings
+│
+└── Personal Account (optional)
+    └── Private projects
+```
+
+### Organization
+
+An **organization** represents a team or company:
+
+| Feature | Description |
+|---------|-------------|
+| **Members** | Users with roles (owner, admin, member) |
+| **Billing** | Subscription and usage-based pricing |
+| **Settings** | SSO, SAML, security policies |
+| **Projects** | Container for related agents/workflows |
+| **API Keys** | Organization-level keys for CI/CD |
+
+### Roles
+
+| Role | Permissions |
+|------|-------------|
+| **Owner** | Full control, billing, delete org |
+| **Admin** | Manage members, projects, settings |
+| **Member** | Create/edit agents and workflows |
+| **Viewer** | Read-only access (future) |
+
+### Projects
+
+A **project** groups related work:
+
+| Feature | Description |
+|---------|-------------|
+| **Agents** | All agents in this project |
+| **Workflows** | Automation workflows |
+| **Contexts** | Agent contexts and sessions |
+| **API Keys** | Project-scoped keys |
+| **Settings** | Project-specific config |
+| **Usage** | Per-project usage tracking |
+
+### Use Cases
+
+**Use Case 1: Company with Multiple Teams**
+```
+Acme Corp
+├── Engineering Team
+│   ├── code-reviewer
+│   ├── tech-writer
+│   └── CI automation
+├── Marketing Team
+│   ├── content-creator
+│   └── social-poster
+└── Support Team
+    └── support-agent
+```
+
+**Use Case 2: Solo Developer**
+```
+Personal Account
+├── work (for client)
+│   ├── client-agent
+│   └── client-workflows
+└── side-project
+    ├── experiment-agent
+    └── test-workflows
+```
+
+**Use Case 3: Agency**
+```
+Agency Org
+├── Client A Project
+│   └── Client's agents
+├── Client B Project
+│   └── Client's agents
+└── Internal Project
+    ├── billing-agent
+    └── reporting-workflow
+```
+
+### API Keys
+
+| Type | Scope | Use Case |
+|------|-------|----------|
+| **Organization Key** | All projects | CI/CD, server-side |
+| **Project Key** | Single project | Client-side, public |
+
+### Billing Model
+
+- **Organization-level** subscription (per seat or flat rate)
+- **Project-level** usage tracking (compute, storage)
+- **Free tier** per organization (not per user)
 
 ---
 
