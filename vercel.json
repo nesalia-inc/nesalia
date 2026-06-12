@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @complete-web-template/web build",
+  "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "outputDirectory": "apps/web/.next"
