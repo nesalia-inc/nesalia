@@ -1,3 +1,4 @@
+import { AppHeader } from "@/components/headers/app-header"
 import { AppFooter } from "@/components/footers/app-footer"
 
 export default function Layout({
@@ -7,6 +8,8 @@ export default function Layout({
 }>) {
   return (
     <div className="min-h-screen flex flex-col">
+      <AppHeader />
+      
       {children}
       <AppFooter />
     </div>

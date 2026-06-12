@@ -1,37 +1,6 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "@complete-web-template/api";
 
-// Types inferred from AppRouter procedures (posts table columns only)
-interface PostListOutput {
-  items: Array<{
-    id: number;
-    slug: string;
-    title: string | null;
-    createdAt: string;
-    updatedAt: string | null;
-    deletedAt: string | null;
-  }>;
-  nextCursor: number | undefined;
-}
-
-interface PostByIdOutput {
-  id: number;
-  slug: string;
-  title: string | null;
-  createdAt: string;
-  updatedAt: string | null;
-  deletedAt: string | null;
-}
-
-interface PostCreateOutput {
-  id: number;
-  slug: string;
-  title: string | null;
-  createdAt: string;
-  updatedAt: string | null;
-  deletedAt: string | null;
-}
-
 export interface SDKOptions {
   /** Base URL of the API (default: http://localhost:3000) */
   baseUrl?: string;
@@ -39,14 +8,8 @@ export interface SDKOptions {
   headers?: Record<string, string>;
 }
 
-export interface PostsClient {
-  list(input?: { cursor?: number; limit?: number }): Promise<PostListOutput>;
-  byId(input: { id: number }): Promise<PostByIdOutput | null>;
-  create(input: { title: string; slug?: string }): Promise<PostCreateOutput>;
-}
-
 export interface SDKClient {
-  posts: PostsClient;
+  // Add tRPC routers here
 }
 
 export function createClient(options: SDKOptions = {}): SDKClient {
@@ -63,10 +26,6 @@ export function createClient(options: SDKOptions = {}): SDKClient {
   });
 
   return {
-    posts: {
-      list: (input) => trpc.post.list.query(input) as Promise<PostListOutput>,
-      byId: (input) => trpc.post.byId.query(input) as Promise<PostByIdOutput | null>,
-      create: (input) => trpc.post.create.mutate(input) as Promise<PostCreateOutput>,
-    },
+    // Add tRPC procedures here
   };
 }

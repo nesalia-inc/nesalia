@@ -6,13 +6,10 @@ import {
   boolean,
   integer,
   index,
-  varchar,
-  pgEnum,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { generateId } from "@better-auth/core/utils/id";
 
-export const rolesEnum = pgEnum("roles", ["guest", "user", "admin"]);
-
-// Better Auth tables
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -41,6 +38,7 @@ export const session = pgTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
+    activeOrganizationId: text("active_organization_id"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );
@@ -118,30 +116,78 @@ export const apikey = pgTable(
   ],
 );
 
-export const deviceCode = pgTable(
-  "device_code",
+export const deviceCode = pgTable("device_code", {
+  id: text("id").primaryKey(),
+  deviceCode: text("device_code").notNull(),
+  userCode: text("user_code").notNull(),
+  userId: text("user_id"),
+  expiresAt: timestamp("expires_at").notNull(),
+  status: text("status").notNull(),
+  lastPolledAt: timestamp("last_polled_at"),
+  pollingInterval: integer("polling_interval"),
+  clientId: text("client_id"),
+  scope: text("scope"),
+});
+
+export const organization = pgTable(
+  "organization",
   {
-    id: text("id").primaryKey(),
-    deviceCode: text("device_code").notNull().unique(),
-    userCode: text("user_code").notNull().unique(),
-    userId: text("user_id").references(() => user.id),
-    expiresAt: timestamp("expires_at").notNull(),
-    status: text("status", { enum: ["pending", "approved", "denied"] }).default("pending").notNull(),
-    lastPolledAt: timestamp("last_polled_at"),
-    pollingInterval: integer("polling_interval"),
-    clientId: text("client_id"),
-    scope: text("scope"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    id: text("id").primaryKey().$defaultFn(() => generateId()),
+    name: text("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    logo: text("logo"),
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+    metadata: text("metadata"),
+  },
+  (table) => [uniqueIndex("organization_slug_uidx").on(table.slug)],
+);
+
+export const member = pgTable(
+  "member",
+  {
+    id: text("id").primaryKey().$defaultFn(() => generateId()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role").default("member").notNull(),
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
   },
   (table) => [
-    index("device_code_userCode_idx").on(table.userCode),
-    index("device_code_status_idx").on(table.status),
+    index("member_organizationId_idx").on(table.organizationId),
+    index("member_userId_idx").on(table.userId),
+  ],
+);
+
+export const invitation = pgTable(
+  "invitation",
+  {
+    id: text("id").primaryKey().$defaultFn(() => generateId()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    role: text("role"),
+    status: text("status").default("pending").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    index("invitation_organizationId_idx").on(table.organizationId),
+    index("invitation_email_idx").on(table.email),
   ],
 );
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  members: many(member),
+  invitations: many(invitation),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -158,18 +204,29 @@ export const accountRelations = relations(account, ({ one }) => ({
   }),
 }));
 
-// Application tables
+export const organizationRelations = relations(organization, ({ many }) => ({
+  members: many(member),
+  invitations: many(invitation),
+}));
 
-export const posts = pgTable("posts", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  slug: varchar({ length: 64 }).notNull().unique(),
-  title: varchar({ length: 256 }),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at"),
-  deletedAt: timestamp("deleted_at"),
-}, (table) => [
-  index("posts_deleted_at_idx").on(table.deletedAt),
-  index("posts_slug_idx").on(table.slug),
-]);
+export const memberRelations = relations(member, ({ one }) => ({
+  organization: one(organization, {
+    fields: [member.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, {
+    fields: [member.userId],
+    references: [user.id],
+  }),
+}));
 
-export const postsRelations = relations(posts, ({ one }) => ({}));
+export const invitationRelations = relations(invitation, ({ one }) => ({
+  organization: one(organization, {
+    fields: [invitation.organizationId],
+    references: [organization.id],
+  }),
+  inviter: one(user, {
+    fields: [invitation.inviterId],
+    references: [user.id],
+  }),
+}));

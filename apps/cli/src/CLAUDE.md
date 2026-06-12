@@ -1,4 +1,4 @@
-# CLAUDE.md — @complete-web-template/cli
+# CLAUDE.md — @nesalia/cli
 
 ## Overview
 
@@ -7,9 +7,9 @@ The CLI is a standalone Node.js binary for managing account authentication. It u
 ## Commands
 
 ```
-cli auth login   — Start device authorization flow
-cli auth status  — Check authentication status
-cli auth logout  — Clear stored credentials
+nesalia auth login   — Start device authorization flow
+nesalia auth status  — Check authentication status
+nesalia auth logout  — Clear stored credentials
 ```
 
 Commands are defined with [Commander](https://www.npmjs.com/package/commander). Each command is a separate file under `src/commands/auth/`.
@@ -50,7 +50,7 @@ No factory function — export directly. The client is used by:
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `CLI_AUTH_API_URL` | `http://localhost:3000` | Auth server base URL |
-| `CLI_AUTH_CLIENT_ID` | `"cli"` | OAuth client identifier |
+| `CLI_AUTH_CLIENT_ID` | `"nesalia"` | OAuth client identifier |
 | `CLI_AUTH_CONFIG_PATH` | OS default | Path for `conf` storage (tests only) |
 
 ## Output
@@ -60,8 +60,8 @@ All output uses `@clack/prompts` (`log.info`, `log.success`, `log.warn`, `log.er
 ## Development
 
 ```bash
-pnpm --filter @complete-web-template/cli build   # Compile TypeScript
-pnpm --filter @complete-web-template/cli test   # Run tests (Vitest)
+pnpm --filter @nesalia/cli build   # Compile TypeScript
+pnpm --filter @nesalia/cli test   # Run tests (Vitest)
 ```
 
 Tests mock `@clack/prompts` at the top level. Each test re-imports `log` dynamically to access the mock:

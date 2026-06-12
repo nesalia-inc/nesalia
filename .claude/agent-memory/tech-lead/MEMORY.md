@@ -7,3 +7,4 @@
 - [auth-rebuild](feedback-auth-rebuild.md) — Always rebuild auth after config.ts changes (dist vs source mismatch)
 - [memory-explanation](feedback-memory-explanation.md) — Always explain what was learned when modifying memories
 - [cli-commander-clack](cli-commander-clack.md) — CLI now uses Commander + @clack/prompts
+- [better-auth-organizations](better-auth-organizations.md) — Organizations plugin docs: tables, hooks, access control, not yet integrated

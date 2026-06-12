@@ -1,10 +1,11 @@
 {
-  "name": "@complete-web-template/cli",
+  "name": "@nesalia/cli",
   "version": "1.0.0",
   "type": "module",
-  "private": true,
+  "description": "Nesalia CLI — Manage your account and organizations",
+  "license": "MIT",
   "bin": {
-    "cli": "./dist/index.js"
+    "nesalia": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -28,5 +29,8 @@
     "@complete-web-template/test-utils": "workspace:*",
     "@types/node": "^22.0.0",
     "vitest": "^4.1.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

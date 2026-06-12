@@ -29,6 +29,27 @@
       "when": 1780388942005,
       "tag": "0003_third_captain_britain",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781172471074,
+      "tag": "0004_faulty_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1781180713838,
+      "tag": "0005_pale_vertigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781182463791,
+      "tag": "0006_abandoned_hulk",
+      "breakpoints": true
     }
   ]
 }

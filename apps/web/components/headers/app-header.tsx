@@ -17,7 +17,7 @@ import { AuthButtons } from "@/components/auth/auth-buttons"
 
 export function AppHeader() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background backdrop-blur">
+    <header className="sticky top-0 z-50 h-14 w-full border-b bg-background backdrop-blur">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex h-14 items-center justify-between">
           {/* Logo */}
