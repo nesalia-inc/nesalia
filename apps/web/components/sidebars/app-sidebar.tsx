@@ -148,7 +148,7 @@ function OrgSwitcher({ currentSlug }: { currentSlug?: string }) {
   )
 }
 
-export function AppSidebar({ orgSlug, ...props }: React.ComponentProps<typeof Sidebar> & { orgSlug: string }) {
+export function AppSidebar({ orgSlug, ...props }: React.ComponentProps<typeof Sidebar> & { orgSlug?: string }) {
   return (
     <Sidebar {...props} collapsible="icon">
       <SidebarHeader className="border-b border-border h-14 bg-background">
@@ -161,7 +161,7 @@ export function AppSidebar({ orgSlug, ...props }: React.ComponentProps<typeof Si
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href={`/${orgSlug}`}>
+                  <Link href={orgSlug ? `/${orgSlug}` : "/home"}>
                     <Home className="mr-2 h-4 w-4" />
                     <span>Home</span>
                   </Link>

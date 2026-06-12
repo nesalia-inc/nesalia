@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 
 const footerLinks = {
   deessejs: [
@@ -46,9 +47,11 @@ export function AppFooter() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <img
+              <Image
                 src="/icon.svg"
                 alt="Nesalia"
+                width={28}
+                height={28}
                 className="h-7 w-7"
               />
               <span className="text-lg font-bold text-foreground">Nesalia Inc.</span>

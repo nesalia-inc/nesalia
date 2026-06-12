@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import { useState, useEffect } from "react"
@@ -13,10 +14,7 @@ export function CookieConsent() {
 
   useEffect(() => {
     setMounted(true)
-    const accepted = localStorage.getItem(STORAGE_KEY)
-    if (!accepted) {
-      setVisible(true)
-    }
+    setVisible(!localStorage.getItem(STORAGE_KEY))
   }, [])
 
   const handleAccept = () => {
@@ -46,7 +44,7 @@ export function CookieConsent() {
             <div className="space-y-1">
               <p className="font-medium">Your Data, Your Choice</p>
               <p className="text-muted-foreground">
-                We use cookies to improve our services. Click "Accept All" to continue or "Manage Preferences" to customize.
+                We use cookies to improve our services. Click &ldquo;Accept All&rdquo; to continue or &ldquo;Manage Preferences&rdquo; to customize.
               </p>
             </div>
             <div className="flex gap-3">

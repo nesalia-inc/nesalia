@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { AppSidebar } from "@/components/sidebars/app-sidebar";
+
 
 export default async function OrgLayout({
   children,

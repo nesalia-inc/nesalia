@@ -1,8 +1,7 @@
 "use client"
 
-import { Activity, ArrowRight, Bot, Globe, Workflow, Zap } from "lucide-react"
+import { Activity, ArrowRight, Bot, Globe, Workflow } from "lucide-react"
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts"
-import { Card } from "@/components/ui/card"
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 import { cn } from "@/lib/utils"
@@ -216,12 +215,6 @@ export type ChartConfig = {
 
 const ChartContext = React.createContext<{ config: ChartConfig } | null>(null)
 
-function useChart() {
-  const context = React.useContext(ChartContext)
-  if (!context) throw new Error("useChart must be used within ChartContainer")
-  return context
-}
-
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">& {
@@ -252,7 +245,7 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([_, c]) => c.theme || c.color)
+  const colorConfig = Object.entries(config).filter(([, c]) => c.theme || c.color)
   if (!colorConfig.length) return null
 
   return (
@@ -277,11 +270,11 @@ ${colorConfig
   )
 }
 
-const ChartTooltip = RechartsPrimitive.Tooltip as React.FC<RechartsPrimitive.TooltipProps<any, any>>
+const ChartTooltip = RechartsPrimitive.Tooltip as React.FC<RechartsPrimitive.TooltipProps<string, string>>
 
 const ChartTooltipContent = React.forwardRef<HTMLDivElement, React.ComponentProps<"div"> & {
   active?: boolean
-  payload?: Array<any>
+  payload?: Array<{ name?: string; value?: string | number }>
   label?: React.ReactNode
 }>(({ active, payload, className }, ref) => {
   if (!active || !payload?.length) return null

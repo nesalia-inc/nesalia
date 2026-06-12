@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -23,9 +24,11 @@ export function AppHeader() {
           {/* Logo */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <img
+              <Image
                 src="/transparent-icon.svg"
                 alt="Nesalia"
+                width={32}
+                height={32}
                 className="h-8 w-8"
               />
             </Link>

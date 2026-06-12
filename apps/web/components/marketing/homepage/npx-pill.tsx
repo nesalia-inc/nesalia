@@ -25,6 +25,7 @@ export function NpxPill({ command, className }: NpxPillProps) {
   return (
     <button
       onClick={handleCopy}
+      data-copied={copied}
       className={cn(
         "group inline-flex items-center gap-2 rounded-md border border-dashed border-border bg-background px-4 py-2 font-mono text-sm text-muted-foreground transition-colors hover:bg-muted",
         className
