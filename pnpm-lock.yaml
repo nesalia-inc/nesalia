@@ -21,9 +21,6 @@ importers:
       '@clack/prompts':
         specifier: ^0.8.0
         version: 0.8.2
-      '@complete-web-template/sdk':
-        specifier: workspace:*
-        version: link:../../packages/sdk
       '@trpc/client':
         specifier: ^11.17.0
         version: 11.17.0(@trpc/server@11.17.0(typescript@6.0.3))(typescript@6.0.3)
