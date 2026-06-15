@@ -19,7 +19,7 @@ export const status = async (): Promise<void> => {
   try {
     const response = await authClient.getSession({
       fetchOptions: {
-        headers: { Authorization: `Bearer ${credentials.accessToken}` },
+        headers: { Authorization: `Bearer ${credentials.sessionToken}` },
       },
     });
 

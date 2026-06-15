@@ -4,7 +4,7 @@ import { apiKey } from "@better-auth/api-key";
 import { bearer } from "better-auth/plugins/bearer";
 import { deviceAuthorization } from "better-auth/plugins/device-authorization";
 import { organization } from "better-auth/plugins";
-import { db, user, session, account, verification, apikey, deviceCode, organization as organizationTable, member, invitation } from "@complete-web-template/db";
+import { db, user, session, account, verification, apikey, deviceCode, organization as organizationTable, member, invitation, eq } from "@complete-web-template/db";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -58,6 +58,25 @@ export const auth = betterAuth({
               userId: userData.id,
               role: "owner",
             });
+          }
+        },
+      },
+    },
+    session: {
+      create: {
+        after: async (sessionData) => {
+          // Auto-set the user's first org as active
+          const firstOrg = await db
+            .select({ id: member.organizationId })
+            .from(member)
+            .where(eq(member.userId, sessionData.userId))
+            .limit(1);
+
+          if (firstOrg[0]) {
+            await db
+              .update(session)
+              .set({ activeOrganizationId: firstOrg[0].id })
+              .where(eq(session.id, sessionData.id));
           }
         },
       },

@@ -10,8 +10,8 @@ export const trpcClient = createTRPCClient<AppRouter>({
       url: `${BASE_URL}/api/trpc`,
       headers() {
         const creds = loadCredentials();
-        if (creds?.accessToken) {
-          return { Authorization: `Bearer ${creds.accessToken}` };
+        if (creds?.sessionToken) {
+          return { Authorization: `Bearer ${creds.sessionToken}` };
         }
         return {};
       },

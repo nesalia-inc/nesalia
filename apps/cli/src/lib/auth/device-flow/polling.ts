@@ -7,10 +7,10 @@ import type { AuthFlowResult } from "./types.js";
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
-const resolveUser = async (client: AuthClient, accessToken: string): Promise<AuthFlowResult["user"]> => {
+const resolveUser = async (client: AuthClient, accessToken: string, sessionToken: string): Promise<AuthFlowResult["user"]> => {
   const response = await client.getSession({
     fetchOptions: {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${sessionToken}` },
     },
   });
 
@@ -58,12 +58,17 @@ export const pollForToken = async (
 
   if (data?.access_token) {
     log.success("Authorization successful!");
-    const user = await resolveUser(client, data.access_token);
+    // The session token is returned in the set-auth-token header by the Bearer plugin
+    const sessionToken = data.headers?.["set-auth-token"] as string | undefined;
+    if (!sessionToken) {
+      throw new Error("Session token not returned. Please try again.");
+    }
+    const user = await resolveUser(client, data.access_token, sessionToken);
     if (!user.id) {
       throw new Error("Could not retrieve user information. Please try again.");
     }
     log.success(`Connected as ${user.name || user.email || "user"}`);
-    return { accessToken: data.access_token, user };
+    return { accessToken: data.access_token, sessionToken, user };
   }
 
   if (error) {

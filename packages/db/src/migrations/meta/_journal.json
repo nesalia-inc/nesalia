@@ -50,6 +50,13 @@
       "when": 1781182463791,
       "tag": "0006_abandoned_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1781516156958,
+      "tag": "0007_chubby_iron_fist",
+      "breakpoints": true
     }
   ]
 }

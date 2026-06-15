@@ -7,7 +7,7 @@ const t = initTRPC.context<Context>().create({
       ...shape,
       data: {
         ...shape.data,
-        zodError: 'cause' in error ? (error.cause as { zodError?: unknown }).zodError : null,
+        zodError: error.cause && typeof error.cause === 'object' ? (error.cause as { zodError?: unknown }).zodError : null,
       },
     };
   },

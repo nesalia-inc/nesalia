@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   pgTable,
   text,
+  varchar,
   timestamp,
   boolean,
   integer,
@@ -188,6 +189,7 @@ export const userRelations = relations(user, ({ many }) => ({
   accounts: many(account),
   members: many(member),
   invitations: many(invitation),
+  documents: many(documents),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -207,6 +209,7 @@ export const accountRelations = relations(account, ({ one }) => ({
 export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
+  organizationDocuments: many(organizationDocuments),
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({
@@ -230,3 +233,61 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+// Documents — single source of truth for content
+export const documents = pgTable("documents", {
+  id: text("id").primaryKey().$defaultFn(() => generateId()),
+  name: varchar("name", { length: 256 }).notNull(),
+  content: text("content"), // markdown content
+  tags: text("tags").array(), // array of tag strings
+  createdBy: text("created_by").notNull(),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+});
+
+// Organization-level document metadata
+export const organizationDocuments = pgTable(
+  "organization_documents",
+  {
+    id: text("id").primaryKey().$defaultFn(() => generateId()),
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    type: varchar("type", { length: 50 }).notNull(), // handbook, policy, template, note, knowledge
+    visibility: varchar("visibility", { length: 20 }).notNull().default("all"), // all | admins_only
+    archivedAt: timestamp("archived_at"), // null = active, non-null = archived
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+    updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+  },
+  (table) => [
+    index("org_docs_document_idx").on(table.documentId),
+    index("org_docs_organization_idx").on(table.organizationId),
+    index("org_docs_type_idx").on(table.type),
+    index("org_docs_archived_idx").on(table.archivedAt),
+  ],
+);
+
+export const documentRelations = relations(documents, ({ one, many }) => ({
+  createdByUser: one(user, {
+    fields: [documents.createdBy],
+    references: [user.id],
+  }),
+  organizationDocuments: many(organizationDocuments),
+}));
+
+export const organizationDocumentRelations = relations(
+  organizationDocuments,
+  ({ one }) => ({
+    document: one(documents, {
+      fields: [organizationDocuments.documentId],
+      references: [documents.id],
+    }),
+    organization: one(organization, {
+      fields: [organizationDocuments.organizationId],
+      references: [organization.id],
+    }),
+  }),
+);

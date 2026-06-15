@@ -3,6 +3,7 @@ import { log } from "@clack/prompts";
 
 export type StoredCredentials = {
   accessToken: string;
+  sessionToken: string;
   user: {
     id: string;
     email: string;

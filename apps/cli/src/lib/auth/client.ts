@@ -1,7 +1,9 @@
 import { createAuthClient } from "better-auth/client";
 import { deviceAuthorizationClient, organizationClient } from "better-auth/client/plugins";
 
-const BASE_URL = process.env.CLI_AUTH_API_URL ?? process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+// Detect: running from node_modules (published) → prod, else → local dev
+const isLocalDev = process.argv[1]?.includes("github/nsa") ?? false;
+export const BASE_URL = process.env.CLI_AUTH_API_URL ?? (isLocalDev ? "http://localhost:3000" : "https://nesalia.com");
 
 export const authClient = createAuthClient({
   baseURL: BASE_URL,
