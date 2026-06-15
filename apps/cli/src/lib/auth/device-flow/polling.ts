@@ -58,11 +58,8 @@ export const pollForToken = async (
 
   if (data?.access_token) {
     log.success("Authorization successful!");
-    // The session token is returned in the set-auth-token header by the Bearer plugin
-    const sessionToken = data.headers?.["set-auth-token"] as string | undefined;
-    if (!sessionToken) {
-      throw new Error("Session token not returned. Please try again.");
-    }
+    // The access_token returned IS the session token (used by Bearer plugin)
+    const sessionToken = data.access_token;
     const user = await resolveUser(client, data.access_token, sessionToken);
     if (!user.id) {
       throw new Error("Could not retrieve user information. Please try again.");
