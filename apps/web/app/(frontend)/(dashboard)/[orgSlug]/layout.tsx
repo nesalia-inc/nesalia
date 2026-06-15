@@ -2,9 +2,8 @@ import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { AppSidebar } from "@/components/sidebars/app-sidebar";
-import {
-  SidebarProvider,
-} from "@/components/ui/sidebar";
+import { AppHeader } from "@/components/headers/app-header";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export default async function OrgLayout({
   children,
@@ -46,8 +45,14 @@ export default async function OrgLayout({
   }
 
   return (
-      <main className="flex-1 overflow-auto p-6">
-        {children}
-      </main>
-  );
+    <SidebarProvider>
+      <AppSidebar orgSlug={orgSlug}/>
+      <SidebarInset>
+        <AppHeader />
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          {children}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
 }
