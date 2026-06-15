@@ -86,11 +86,11 @@ const Lead = React.forwardRef<
 Lead.displayName = "Lead"
 
 const Small = React.forwardRef<
-  HTMLSmallElement,
+  HTMLElement,
   React.HTMLAttributes<HTMLElement>
 >(({ className, ...props }, ref) => (
   <small
-    ref={ref as React.Ref<HTMLSmallElement>}
+    ref={ref as React.Ref<HTMLElement>}
     className={cn("text-sm font-medium leading-none", className)}
     {...props}
   />
