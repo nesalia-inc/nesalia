@@ -183,6 +183,7 @@ export const organizationDocumentsRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         name: z.string().min(1).max(256).optional(),
+        type: z.enum(documentTypes).optional(),
         content: z.string().optional(),
         visibility: z.enum(visibilityOptions).optional(),
         tags: z.array(z.string()).optional(),
@@ -214,10 +215,14 @@ export const organizationDocumentsRouter = createTRPCRouter({
           .where(eq(documents.id, doc.documentId));
       }
 
-      if (input.visibility) {
+      if (input.type || input.visibility) {
         await db
           .update(organizationDocuments)
-          .set({ updatedAt: new Date() })
+          .set({
+            type: input.type,
+            visibility: input.visibility,
+            updatedAt: new Date(),
+          })
           .where(eq(organizationDocuments.id, input.id));
       }
 

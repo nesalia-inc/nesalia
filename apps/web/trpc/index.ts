@@ -1,2 +1,2 @@
-export { TRPCReactProvider, useTRPC } from './provider';
-export type { AppRouter } from '@complete-web-template/api';
+export { TRPCReactProvider, trpc } from "./provider";
+export type { AppRouter } from "@complete-web-template/api";

@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { createTRPCClient, httpBatchLink } from '@trpc/client';
-import { createTRPCContext } from '@trpc/tanstack-react-query';
-import type { AppRouter } from '@complete-web-template/api';
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { httpBatchLink } from "@trpc/client";
+import { createTRPCReact } from "@trpc/react-query";
+import type { AppRouter } from "@complete-web-template/api";
+
+export const trpc = createTRPCReact<AppRouter>();
 
 function getUrl() {
-  if (typeof window !== 'undefined') return '';
+  if (typeof window !== "undefined") return "";
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return 'http://localhost:3000';
+  return "http://localhost:3000";
 }
 
-export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
-
 let browserQueryClient: QueryClient | undefined;
-let browserTrpcClient: ReturnType<typeof createTRPCClient<AppRouter>> | undefined;
+let browserTrpcClient: ReturnType<typeof trpc.createClient> | undefined;
 
 function makeQueryClient() {
   return new QueryClient({
@@ -27,7 +27,7 @@ function makeQueryClient() {
 }
 
 function getQueryClient() {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return makeQueryClient();
   }
   if (!browserQueryClient) {
@@ -37,14 +37,14 @@ function getQueryClient() {
 }
 
 function getTrpcClient() {
-  if (typeof window === 'undefined') {
-    return createTRPCClient<AppRouter>({
+  if (typeof window === "undefined") {
+    return trpc.createClient({
       links: [httpBatchLink({ url: `${getUrl()}/api/trpc` })],
     });
   }
   if (!browserTrpcClient) {
-    browserTrpcClient = createTRPCClient<AppRouter>({
-      links: [httpBatchLink({ url: '/api/trpc' })],
+    browserTrpcClient = trpc.createClient({
+      links: [httpBatchLink({ url: "/api/trpc" })],
     });
   }
   return browserTrpcClient;
@@ -56,9 +56,9 @@ export function TRPCReactProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
         {children}
-      </TRPCProvider>
+      </trpc.Provider>
     </QueryClientProvider>
   );
 }
