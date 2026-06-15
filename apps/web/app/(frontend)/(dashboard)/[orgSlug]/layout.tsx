@@ -46,11 +46,8 @@ export default async function OrgLayout({
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar orgSlug={orgSlug} />
       <main className="flex-1 overflow-auto p-6">
         {children}
       </main>
-    </SidebarProvider>
   );
 }
