@@ -12,3 +12,4 @@
 - [feedback-markdown-prose](feedback-markdown-prose.md) — Markdown stack: marked + DOMPurify + @tailwindcss/typography
 - [architecture-sidebar-layout](architecture-sidebar-layout.md) — Sidebar requires SidebarProvider wrapping, conditional org links
 - [ui-typography-components](ui-typography-components.md) — shadcn doesn't ship Typography, just example classes
+- [claude-code-subagents](claude-code-subagents.md) — Subagents: spawning, context isolation, parallelization, tool restrictions
