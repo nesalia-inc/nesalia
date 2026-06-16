@@ -71,8 +71,8 @@ function DocumentPageContent({
   }, [orgSlug]);
 
   const { data: labels, isLoading: labelsLoading } = trpc.organizationDocuments.labels.list.useQuery(
-    { documentId: document?.documentId ?? "" },
-    { enabled: !!document?.documentId }
+    { documentId: docId },
+    { enabled: !!docId }
   );
 
   const queryClient = useQueryClient();
@@ -145,10 +145,10 @@ function DocumentPageContent({
                 <Tag className="h-4 w-4" />
                 Labels
               </h3>
-              {orgId && document.documentId && (
+              {orgId && docId && (
                 <LabelPicker
                   orgId={orgId}
-                  documentId={document.documentId}
+                  documentId={docId}
                   trigger={
                     <Button variant="ghost" size="sm" className="h-7 px-2">
                       + Add
@@ -168,7 +168,7 @@ function DocumentPageContent({
                     size="sm"
                     onRemove={() =>
                       removeLabelMutation.mutate({
-                        documentId: document.documentId,
+                        documentId: docId,
                         labelId: label.id,
                       })
                     }
