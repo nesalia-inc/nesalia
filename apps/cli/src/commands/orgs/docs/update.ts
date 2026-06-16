@@ -17,7 +17,7 @@ function getErrorMessage(err: unknown): string {
 const _update = async (
   credentials: StoredCredentials,
   id: string,
-  opts: { name?: string; content?: string; tags?: string },
+  opts: { name?: string; content?: string },
 ): Promise<void> => {
   log.info(`Updating document "${id}"...`);
 
@@ -26,7 +26,6 @@ const _update = async (
       id,
       name: opts.name,
       content: opts.content,
-      tags: opts.tags ? opts.tags.split(",").map((t) => t.trim()) : undefined,
     });
 
     log.success(`Document updated: ${result.name}`);

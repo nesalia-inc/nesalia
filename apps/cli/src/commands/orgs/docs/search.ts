@@ -34,7 +34,7 @@ const _search = async (
   credentials: StoredCredentials,
   orgSlug: string,
   query: string,
-  opts: { type?: string; tags?: string },
+  opts: { type?: string },
 ): Promise<void> => {
   log.info(`Searching documents in "${orgSlug}" for "${query}"...`);
 
@@ -45,7 +45,6 @@ const _search = async (
       orgId,
       query,
       type: opts.type as "handbook" | "policy" | "template" | "note" | "knowledge" | undefined,
-      tags: opts.tags ? opts.tags.split(",").map((t) => t.trim()) : undefined,
     });
 
     if (result.length === 0) {

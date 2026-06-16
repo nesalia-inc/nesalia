@@ -16,7 +16,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-import { Check, ChevronsUpDown, Building2, Plus, Home, FileText } from "lucide-react"
+import { Check, ChevronsUpDown, Building2, Plus, Home, FileText, Tag } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -173,6 +173,16 @@ export function AppSidebar({ orgSlug, ...props }: React.ComponentProps<typeof Si
                     <Link href={`/${orgSlug}/docs`}>
                       <FileText className="mr-2 h-4 w-4" />
                       <span>Documents</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              {orgSlug && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link href={`/${orgSlug}/labels`}>
+                      <Tag className="mr-2 h-4 w-4" />
+                      <span>Labels</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

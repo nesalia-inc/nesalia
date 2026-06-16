@@ -6,3 +6,4 @@ export { deleteDoc } from "./delete.js";
 export { archive } from "./archive.js";
 export { restore } from "./restore.js";
 export { search } from "./search.js";
+export { labelsList as docsLabelsList, labelsSet, labelsAdd, labelsRemove } from "./labels.js";

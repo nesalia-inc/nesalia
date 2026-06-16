@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../init";
 import { TRPCError } from "@trpc/server";
-import { db, documents, organizationDocuments, member, eq, and, isNull } from "@complete-web-template/db";
+import { db, documents, organizationDocuments, member, labels, documentLabels, eq, and, isNull, inArray, count, sql } from "@complete-web-template/db";
 
 const documentTypes = ["handbook", "policy", "template", "note", "knowledge"] as const;
 const visibilityOptions = ["all", "admins_only"] as const;
@@ -47,37 +47,63 @@ export const organizationDocumentsRouter = createTRPCRouter({
       z.object({
         orgId: z.string(),
         type: z.enum(documentTypes).optional(),
-        tags: z.array(z.string()).optional(),
         archived: z.boolean().default(false),
+        labelIds: z.array(z.string()).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       const membership = await assertOrgMembership(input.orgId, ctx.user!.id);
 
+      // Start with base conditions
+      const conditions = [
+        eq(organizationDocuments.organizationId, input.orgId),
+        input.archived
+          ? eq(organizationDocuments.archivedAt, organizationDocuments.archivedAt)
+          : isNull(organizationDocuments.archivedAt),
+        input.type ? eq(organizationDocuments.type, input.type) : undefined,
+      ].filter(Boolean);
+
+      // Filter by labelIds (AND logic — document must have ALL listed labels)
+      if (input.labelIds && input.labelIds.length > 0) {
+        // Find documents that have ALL the requested labels
+        const docIdsWithAllLabels = await db
+          .select({ documentId: documentLabels.documentId })
+          .from(documentLabels)
+          .where(
+            and(
+              inArray(documentLabels.labelId, input.labelIds),
+              inArray(
+                documentLabels.documentId,
+                db
+                  .select({ id: organizationDocuments.documentId })
+                  .from(organizationDocuments)
+                  .where(and(...conditions)),
+              ),
+            ),
+          )
+          .groupBy(documentLabels.documentId)
+          .having(eq(count(documentLabels.labelId), input.labelIds.length));
+
+        if (docIdsWithAllLabels.length === 0) {
+          return [];
+        }
+
+        conditions.push(
+          inArray(
+            organizationDocuments.documentId,
+            docIdsWithAllLabels.map((d) => d.documentId),
+          ),
+        );
+      }
+
       const docs = await db
         .select()
         .from(organizationDocuments)
         .innerJoin(documents, eq(organizationDocuments.documentId, documents.id))
-        .where(
-          and(
-            eq(organizationDocuments.organizationId, input.orgId),
-            input.archived
-              ? eq(organizationDocuments.archivedAt, organizationDocuments.archivedAt)
-              : isNull(organizationDocuments.archivedAt),
-            input.type ? eq(organizationDocuments.type, input.type) : undefined,
-          ),
-        );
-
-      // Filter by tags
-      let filtered = docs;
-      if (input.tags && input.tags.length > 0) {
-        filtered = docs.filter((d) => {
-          if (!d.documents.tags) return false;
-          return input.tags!.some((tag) => d.documents.tags!.includes(tag));
-        });
-      }
+        .where(and(...conditions));
 
       // Filter visibility for non-admins
+      let filtered = docs;
       if (membership.role !== "owner" && membership.role !== "admin") {
         filtered = filtered.filter((d) => d.organization_documents.visibility === "all");
       }
@@ -88,7 +114,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         name: d.documents.name,
         type: d.organization_documents.type,
         visibility: d.organization_documents.visibility,
-        tags: d.documents.tags,
         archivedAt: d.organization_documents.archivedAt,
         createdAt: d.organization_documents.createdAt,
         updatedAt: d.organization_documents.updatedAt,
@@ -125,7 +150,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         content: fullDoc.content,
         type: doc.type,
         visibility: doc.visibility,
-        tags: fullDoc.tags,
         archivedAt: doc.archivedAt,
         createdAt: doc.createdAt,
         updatedAt: doc.updatedAt,
@@ -140,7 +164,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         type: z.enum(documentTypes),
         content: z.string().optional(),
         visibility: z.enum(visibilityOptions).default("all"),
-        tags: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -151,7 +174,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         .values({
           name: input.name,
           content: input.content ?? null,
-          tags: input.tags ?? null,
           createdBy: ctx.user!.id,
         })
         .returning();
@@ -172,7 +194,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         name: doc.name,
         type: orgDoc.type,
         visibility: orgDoc.visibility,
-        tags: doc.tags,
         createdAt: orgDoc.createdAt,
         updatedAt: orgDoc.updatedAt,
       };
@@ -186,7 +207,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         type: z.enum(documentTypes).optional(),
         content: z.string().optional(),
         visibility: z.enum(visibilityOptions).optional(),
-        tags: z.array(z.string()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -203,13 +223,12 @@ export const organizationDocumentsRouter = createTRPCRouter({
         });
       }
 
-      if (input.name || input.content !== undefined || input.tags) {
+      if (input.name || input.content !== undefined) {
         await db
           .update(documents)
           .set({
             name: input.name,
             content: input.content,
-            tags: input.tags,
             updatedAt: new Date(),
           })
           .where(eq(documents.id, doc.documentId));
@@ -236,7 +255,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         name: input.name ?? docContent!.name,
         type: updated!.type,
         visibility: updated!.visibility,
-        tags: input.tags ?? docContent!.tags,
         createdAt: updated!.createdAt,
         updatedAt: updated!.updatedAt,
       };
@@ -320,23 +338,55 @@ export const organizationDocumentsRouter = createTRPCRouter({
         orgId: z.string(),
         query: z.string().min(1),
         type: z.enum(documentTypes).optional(),
-        tags: z.array(z.string()).optional(),
+        labelIds: z.array(z.string()).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       const membership = await assertOrgMembership(input.orgId, ctx.user!.id);
 
+      const conditions = [
+        eq(organizationDocuments.organizationId, input.orgId),
+        isNull(organizationDocuments.archivedAt),
+        input.type ? eq(organizationDocuments.type, input.type) : undefined,
+      ].filter(Boolean);
+
+      // Filter by labelIds (AND logic)
+      if (input.labelIds && input.labelIds.length > 0) {
+        const docIdsWithAllLabels = await db
+          .select({ documentId: documentLabels.documentId })
+          .from(documentLabels)
+          .where(
+            and(
+              inArray(documentLabels.labelId, input.labelIds),
+              inArray(
+                documentLabels.documentId,
+                db
+                  .select({ id: organizationDocuments.documentId })
+                  .from(organizationDocuments)
+                  .where(and(...conditions)),
+              ),
+            ),
+          )
+          .groupBy(documentLabels.documentId)
+          .having(eq(count(documentLabels.labelId), input.labelIds.length));
+
+        if (docIdsWithAllLabels.length === 0) {
+          return [];
+        }
+
+        conditions.push(
+          inArray(
+            organizationDocuments.documentId,
+            docIdsWithAllLabels.map((d) => d.documentId),
+          ),
+        );
+      }
+
       const docs = await db
         .select()
         .from(organizationDocuments)
         .innerJoin(documents, eq(organizationDocuments.documentId, documents.id))
-        .where(
-          and(
-            eq(organizationDocuments.organizationId, input.orgId),
-            isNull(organizationDocuments.archivedAt),
-            input.type ? eq(organizationDocuments.type, input.type) : undefined,
-          ),
-        );
+        .where(and(...conditions));
 
       const query = input.query.toLowerCase();
       let filtered = docs.filter((d) => {
@@ -344,13 +394,6 @@ export const organizationDocumentsRouter = createTRPCRouter({
         const contentMatch = d.documents.content?.toLowerCase().includes(query);
         return nameMatch || contentMatch;
       });
-
-      if (input.tags && input.tags.length > 0) {
-        filtered = filtered.filter((d) => {
-          if (!d.documents.tags) return false;
-          return input.tags!.some((tag) => d.documents.tags!.includes(tag));
-        });
-      }
 
       if (membership.role !== "owner" && membership.role !== "admin") {
         filtered = filtered.filter((d) => d.organization_documents.visibility === "all");
@@ -362,9 +405,222 @@ export const organizationDocumentsRouter = createTRPCRouter({
         name: d.documents.name,
         type: d.organization_documents.type,
         visibility: d.organization_documents.visibility,
-        tags: d.documents.tags,
         createdAt: d.organization_documents.createdAt,
         updatedAt: d.organization_documents.updatedAt,
       }));
     }),
+
+  labels: createTRPCRouter({
+    list: protectedProcedure
+      .input(z.object({ documentId: z.string() }))
+      .query(async ({ ctx, input }) => {
+        // Verify user has access to the document's org
+        const orgDoc = await db.query.organizationDocuments.findFirst({
+          where: eq(organizationDocuments.documentId, input.documentId),
+        });
+
+        if (!orgDoc) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Document not found",
+          });
+        }
+
+        await assertOrgMembership(orgDoc.organizationId, ctx.user!.id);
+
+        const rows = await db
+          .select({ label: labels })
+          .from(documentLabels)
+          .innerJoin(labels, eq(documentLabels.labelId, labels.id))
+          .where(
+            and(
+              eq(documentLabels.documentId, input.documentId),
+              isNull(labels.archivedAt),
+            ),
+          )
+          .orderBy(sql`lower(${labels.title})`);
+
+        return rows.map((r) => r.label);
+      }),
+
+    set: protectedProcedure
+      .input(
+        z.object({
+          documentId: z.string(),
+          labelIds: z.array(z.string()),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { doc } = await assertDocumentOwnership(input.documentId, ctx.user!.id);
+
+        // Delete existing label associations
+        await db
+          .delete(documentLabels)
+          .where(eq(documentLabels.documentId, input.documentId));
+
+        // Insert new label associations
+        if (input.labelIds.length > 0) {
+          await db.insert(documentLabels).values(
+            input.labelIds.map((labelId) => ({
+              documentId: input.documentId,
+              labelId,
+              appliedBy: ctx.user!.id,
+            })),
+          );
+        }
+
+        // Return document with updated labels
+        const rows = await db
+          .select({ label: labels })
+          .from(documentLabels)
+          .innerJoin(labels, eq(documentLabels.labelId, labels.id))
+          .where(
+            and(
+              eq(documentLabels.documentId, input.documentId),
+              isNull(labels.archivedAt),
+            ),
+          )
+          .orderBy(sql`lower(${labels.title})`);
+
+        return {
+          document: {
+            id: doc.id,
+            documentId: doc.documentId,
+            name: (await db.query.documents.findFirst({ where: eq(documents.id, doc.documentId) }))?.name,
+            type: doc.type,
+            visibility: doc.visibility,
+            archivedAt: doc.archivedAt,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          },
+          labels: rows.map((r) => r.label),
+        };
+      }),
+
+    add: protectedProcedure
+      .input(
+        z.object({
+          documentId: z.string(),
+          labelId: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { doc } = await assertDocumentOwnership(input.documentId, ctx.user!.id);
+
+        // Verify label exists and belongs to same org
+        const label = await db.query.labels.findFirst({
+          where: eq(labels.id, input.labelId),
+        });
+
+        if (!label || label.archivedAt) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Label not found",
+          });
+        }
+
+        // Check label belongs to same org
+        const orgDoc = await db.query.organizationDocuments.findFirst({
+          where: eq(organizationDocuments.documentId, input.documentId),
+        });
+
+        if (label.organizationId !== orgDoc?.organizationId) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Label does not belong to this organization",
+          });
+        }
+
+        // Check if already applied (idempotent)
+        const existing = await db.query.documentLabels.findFirst({
+          where: and(
+            eq(documentLabels.documentId, input.documentId),
+            eq(documentLabels.labelId, input.labelId),
+          ),
+        });
+
+        if (!existing) {
+          await db.insert(documentLabels).values({
+            documentId: input.documentId,
+            labelId: input.labelId,
+            appliedBy: ctx.user!.id,
+          });
+        }
+
+        // Return updated labels
+        const rows = await db
+          .select({ label: labels })
+          .from(documentLabels)
+          .innerJoin(labels, eq(documentLabels.labelId, labels.id))
+          .where(
+            and(
+              eq(documentLabels.documentId, input.documentId),
+              isNull(labels.archivedAt),
+            ),
+          )
+          .orderBy(sql`lower(${labels.title})`);
+
+        return {
+          document: {
+            id: doc.id,
+            documentId: doc.documentId,
+            name: (await db.query.documents.findFirst({ where: eq(documents.id, doc.documentId) }))?.name,
+            type: doc.type,
+            visibility: doc.visibility,
+            archivedAt: doc.archivedAt,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          },
+          labels: rows.map((r) => r.label),
+        };
+      }),
+
+    remove: protectedProcedure
+      .input(
+        z.object({
+          documentId: z.string(),
+          labelId: z.string(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { doc } = await assertDocumentOwnership(input.documentId, ctx.user!.id);
+
+        // Delete the association (idempotent — no error if not exists)
+        await db
+          .delete(documentLabels)
+          .where(
+            and(
+              eq(documentLabels.documentId, input.documentId),
+              eq(documentLabels.labelId, input.labelId),
+            ),
+          );
+
+        // Return updated labels
+        const rows = await db
+          .select({ label: labels })
+          .from(documentLabels)
+          .innerJoin(labels, eq(documentLabels.labelId, labels.id))
+          .where(
+            and(
+              eq(documentLabels.documentId, input.documentId),
+              isNull(labels.archivedAt),
+            ),
+          )
+          .orderBy(sql`lower(${labels.title})`);
+
+        return {
+          document: {
+            id: doc.id,
+            documentId: doc.documentId,
+            name: (await db.query.documents.findFirst({ where: eq(documents.id, doc.documentId) }))?.name,
+            type: doc.type,
+            visibility: doc.visibility,
+            archivedAt: doc.archivedAt,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt,
+          },
+          labels: rows.map((r) => r.label),
+        };
+      }),
+  }),
 });

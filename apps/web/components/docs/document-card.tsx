@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { FileText, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { LabelChip } from "@/components/labels/label-chip";
+import { trpc } from "@/trpc";
 
 interface DocumentCardProps {
   id: string;
@@ -9,6 +11,7 @@ interface DocumentCardProps {
   visibility: string;
   archivedAt: string | null;
   orgSlug: string;
+  documentId?: string; // the actual document ID (different from org doc ID)
 }
 
 const typeColors: Record<string, string> = {
@@ -19,6 +22,29 @@ const typeColors: Record<string, string> = {
   knowledge: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
 };
 
+function DocumentLabels({ documentId }: { documentId: string }) {
+  const { data: labels } = trpc.organizationDocuments.labels.list.useQuery(
+    { documentId },
+    { enabled: !!documentId }
+  );
+
+  if (!labels || labels.length === 0) return null;
+
+  const displayLabels = labels.slice(0, 3);
+  const extraCount = labels.length - 3;
+
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap mt-2">
+      {displayLabels.map((label) => (
+        <LabelChip key={label.id} label={label} size="sm" />
+      ))}
+      {extraCount > 0 && (
+        <span className="text-xs text-muted-foreground">+{extraCount} more</span>
+      )}
+    </div>
+  );
+}
+
 export function DocumentCard({
   id,
   name,
@@ -26,6 +52,7 @@ export function DocumentCard({
   visibility,
   archivedAt,
   orgSlug,
+  documentId,
 }: DocumentCardProps) {
   return (
     <Link
@@ -56,6 +83,7 @@ export function DocumentCard({
                 </Badge>
               )}
             </div>
+            {documentId && <DocumentLabels documentId={documentId} />}
           </div>
         </div>
       </div>

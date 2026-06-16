@@ -34,7 +34,7 @@ const _create = async (
   credentials: StoredCredentials,
   orgSlug: string,
   name: string,
-  opts: { type?: string; content?: string; tags?: string; visibility?: string },
+  opts: { type?: string; content?: string; visibility?: string },
 ): Promise<void> => {
   log.info(`Creating document "${name}"...`);
 
@@ -46,7 +46,6 @@ const _create = async (
       name,
       type: (opts.type as "handbook" | "policy" | "template" | "note" | "knowledge") ?? "note",
       content: opts.content,
-      tags: opts.tags ? opts.tags.split(",").map((t) => t.trim()) : undefined,
       visibility: (opts.visibility as "all" | "admins_only") ?? "all",
     });
 

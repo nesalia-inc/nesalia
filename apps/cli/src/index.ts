@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import { login, status, logout, list, get, create, setActive, deleteAction, listMembers, remote, docsList, docsGet, docsCreate, docsUpdate, deleteDoc, archive, restore, docsSearch } from "./commands/index.js";
+import {
+  login, status, logout,
+  list, get, create, setActive, deleteAction, listMembers,
+  remote,
+  docsList, docsGet, docsCreate, docsUpdate, deleteDoc, archive, restore, docsSearch,
+  labelsList, labelsGet, labelsCreate, labelsUpdate, labelsDelete,
+  labelsSet, labelsAdd, labelsRemove, docsLabelsList,
+} from "./commands/index.js";
 
 // Commander v13 uses -V for --version; intercept -v before parse
 const args = process.argv.includes("-v")
@@ -41,6 +48,52 @@ program
     new Command("remote")
       .description("Show the auth server URL")
       .action(remote),
+  );
+
+program
+  .command("labels", { isDefault: false })
+  .description("Label management commands")
+  .addCommand(
+    new Command("list")
+      .argument("<orgSlug>", "Organization slug")
+      .description("List all labels in an organization")
+      .action(labelsList),
+  )
+  .addCommand(
+    new Command("get")
+      .argument("<orgSlug>", "Organization slug")
+      .argument("<identifier>", "Label title or ID")
+      .option("--include-count", "Include document count")
+      .description("Get label details")
+      .action(labelsGet),
+  )
+  .addCommand(
+    new Command("create")
+      .argument("<orgSlug>", "Organization slug")
+      .argument("<title>", "Label title")
+      .requiredOption("--color <color>", "Color (red, orange, yellow, green, teal, blue, indigo, purple, pink, brown, gray, black)")
+      .option("--description <text>", "Label description")
+      .description("Create a new label")
+      .action(labelsCreate),
+  )
+  .addCommand(
+    new Command("update")
+      .argument("<orgSlug>", "Organization slug")
+      .argument("<identifier>", "Label title or ID")
+      .option("--to <title>", "New title")
+      .option("--color <color>", "New color")
+      .option("--description <text>", "New description")
+      .description("Update a label")
+      .action(labelsUpdate),
+  )
+  .addCommand(
+    new Command("delete")
+      .argument("<orgSlug>", "Organization slug")
+      .argument("<identifier>", "Label title or ID")
+      .option("--force", "Force delete (detach from all documents)")
+      .option("--yes", "Skip confirmation")
+      .description("Delete a label")
+      .action(labelsDelete),
   );
 
 program
@@ -109,7 +162,6 @@ program
           .argument("<name>", "Document name")
           .option("--type <type>", "Document type (handbook, policy, template, note, knowledge)", "note")
           .option("--content <content>", "Document content (markdown)")
-          .option("--tags <tags>", "Comma-separated tags")
           .option("--visibility <visibility>", "Visibility (all, admins_only)", "all")
           .description("Create a new document")
           .action(docsCreate),
@@ -119,7 +171,6 @@ program
           .argument("<id>", "Document ID")
           .option("--name <name>", "Document name")
           .option("--content <content>", "Document content (markdown)")
-          .option("--tags <tags>", "Comma-separated tags")
           .description("Update a document")
           .action(docsUpdate),
       )
@@ -146,9 +197,45 @@ program
           .argument("<orgSlug>", "Organization slug")
           .argument("<query>", "Search query")
           .option("--type <type>", "Filter by type")
-          .option("--tags <tags>", "Comma-separated tags")
           .description("Search documents by name or content")
           .action(docsSearch),
+      )
+      .addCommand(
+        new Command("labels")
+          .description("Document label management commands")
+          .addCommand(
+            new Command("list")
+              .argument("<orgSlug>", "Organization slug")
+              .argument("<identifier>", "Document name or ID")
+              .description("List labels on a document")
+              .action(docsLabelsList),
+          )
+          .addCommand(
+            new Command("set")
+              .argument("<orgSlug>", "Organization slug")
+              .argument("<identifier>", "Document name or ID")
+              .option("--labels <list>", "Comma-separated label titles")
+              .description("Set the full label set on a document")
+              .action(labelsSet),
+          )
+          .addCommand(
+            new Command("add")
+              .argument("<orgSlug>", "Organization slug")
+              .argument("<identifier>", "Document name or ID")
+              .option("--label <title>", "Label title")
+              .option("--label-id <id>", "Label ID")
+              .description("Add a label to a document")
+              .action(labelsAdd),
+          )
+          .addCommand(
+            new Command("remove")
+              .argument("<orgSlug>", "Organization slug")
+              .argument("<identifier>", "Document name or ID")
+              .option("--label <title>", "Label title")
+              .option("--label-id <id>", "Label ID")
+              .description("Remove a label from a document")
+              .action(labelsRemove),
+          ),
       ),
   );
 

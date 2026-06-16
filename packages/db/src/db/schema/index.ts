@@ -8,6 +8,7 @@ import {
   integer,
   index,
   uniqueIndex,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { generateId } from "@better-auth/core/utils/id";
 
@@ -184,12 +185,79 @@ export const invitation = pgTable(
   ],
 );
 
+// Labels — LabelColor type
+export const LABEL_COLORS = [
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "teal",
+  "blue",
+  "indigo",
+  "purple",
+  "pink",
+  "brown",
+  "gray",
+  "black",
+] as const;
+
+export type LabelColor = (typeof LABEL_COLORS)[number];
+
+// Labels
+export const labels = pgTable(
+  "labels",
+  {
+    id: text("id").primaryKey().$defaultFn(() => generateId()),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 50 }).notNull(),
+    color: varchar("color", { length: 16 }).notNull(),
+    description: varchar("description", { length: 500 }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id),
+    createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+    updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+    archivedAt: timestamp("archived_at"),
+  },
+  (table) => [
+    uniqueIndex("labels_org_id_title_idx").on(table.organizationId, table.title),
+    index("labels_organization_id_idx").on(table.organizationId),
+    index("labels_archived_idx").on(table.archivedAt),
+  ],
+);
+
+// Document-label join table
+export const documentLabels = pgTable(
+  "document_labels",
+  {
+    documentId: text("document_id")
+      .notNull()
+      .references(() => documents.id, { onDelete: "cascade" }),
+    labelId: text("label_id")
+      .notNull()
+      .references(() => labels.id, { onDelete: "cascade" }),
+    appliedAt: timestamp("applied_at").$defaultFn(() => new Date()).notNull(),
+    appliedBy: text("applied_by")
+      .notNull()
+      .references(() => user.id),
+  },
+  (table) => [
+    primaryKey({ columns: [table.documentId, table.labelId] }),
+    index("document_labels_label_id_idx").on(table.labelId),
+    index("document_labels_document_id_idx").on(table.documentId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   members: many(member),
   invitations: many(invitation),
   documents: many(documents),
+  createdLabels: many(labels),
+  appliedDocumentLabels: many(documentLabels),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -210,6 +278,7 @@ export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
   organizationDocuments: many(organizationDocuments),
+  labels: many(labels),
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({
@@ -276,6 +345,7 @@ export const documentRelations = relations(documents, ({ one, many }) => ({
     references: [user.id],
   }),
   organizationDocuments: many(organizationDocuments),
+  documentLabels: many(documentLabels),
 }));
 
 export const organizationDocumentRelations = relations(
@@ -291,3 +361,30 @@ export const organizationDocumentRelations = relations(
     }),
   }),
 );
+
+export const labelRelations = relations(labels, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [labels.organizationId],
+    references: [organization.id],
+  }),
+  creator: one(user, {
+    fields: [labels.createdBy],
+    references: [user.id],
+  }),
+  documentLabels: many(documentLabels),
+}));
+
+export const documentLabelRelations = relations(documentLabels, ({ one }) => ({
+  document: one(documents, {
+    fields: [documentLabels.documentId],
+    references: [documents.id],
+  }),
+  label: one(labels, {
+    fields: [documentLabels.labelId],
+    references: [labels.id],
+  }),
+  applicator: one(user, {
+    fields: [documentLabels.appliedBy],
+    references: [user.id],
+  }),
+}));

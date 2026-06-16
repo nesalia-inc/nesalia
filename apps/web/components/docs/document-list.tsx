@@ -99,6 +99,7 @@ export function DocumentList({ orgId, orgSlug }: DocumentListProps) {
               visibility={doc.visibility}
               archivedAt={doc.archivedAt}
               orgSlug={orgSlug}
+              documentId={doc.documentId}
             />
           ))}
         </div>

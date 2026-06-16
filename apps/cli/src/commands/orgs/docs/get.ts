@@ -23,7 +23,6 @@ const _get = async (credentials: StoredCredentials, id: string): Promise<void> =
     log.success(`Document: ${result.name}`);
     log.info(`Type: ${result.type}`);
     log.info(`Visibility: ${result.visibility}`);
-    log.info(`Tags: ${result.tags?.join(", ") ?? "none"}`);
 
     if (result.content) {
       log.info("\n--- Content ---");

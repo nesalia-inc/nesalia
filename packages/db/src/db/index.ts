@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, and, or, isNull, asc, gt, ilike, inArray } from "drizzle-orm";
+import { eq, and, or, isNull, asc, gt, ilike, inArray, count, sql } from "drizzle-orm";
 import * as schema from "./schema";
 
 let pool: Pool | null = null;
@@ -36,6 +36,6 @@ export const db = new Proxy({} as ReturnType<typeof drizzle<typeof schema>>, {
 });
 
 // Re-export helpers from same drizzle instance for type compatibility
-export { eq, and, or, isNull, asc, gt, ilike, inArray };
+export { eq, and, or, isNull, asc, gt, ilike, inArray, count, sql };
 
 export * from "./schema";
